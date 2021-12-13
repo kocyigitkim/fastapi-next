@@ -1,0 +1,1 @@
+{"version":3,"file":"NextRouteBuilder.d.ts","sourceRoot":"","sources":["../../src/routing/NextRouteBuilder.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,eAAe,EAAe,MAAM,IAAI,CAAC;AAGlD,qBAAa,gBAAgB;IACzB,OAAO,CAAC,KAAK,CAAgB;gBACjB,GAAG,EAAE,eAAe;IAShC,OAAO,CAAC,aAAa;IAoBrB,OAAO,CAAC,eAAe;IAuCvB,OAAO,CAAC,OAAO;CAsBlB"}
