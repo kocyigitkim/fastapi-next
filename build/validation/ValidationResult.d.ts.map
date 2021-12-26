@@ -1,0 +1,1 @@
+{"version":3,"file":"ValidationResult.d.ts","sourceRoot":"","sources":["../../src/validation/ValidationResult.ts"],"names":[],"mappings":"AAAA,qBAAa,gBAAgB;IAClB,MAAM,EAAE,eAAe,EAAE,CAAM;IAC/B,OAAO,EAAE,OAAO,CAAQ;IACxB,KAAK,CAAC,KAAK,EAAE,MAAM,EAAE,OAAO,EAAE,MAAM;CAO9C;AACD,qBAAa,eAAe;IACjB,KAAK,EAAE,MAAM,CAAC;IACd,OAAO,EAAE,MAAM,CAAC;CAC1B"}

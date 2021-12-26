@@ -6,6 +6,7 @@ import { NextConsoleLog, NextLog } from './NextLog';
 import { NextProfiler, NextProfilerOptions } from './NextProfiler';
 import { NextRegistry } from './NextRegistry';
 import { NextRouteBuilder } from './routing/NextRouteBuilder';
+import cors from 'cors'
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -17,6 +18,11 @@ export class NextApplication extends EventEmitter {
         super();
         this.options = options;
         this.express = express();
+        // ? Default Express Plugins
+        this.express.use(cors(options.cors));
+        this.express.use(express.json({ type: 'application/json' }));
+        this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded' }));
+
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
@@ -24,20 +30,17 @@ export class NextApplication extends EventEmitter {
     public async init(): Promise<void> {
         NextInitializationHeader();
         this.emit('preinit', this);
-        this.routeBuilder = new NextRouteBuilder(this);
-        this.emit('init', this);
-
-    }
-    public async start(): Promise<void> {
-        NextRunning();
-        this.emit('start', this);
 
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
 
-        this.express.use(this.registry.middleware);
-
+        this.routeBuilder = new NextRouteBuilder(this);
+        this.emit('init', this);
+    }
+    public async start(): Promise<void> {
+        NextRunning();
+        this.emit('start', this);
         this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });

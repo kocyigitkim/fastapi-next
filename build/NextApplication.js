@@ -11,11 +11,16 @@ const NextLog_1 = require("./NextLog");
 const NextProfiler_1 = require("./NextProfiler");
 const NextRegistry_1 = require("./NextRegistry");
 const NextRouteBuilder_1 = require("./routing/NextRouteBuilder");
+const cors_1 = __importDefault(require("cors"));
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
         this.options = options;
         this.express = (0, express_1.default)();
+        // ? Default Express Plugins
+        this.express.use((0, cors_1.default)(options.cors));
+        this.express.use(express_1.default.json({ type: 'application/json' }));
+        this.express.use(express_1.default.urlencoded({ type: 'application/x-www-form-urlencoded' }));
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
@@ -23,16 +28,15 @@ class NextApplication extends events_1.default {
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
+        for (var plugin of this.registry.getPlugins()) {
+            await plugin.init(this);
+        }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
         this.emit('init', this);
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();
         this.emit('start', this);
-        for (var plugin of this.registry.getPlugins()) {
-            await plugin.init(this);
-        }
-        this.express.use(this.registry.middleware);
         this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });

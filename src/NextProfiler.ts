@@ -1,6 +1,6 @@
 import { Application, NextFunction, Request, Response } from "express";
 import { NextApplication } from ".";
-import { NextContext } from "./NextContext";
+import { NextContextBase } from "./NextContext";
 import { precisionRound } from "./utils";
 
 export class NextProfilerOptions {

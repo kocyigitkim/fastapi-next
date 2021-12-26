@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextRouteResponseStatus = exports.NextRouteResponse = void 0;
 class NextRouteResponse {
-    constructor(statusCode = NextRouteResponseStatus.NOT_FOUND, body = null, hasBody = false) {
+    constructor(statusCode = NextRouteResponseStatus.NOT_FOUND, body = null, hasBody = false, headers = null) {
         this.statusCode = statusCode;
         this.body = body;
         this.hasBody = hasBody;
+        this.headers = headers;
     }
 }
 exports.NextRouteResponse = NextRouteResponse;

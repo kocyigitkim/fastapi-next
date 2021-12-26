@@ -10,17 +10,39 @@ class NextFile {
 }
 exports.NextFile = NextFile;
 class NextFileResolverPlugin extends __1.NextPlugin {
-    constructor() {
+    constructor(config = {}) {
         super("file-resolver");
-        this.client = (0, multer_1.default)();
+        this.config = config;
     }
     async init(next) {
         next.log.info("File resolver plugin initialized");
+        next.express.use((0, multer_1.default)(this.config).any());
+        this.app = next;
     }
     async middleware(next) {
-        this.client.any()(next.req, next.res, () => { });
-        next.files = next.req.files || [];
-        next.fileCount = next.files.length;
+        if (!next.headers["content-type"] || next.headers["content-type"].indexOf("multipart/form-data") < 0) {
+            return true;
+        }
+        if (Array.isArray(next.req.files)) {
+            next.files = next.req.files;
+            next.fileCount = next.req.files.length;
+            for (var file of next.req.files) {
+                if (!next.body[file.fieldname]) {
+                    next.body[file.fieldname] = [file];
+                }
+                else {
+                    next.body[file.fieldname].push(file);
+                }
+            }
+        }
+        else {
+            next.fileCount = 0;
+            for (var field in next.req.files) {
+                var fieldValue = next.req.files[field];
+                next.body[field] = fieldValue;
+                next.fileCount += fieldValue.length;
+            }
+        }
         return true;
     }
 }

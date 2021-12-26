@@ -2,7 +2,12 @@ export declare class NextRouteResponse {
     statusCode: NextRouteResponseStatus;
     body: any;
     hasBody: Boolean;
-    constructor(statusCode?: NextRouteResponseStatus, body?: any, hasBody?: Boolean);
+    headers: {
+        [key: string]: string;
+    };
+    constructor(statusCode?: NextRouteResponseStatus, body?: any, hasBody?: Boolean, headers?: {
+        [key: string]: string;
+    });
 }
 export declare enum NextRouteResponseStatus {
     OK = 0,

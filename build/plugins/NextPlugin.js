@@ -9,9 +9,12 @@ class NextPlugin {
     async init(next) {
     }
     async middleware(next) {
-        return false;
+        return true;
     }
     async destroy(next) {
+    }
+    async retrieve(next) {
+        return null;
     }
 }
 exports.NextPlugin = NextPlugin;

@@ -1,13 +1,16 @@
 import { NextApplication } from "../NextApplication";
-import { NextContext } from "../NextContext";
+import { NextContextBase } from "../NextContext";
 
-export class NextPlugin {
+export class NextPlugin<T> {
     constructor(public name: string, public showInContext: boolean = false) { }
     public async init(next: NextApplication) {
     }
-    public async middleware(next: NextContext): Promise<boolean> {
-        return false;
+    public async middleware(next: NextContextBase): Promise<boolean> {
+        return true;
     }
     public async destroy(next: NextApplication) {
+    }
+    public async retrieve(next: NextContextBase) : Promise<T>{
+        return null;
     }
 }

@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextRouteBuilder = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const stream_1 = require("stream");
 const __1 = require("..");
+const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
 class NextRouteBuilder {
     constructor(app) {
@@ -25,7 +27,7 @@ class NextRouteBuilder {
             return part.replace(/\[/g, ":").replace(/\]/g, "");
         }).join("/");
         var specificMethod = path_1.default.basename(expressRoutePath).split(".")[1];
-        var httpMethod = expressRoutePath.indexOf(":") > -1 ? "get" : (specificMethod || "all");
+        var httpMethod = expressRoutePath.indexOf(":") > -1 ? "get" : (specificMethod || "get");
         if (specificMethod == httpMethod && specificMethod) {
             expressRoutePath = expressRoutePath.replace("." + specificMethod, "");
         }
@@ -40,13 +42,32 @@ class NextRouteBuilder {
     }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
-            var ctx = new __1.NextContext(req, res, next);
+            var ctx = new __1.NextContextBase(req, res, next);
             for (var plugin of app.registry.getPlugins()) {
-                if (!plugin.middleware(ctx)) {
+                if (!(await plugin.middleware.call(plugin, ctx).catch(app.log.error))) {
                     break;
                 }
                 if (plugin.showInContext) {
-                    ctx[plugin.name] = plugin;
+                    ctx[plugin.name] = await plugin.retrieve.call(plugin, ctx);
+                }
+            }
+            if (route.validate) {
+                try {
+                    var validationResult = route.validate(ctx);
+                    if (validationResult instanceof Promise) {
+                        validationResult = await validationResult.catch(app.log.error);
+                    }
+                    if (!validationResult || !validationResult.success) {
+                        res.status(500).json(new __1.ApiResponse(false, "validation error!", validationResult));
+                        return;
+                    }
+                }
+                catch (err) {
+                    app.log.error(err);
+                    var errorResult = new ValidationResult_1.ValidationResult();
+                    errorResult.error("err", (err || new Error()).toString());
+                    res.status(500).json(new __1.ApiResponse(false, "validation error!", errorResult));
+                    return;
                 }
             }
             var result = route.default(ctx);
@@ -59,20 +80,28 @@ class NextRouteBuilder {
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
                 if (result.hasBody) {
-                    res.status(result.statusCode).send(result.body);
+                    if (result.body instanceof stream_1.Stream) {
+                        res.status(result.statusCode);
+                        result.body.pipe(res);
+                    }
+                    else {
+                        res.status(result.statusCode).send(result.body);
+                    }
                 }
                 else {
                     res.status(result.statusCode).end();
                 }
             }
             else {
+                res.set("Content-Type", "application/json");
                 if (isError) {
-                    res.status(500).send(result);
+                    res.status(500).json(result);
                 }
                 else {
-                    res.status(200).send(result);
+                    res.status(200).json(result);
                 }
             }
+            next();
         };
     }
     scanDir(scanPath) {

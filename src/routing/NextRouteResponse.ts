@@ -3,6 +3,7 @@ export class NextRouteResponse {
         public statusCode: NextRouteResponseStatus = NextRouteResponseStatus.NOT_FOUND,
         public body: any = null,
         public hasBody: Boolean = false,
+        public headers: { [key: string]: string } = null
     ) { }
 }
 
