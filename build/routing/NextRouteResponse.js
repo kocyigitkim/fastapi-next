@@ -12,8 +12,8 @@ class NextRouteResponse {
 exports.NextRouteResponse = NextRouteResponse;
 var NextRouteResponseStatus;
 (function (NextRouteResponseStatus) {
-    NextRouteResponseStatus[NextRouteResponseStatus["OK"] = 0] = "OK";
-    NextRouteResponseStatus[NextRouteResponseStatus["NOT_FOUND"] = 1] = "NOT_FOUND";
-    NextRouteResponseStatus[NextRouteResponseStatus["BAD_REQUEST"] = 2] = "BAD_REQUEST";
-    NextRouteResponseStatus[NextRouteResponseStatus["INTERNAL_SERVER_ERROR"] = 3] = "INTERNAL_SERVER_ERROR";
+    NextRouteResponseStatus[NextRouteResponseStatus["OK"] = 200] = "OK";
+    NextRouteResponseStatus[NextRouteResponseStatus["NOT_FOUND"] = 404] = "NOT_FOUND";
+    NextRouteResponseStatus[NextRouteResponseStatus["BAD_REQUEST"] = 400] = "BAD_REQUEST";
+    NextRouteResponseStatus[NextRouteResponseStatus["INTERNAL_SERVER_ERROR"] = 500] = "INTERNAL_SERVER_ERROR";
 })(NextRouteResponseStatus = exports.NextRouteResponseStatus || (exports.NextRouteResponseStatus = {}));

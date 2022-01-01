@@ -8,8 +8,8 @@ export class NextRouteResponse {
 }
 
 export enum NextRouteResponseStatus {
-    OK,
-    NOT_FOUND,
-    BAD_REQUEST,
-    INTERNAL_SERVER_ERROR
+    OK = 200,
+    NOT_FOUND = 404,
+    BAD_REQUEST = 400,
+    INTERNAL_SERVER_ERROR = 500
 }

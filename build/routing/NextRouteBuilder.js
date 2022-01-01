@@ -82,7 +82,11 @@ class NextRouteBuilder {
                 if (result.hasBody) {
                     if (result.body instanceof stream_1.Stream) {
                         res.status(result.statusCode);
+                        for (var header in result.headers) {
+                            res.setHeader(header, result.headers[header]);
+                        }
                         result.body.pipe(res);
+                        return;
                     }
                     else {
                         res.status(result.statusCode).send(result.body);

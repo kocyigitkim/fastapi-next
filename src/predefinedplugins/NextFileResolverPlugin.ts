@@ -1,4 +1,3 @@
-import formidable from "formidable";
 import multer, { Multer, Options as MulterOptions } from "multer";
 import { NextApplication, NextContextBase, NextPlugin } from "..";
 

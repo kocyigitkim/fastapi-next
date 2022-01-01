@@ -10,9 +10,9 @@ export declare class NextRouteResponse {
     });
 }
 export declare enum NextRouteResponseStatus {
-    OK = 0,
-    NOT_FOUND = 1,
-    BAD_REQUEST = 2,
-    INTERNAL_SERVER_ERROR = 3
+    OK = 200,
+    NOT_FOUND = 404,
+    BAD_REQUEST = 400,
+    INTERNAL_SERVER_ERROR = 500
 }
 //# sourceMappingURL=NextRouteResponse.d.ts.map

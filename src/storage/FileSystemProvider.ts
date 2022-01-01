@@ -113,6 +113,9 @@ export class FileSystemProvider {
     }
     public async setFile(filePath: string, data: Buffer): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (!fs.existsSync(this.config.rootPath)) {
+                fs.mkdirSync(this.config.rootPath);
+            }
             fs.writeFile(path.join(this.config.rootPath, filePath), data, (err) => {
                 if (err) {
                     reject(err);
@@ -124,6 +127,9 @@ export class FileSystemProvider {
     }
     public async setFileStream(filePath: string, stream: Stream): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (!fs.existsSync(this.config.rootPath)) {
+                fs.mkdirSync(this.config.rootPath);
+            }
             var writeStream = fs.createWriteStream(path.join(this.config.rootPath, filePath));
             stream.pipe(writeStream);
             writeStream.on('error', (err) => {
