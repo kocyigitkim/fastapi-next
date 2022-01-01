@@ -90,10 +90,12 @@ class NextRouteBuilder {
                     }
                     else {
                         res.status(result.statusCode).send(result.body);
+                        return;
                     }
                 }
                 else {
                     res.status(result.statusCode).end();
+                    return;
                 }
             }
             else {
@@ -104,6 +106,7 @@ class NextRouteBuilder {
                 else {
                     res.status(200).json(result);
                 }
+                return;
             }
             next();
         };

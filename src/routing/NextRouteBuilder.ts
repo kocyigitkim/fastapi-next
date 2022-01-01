@@ -81,7 +81,7 @@ export class NextRouteBuilder {
                 if (result.hasBody) {
                     if (result.body instanceof Stream) {
                         res.status(result.statusCode);
-                        for(var header in result.headers){
+                        for (var header in result.headers) {
                             res.setHeader(header, result.headers[header]);
                         }
                         result.body.pipe(res);
@@ -89,9 +89,11 @@ export class NextRouteBuilder {
                     }
                     else {
                         res.status(result.statusCode).send(result.body);
+                        return;
                     }
                 } else {
                     res.status(result.statusCode).end();
+                    return;
                 }
             }
             else {
@@ -102,6 +104,7 @@ export class NextRouteBuilder {
                 else {
                     res.status(200).json(result);
                 }
+                return;
             }
             next();
         };
