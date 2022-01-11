@@ -16,6 +16,8 @@ class NextDebug {
         this.error = this.error.bind(this);
     }
     complete() {
+        if (!this.profiler.app.options.debug)
+            return;
         var elapsed = (new Date().valueOf() - this.requestDate.valueOf());
         var log = this.profiler.app.log;
         log.log(`${this.context.method} ${this.context.path} completed in ${elapsed} ms`);

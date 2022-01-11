@@ -8,6 +8,7 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const stream_1 = require("stream");
 const __1 = require("..");
+const NextFlag_1 = require("../NextFlag");
 const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
 class NextRouteBuilder {
@@ -44,8 +45,14 @@ class NextRouteBuilder {
         return async (route, req, res, next) => {
             var ctx = new __1.NextContextBase(req, res, next);
             for (var plugin of app.registry.getPlugins()) {
-                if (!(await plugin.middleware.call(plugin, ctx).catch(app.log.error))) {
+                var mwResult = await plugin.middleware.call(plugin, ctx).catch(app.log.error);
+                if (typeof mwResult === 'boolean' && !mwResult) {
                     break;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag_1.NextFlag.Exit) {
+                        return;
+                    }
                 }
                 if (plugin.showInContext) {
                     ctx[plugin.name] = await plugin.retrieve.call(plugin, ctx);

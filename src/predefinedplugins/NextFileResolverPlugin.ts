@@ -1,5 +1,6 @@
 import multer, { Multer, Options as MulterOptions } from "multer";
 import { NextApplication, NextContextBase, NextPlugin } from "..";
+import { NextFlag } from "../NextFlag";
 
 export class NextFile {
     public path: string;
@@ -19,7 +20,7 @@ export class NextFileResolverPlugin extends NextPlugin<any> {
         next.express.use(multer(this.config).any());
         this.app = next;
     }
-    public async middleware(next: NextContextBase): Promise<boolean> {
+    public async middleware(next: NextContextBase): Promise<boolean | NextFlag> {
         if (!next.headers["content-type"] || next.headers["content-type"].indexOf("multipart/form-data") < 0) {
             return true;
         }

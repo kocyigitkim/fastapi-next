@@ -13,3 +13,4 @@ export { ISessionStore } from './session/ISessionStore'
 export { InMemorySessionStore, InMemorySessionConfig } from './session/InMemorySessionStore'
 export { ApiResponse } from './ApiResponse';
 export { FileSystemProvider, FileSystemProviderConfig } from './storage/FileSystemProvider';
+export { NextFlag } from './NextFlag'
