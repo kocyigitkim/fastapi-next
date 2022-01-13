@@ -1,0 +1,1 @@
+{"version":3,"file":"NextPermission.d.ts","sourceRoot":"","sources":["../../src/authorization/NextPermission.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,cAAc;IAC3B,MAAM,EAAE,MAAM,CAAC;IACf,IAAI,EAAE,MAAM,CAAC;IACb,MAAM,EAAE,MAAM,EAAE,CAAC;CACpB"}

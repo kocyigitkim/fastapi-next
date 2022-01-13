@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextFlag = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
+exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
 var NextKnexPlugin_1 = require("./predefinedplugins/NextKnexPlugin");
 Object.defineProperty(exports, "NextKnexPlugin", { enumerable: true, get: function () { return NextKnexPlugin_1.NextKnexPlugin; } });
 exports.RequestParams = __importStar(require("./RequestParams"));
@@ -52,5 +52,9 @@ Object.defineProperty(exports, "ApiResponse", { enumerable: true, get: function 
 var FileSystemProvider_1 = require("./storage/FileSystemProvider");
 Object.defineProperty(exports, "FileSystemProvider", { enumerable: true, get: function () { return FileSystemProvider_1.FileSystemProvider; } });
 Object.defineProperty(exports, "FileSystemProviderConfig", { enumerable: true, get: function () { return FileSystemProvider_1.FileSystemProviderConfig; } });
+var NextAuthorization_1 = require("./authorization/NextAuthorization");
+Object.defineProperty(exports, "NextAuthorization", { enumerable: true, get: function () { return NextAuthorization_1.NextAuthorization; } });
+var NextAuthorizationBase_1 = require("./authorization/NextAuthorizationBase");
+Object.defineProperty(exports, "NextAuthorizationBase", { enumerable: true, get: function () { return NextAuthorizationBase_1.NextAuthorizationBase; } });
 var NextFlag_1 = require("./NextFlag");
 Object.defineProperty(exports, "NextFlag", { enumerable: true, get: function () { return NextFlag_1.NextFlag; } });

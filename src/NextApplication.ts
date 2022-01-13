@@ -7,6 +7,8 @@ import { NextProfiler, NextProfilerOptions } from './NextProfiler';
 import { NextRegistry } from './NextRegistry';
 import { NextRouteBuilder } from './routing/NextRouteBuilder';
 import cors from 'cors'
+import { NextSessionManager } from '.';
+import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -22,10 +24,15 @@ export class NextApplication extends EventEmitter {
         this.express.use(cors(options.cors));
         this.express.use(express.json({ type: 'application/json' }));
         this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded' }));
-
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
+    }
+    public async registerInMemorySession() {
+        this.express.use(new NextSessionManager(null).use);
+    }
+    public async registerRedisSession(config: RedisOptions) {
+        this.express.use(new NextSessionManager(new RedisSessionStore(config).store).use);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();

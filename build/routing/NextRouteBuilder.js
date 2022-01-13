@@ -58,6 +58,14 @@ class NextRouteBuilder {
                     ctx[plugin.name] = await plugin.retrieve.call(plugin, ctx);
                 }
             }
+            // ? Permission
+            if (app.options.authorization) {
+                if (!await app.options.authorization.check(ctx)) {
+                    res.status(403).json(new __1.ApiResponse().setError("Forbidden"));
+                    return;
+                }
+            }
+            // ? Validation
             if (route.validate) {
                 try {
                     var validationResult = route.validate(ctx);
@@ -77,6 +85,7 @@ class NextRouteBuilder {
                     return;
                 }
             }
+            // ? Execution
             var result = route.default(ctx);
             var isError = false;
             if (result instanceof Promise) {

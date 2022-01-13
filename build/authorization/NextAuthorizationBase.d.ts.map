@@ -1,0 +1,1 @@
+{"version":3,"file":"NextAuthorizationBase.d.ts","sourceRoot":"","sources":["../../src/authorization/NextAuthorizationBase.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,IAAI,CAAC;AAErC,qBAAa,qBAAqB;IACjB,KAAK,CAAC,GAAG,EAAE,eAAe,GAAI,OAAO,CAAC,OAAO,CAAC;IAG9C,IAAI;CAEpB"}

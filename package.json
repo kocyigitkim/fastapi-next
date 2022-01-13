@@ -1,6 +1,6 @@
 {
   "name": "fastapi-next",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Next Generation of Fast Api",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/kocyigitkim/fastapi-next#readme",
   "dependencies": {
+    "connect-redis": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "http": "0.0.1-security",
@@ -35,19 +36,22 @@
     "moment": "^2.29.1",
     "multer": "^1.4.4",
     "node-fetch": "^3.1.0",
+    "redis": "^4.0.1",
     "uuid": "^8.3.2",
     "validator": "^13.7.0"
   },
   "devDependencies": {
-    "@types/multer": "^1.4.7",
+    "@types/connect-redis": "^0.0.18",
     "@types/cors": "^2.8.12",
-    "@types/uuid": "^8.3.3",
-    "@types/knex": "^0.16.1",
     "@types/express": "^4.17.13",
+    "@types/knex": "^0.16.1",
+    "@types/multer": "^1.4.7",
     "@types/node": "^16.11.12",
     "@types/node-fetch": "^3.0.3",
+    "@types/redis": "^4.0.11",
+    "@types/uuid": "^8.3.3",
+    "rimraf": "^3.0.2",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.3",
-    "rimraf": "^3.0.2"
+    "typescript": "^4.5.3"
   }
 }

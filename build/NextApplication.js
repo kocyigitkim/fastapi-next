@@ -12,6 +12,8 @@ const NextProfiler_1 = require("./NextProfiler");
 const NextRegistry_1 = require("./NextRegistry");
 const NextRouteBuilder_1 = require("./routing/NextRouteBuilder");
 const cors_1 = __importDefault(require("cors"));
+const _1 = require(".");
+const RedisSessionStore_1 = require("./session/RedisSessionStore");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
@@ -24,6 +26,12 @@ class NextApplication extends events_1.default {
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
+    }
+    async registerInMemorySession() {
+        this.express.use(new _1.NextSessionManager(null).use);
+    }
+    async registerRedisSession(config) {
+        this.express.use(new _1.NextSessionManager(new RedisSessionStore_1.RedisSessionStore(config).store).use);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();

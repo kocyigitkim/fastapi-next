@@ -5,6 +5,7 @@ import { Stream } from 'stream';
 import { ApiResponse, NextApplication, NextContextBase } from '..';
 import { NextFlag } from '../NextFlag';
 import { ValidationResult } from '../validation/ValidationResult';
+import { NextRouteAction } from './NextRouteAction';
 import { NextRouteResponse } from './NextRouteResponse';
 
 export class NextRouteBuilder {
@@ -31,7 +32,7 @@ export class NextRouteBuilder {
         if (app.options.debug) {
             app.log.info(`Registering route ${httpMethod} ${expressRoutePath}`);
         }
-        var route = require(realpath);
+        var route: NextRouteAction = require(realpath);
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
         if (parts.length > 1 && parts[parts.length - 1] === "index") {
             app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
@@ -58,6 +59,15 @@ export class NextRouteBuilder {
                 }
             }
 
+            // ? Permission
+            if (app.options.authorization) {
+                if (!await app.options.authorization.check(ctx)) {
+                    res.status(403).json(new ApiResponse().setError("Forbidden"))
+                    return;
+                }
+            }
+
+            // ? Validation
             if (route.validate) {
                 try {
                     var validationResult = route.validate(ctx);
@@ -76,6 +86,8 @@ export class NextRouteBuilder {
                     return;
                 }
             }
+            
+            // ? Execution
             var result = route.default(ctx);
             var isError = false;
             if (result instanceof Promise) {

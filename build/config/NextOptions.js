@@ -7,6 +7,7 @@ class NextOptions {
         this.port = 5000;
         this.routerDirs = [];
         this.cors = null;
+        this.authorization = null;
     }
 }
 exports.NextOptions = NextOptions;
