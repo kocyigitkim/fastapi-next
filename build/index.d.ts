@@ -11,6 +11,7 @@ export { ValidationResult, ValidationError } from './validation/ValidationResult
 export { NextSessionManager } from './session/NextSessionManager';
 export { ISessionStore } from './session/ISessionStore';
 export { InMemorySessionStore, InMemorySessionConfig } from './session/InMemorySessionStore';
+export { RedisSessionStore, RedisOptions } from './session/RedisSessionStore';
 export { ApiResponse } from './ApiResponse';
 export { FileSystemProvider, FileSystemProviderConfig } from './storage/FileSystemProvider';
 export { NextAuthorization } from './authorization/NextAuthorization';

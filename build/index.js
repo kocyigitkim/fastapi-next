@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
+exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
 var NextKnexPlugin_1 = require("./plugins/NextKnexPlugin");
 Object.defineProperty(exports, "NextKnexPlugin", { enumerable: true, get: function () { return NextKnexPlugin_1.NextKnexPlugin; } });
 exports.RequestParams = __importStar(require("./RequestParams"));
@@ -47,6 +47,8 @@ var ISessionStore_1 = require("./session/ISessionStore");
 Object.defineProperty(exports, "ISessionStore", { enumerable: true, get: function () { return ISessionStore_1.ISessionStore; } });
 var InMemorySessionStore_1 = require("./session/InMemorySessionStore");
 Object.defineProperty(exports, "InMemorySessionStore", { enumerable: true, get: function () { return InMemorySessionStore_1.InMemorySessionStore; } });
+var RedisSessionStore_1 = require("./session/RedisSessionStore");
+Object.defineProperty(exports, "RedisSessionStore", { enumerable: true, get: function () { return RedisSessionStore_1.RedisSessionStore; } });
 var ApiResponse_1 = require("./ApiResponse");
 Object.defineProperty(exports, "ApiResponse", { enumerable: true, get: function () { return ApiResponse_1.ApiResponse; } });
 var FileSystemProvider_1 = require("./storage/FileSystemProvider");

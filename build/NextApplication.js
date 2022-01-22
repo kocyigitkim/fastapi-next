@@ -30,8 +30,10 @@ class NextApplication extends events_1.default {
     async registerInMemorySession() {
         this.express.use(new _1.NextSessionManager(null).use);
     }
-    async registerRedisSession(config) {
-        this.express.use(new _1.NextSessionManager(new RedisSessionStore_1.RedisSessionStore(config).store).use);
+    async registerRedisSession(config, ttl = 30 * 60) {
+        var session = new RedisSessionStore_1.RedisSessionStore(config, ttl);
+        await session.client.connect();
+        this.express.use(new _1.NextSessionManager(session).use);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();

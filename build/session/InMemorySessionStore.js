@@ -32,24 +32,29 @@ class InMemorySessionStore extends ISessionStore_1.ISessionStore {
     get(id, callback) {
         var v = this.store[id];
         if (v && v.value) {
-            callback(null, v.value);
+            if (callback)
+                callback(null, v.value);
         }
         else {
-            callback("Session not exists", v);
+            if (callback)
+                callback("Session not exists", v);
         }
     }
     set(id, value, callback) {
         this.store[id] = { value: value, ttl: new Date(new Date().valueOf() + this.targetTTL + 1000) };
-        callback(null, this);
+        if (callback)
+            callback(null, this);
     }
     destroy(id, callback) {
         var v = this.store[id];
         if (v && v.value) {
             delete this.store[id];
-            callback(null, v.value);
+            if (callback)
+                callback(null, v.value);
         }
         else {
-            callback("Session not exists", v);
+            if (callback)
+                callback("Session not exists", v);
         }
     }
 }

@@ -10,6 +10,7 @@ import cors from 'cors'
 import { NextSessionManager } from '.';
 import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
 import http from 'http'
+import { RedisClientOptions } from 'redis';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -33,8 +34,10 @@ export class NextApplication extends EventEmitter {
     public async registerInMemorySession() {
         this.express.use(new NextSessionManager(null).use);
     }
-    public async registerRedisSession(config: RedisOptions) {
-        this.express.use(new NextSessionManager(new RedisSessionStore(config).store).use);
+    public async registerRedisSession(config: RedisClientOptions<any, any>, ttl: number = 30 * 60) {
+        var session = new RedisSessionStore(config, ttl);
+        await session.client.connect();
+        this.express.use(new NextSessionManager(session).use);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();

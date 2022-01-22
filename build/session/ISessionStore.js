@@ -1,11 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ISessionStore = void 0;
-const events_1 = require("events");
 const noop = () => { };
 class ISessionStore {
     constructor() {
-        events_1.EventEmitter.call(this);
     }
     init(manager, cb = noop) { }
     get(sid, cb = noop) { }
