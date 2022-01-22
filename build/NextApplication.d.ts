@@ -7,6 +7,7 @@ import { NextProfiler } from './NextProfiler';
 import { NextRegistry } from './NextRegistry';
 import { NextRouteBuilder } from './routing/NextRouteBuilder';
 import { RedisOptions } from './session/RedisSessionStore';
+import http from 'http';
 export declare class NextApplication extends EventEmitter {
     express: express.Application;
     registry: NextRegistry;
@@ -14,6 +15,7 @@ export declare class NextApplication extends EventEmitter {
     log: NextLog;
     profiler: NextProfiler;
     routeBuilder: NextRouteBuilder;
+    server: http.Server;
     constructor(options: NextOptions);
     registerInMemorySession(): Promise<void>;
     registerRedisSession(config: RedisOptions): Promise<void>;

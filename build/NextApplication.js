@@ -44,10 +44,10 @@ class NextApplication extends events_1.default {
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();
-        this.emit('start', this);
-        this.express.listen(this.options.port, () => {
+        this.server = this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
+        this.emit('start', this);
     }
     async stop() {
         this.emit('stop', this);

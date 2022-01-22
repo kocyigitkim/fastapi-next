@@ -9,6 +9,7 @@ import { NextRouteBuilder } from './routing/NextRouteBuilder';
 import cors from 'cors'
 import { NextSessionManager } from '.';
 import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
+import http from 'http'
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -16,6 +17,7 @@ export class NextApplication extends EventEmitter {
     public log: NextLog;
     public profiler: NextProfiler;
     public routeBuilder: NextRouteBuilder;
+    public server: http.Server;
     public constructor(options: NextOptions) {
         super();
         this.options = options;
@@ -47,10 +49,10 @@ export class NextApplication extends EventEmitter {
     }
     public async start(): Promise<void> {
         NextRunning();
-        this.emit('start', this);
-        this.express.listen(this.options.port, () => {
+        this.server = this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
+        this.emit('start', this);
     }
     public async stop(): Promise<void> {
         this.emit('stop', this);

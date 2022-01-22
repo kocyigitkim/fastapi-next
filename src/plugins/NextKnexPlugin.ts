@@ -1,5 +1,5 @@
 import knex, { Knex } from "knex";
-import { NextPlugin } from "../plugins/NextPlugin";
+import { NextPlugin } from "./NextPlugin";
 import { NextApplication } from "../NextApplication";
 import { NextContextBase } from "../NextContext";
 

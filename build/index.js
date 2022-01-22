@@ -20,7 +20,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
-var NextKnexPlugin_1 = require("./predefinedplugins/NextKnexPlugin");
+var NextKnexPlugin_1 = require("./plugins/NextKnexPlugin");
 Object.defineProperty(exports, "NextKnexPlugin", { enumerable: true, get: function () { return NextKnexPlugin_1.NextKnexPlugin; } });
 exports.RequestParams = __importStar(require("./RequestParams"));
 var NextApplication_1 = require("./NextApplication");
@@ -33,7 +33,7 @@ var NextRegistry_1 = require("./NextRegistry");
 Object.defineProperty(exports, "NextRegistry", { enumerable: true, get: function () { return NextRegistry_1.NextRegistry; } });
 var NextPlugin_1 = require("./plugins/NextPlugin");
 Object.defineProperty(exports, "NextPlugin", { enumerable: true, get: function () { return NextPlugin_1.NextPlugin; } });
-var NextFileResolverPlugin_1 = require("./predefinedplugins/NextFileResolverPlugin");
+var NextFileResolverPlugin_1 = require("./plugins/NextFileResolverPlugin");
 Object.defineProperty(exports, "NextFileResolverPlugin", { enumerable: true, get: function () { return NextFileResolverPlugin_1.NextFileResolverPlugin; } });
 var NextRouteResponse_1 = require("./routing/NextRouteResponse");
 Object.defineProperty(exports, "NextRouteResponse", { enumerable: true, get: function () { return NextRouteResponse_1.NextRouteResponse; } });
