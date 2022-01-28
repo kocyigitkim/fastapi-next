@@ -14,7 +14,8 @@ class NextSessionManager {
     async use(req, res, next) {
         const _self = this;
         var sessionId = req.header("sessionid");
-        var ip = formatIP(req.socket.remoteAddress);
+        var forwardedIP = req.header("x-forwarded-for");
+        var ip = formatIP(forwardedIP || req.socket.remoteAddress);
         var isV6 = checkIfValidIPV6(ip);
         var userAgent = req.headers['user-agent'];
         var isNewSession = false;
