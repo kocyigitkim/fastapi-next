@@ -3,7 +3,10 @@ import { InMemorySessionStore } from "..";
 import { ISessionStore } from "./ISessionStore";
 
 import { v4 as uuid } from 'uuid';
-import { waitCallback } from '../utils';
+import { checkIfValidIPV6, formatIP, isInternalIPAddress, waitCallback } from '../utils';
+export class NextSessionOptions {
+    public enableForwardedHeader: boolean = true;
+}
 export class NextSessionManager {
     constructor(public store: ISessionStore) {
         if (!this.store) this.store = new InMemorySessionStore({});
@@ -13,8 +16,9 @@ export class NextSessionManager {
     async use(req: Request & { session: any, sessionId: any, userAgent: any }, res: Response, next: NextFunction) {
         const _self = this;
         var sessionId = req.header("sessionid");
-        var forwardedIP = req.header("x-forwarded-for");
-        var ip = formatIP(forwardedIP || req.socket.remoteAddress);
+        var forwardedIP = (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
+        var ip = formatIP(req.socket.remoteAddress);
+        if (isInternalIPAddress(ip)) ip = formatIP(forwardedIP);
         var isV6 = checkIfValidIPV6(ip);
 
         var userAgent = req.headers['user-agent'];
@@ -65,22 +69,4 @@ export class NextSessionManager {
         req.sessionId = sessionId;
         next();
     }
-}
-
-function checkIfValidIPV6(str) {
-    // Regular expression to check if string is a IPv6 address
-    const regexExp = /(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/gi;
-
-    return regexExp.test(str);
-}
-function formatIP(str) {
-    if (!str) return null;
-
-    if (str === "::1") return "127.0.0.1";
-    if (
-        str === "::ffff:127.0.0.1" ||
-        str === "::ffff::1" ||
-        str.startsWith("::ffff")) return "127.0.0.1";
-
-    return str;
 }
