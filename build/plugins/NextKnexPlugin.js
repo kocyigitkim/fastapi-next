@@ -7,9 +7,10 @@ exports.NextKnexPlugin = void 0;
 const knex_1 = __importDefault(require("knex"));
 const NextPlugin_1 = require("./NextPlugin");
 class NextKnexPlugin extends NextPlugin_1.NextPlugin {
-    constructor(config) {
-        super("db", true);
+    constructor(config, pluginName = "db") {
+        super(pluginName, true);
         this.config = config;
+        this.pluginName = pluginName;
         this.knex = (0, knex_1.default)(config);
     }
     async init(app) {
