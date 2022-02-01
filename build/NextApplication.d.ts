@@ -8,6 +8,7 @@ import { NextRegistry } from './NextRegistry';
 import { NextRouteBuilder } from './routing/NextRouteBuilder';
 import http from 'http';
 import { RedisClientOptions } from 'redis';
+import { NextSessionOptions } from './session/NextSessionManager';
 export declare class NextApplication extends EventEmitter {
     express: express.Application;
     registry: NextRegistry;
@@ -17,8 +18,8 @@ export declare class NextApplication extends EventEmitter {
     routeBuilder: NextRouteBuilder;
     server: http.Server;
     constructor(options: NextOptions);
-    registerInMemorySession(): Promise<void>;
-    registerRedisSession(config: RedisClientOptions<any, any>, ttl?: number): Promise<void>;
+    registerInMemorySession(options?: NextSessionOptions): Promise<void>;
+    registerRedisSession(config: RedisClientOptions<any, any>, ttl?: number, options?: NextSessionOptions): Promise<void>;
     init(): Promise<void>;
     start(): Promise<void>;
     stop(): Promise<void>;

@@ -8,7 +8,7 @@ export { NextPlugin } from "./plugins/NextPlugin";
 export { NextFileResolverPlugin } from './plugins/NextFileResolverPlugin';
 export { NextRouteResponse, NextRouteResponseStatus } from './routing/NextRouteResponse';
 export { ValidationResult, ValidationError } from './validation/ValidationResult';
-export { NextSessionManager } from './session/NextSessionManager';
+export { NextSessionManager, NextSessionOptions } from './session/NextSessionManager';
 export { ISessionStore } from './session/ISessionStore';
 export { InMemorySessionStore, InMemorySessionConfig } from './session/InMemorySessionStore';
 export { RedisSessionStore, RedisOptions } from './session/RedisSessionStore';

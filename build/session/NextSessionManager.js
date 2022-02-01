@@ -7,19 +7,25 @@ const utils_1 = require("../utils");
 class NextSessionOptions {
     constructor() {
         this.enableForwardedHeader = true;
+        this.enableIPCheck = true;
+        this.resolveSessionId = null;
     }
 }
 exports.NextSessionOptions = NextSessionOptions;
 class NextSessionManager {
-    constructor(store) {
+    constructor(store, options) {
         this.store = store;
+        this.options = options;
         if (!this.store)
             this.store = new __1.InMemorySessionStore({});
+        if (!this.options) {
+            this.options = new NextSessionOptions();
+        }
         this.use = this.use.bind(this);
     }
     async use(req, res, next) {
         const _self = this;
-        var sessionId = req.header("sessionid");
+        var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
         var forwardedIP = (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = (0, utils_1.formatIP)(req.socket.remoteAddress);
         if ((0, utils_1.isInternalIPAddress)(ip))

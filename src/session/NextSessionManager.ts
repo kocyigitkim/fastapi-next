@@ -4,18 +4,27 @@ import { ISessionStore } from "./ISessionStore";
 
 import { v4 as uuid } from 'uuid';
 import { checkIfValidIPV6, formatIP, isInternalIPAddress, waitCallback } from '../utils';
+
+export interface NextSessionIdResolver {
+    (req: Request): Promise<string>;
+}
 export class NextSessionOptions {
-    public enableForwardedHeader: boolean = true;
+    public enableForwardedHeader?: boolean = true;
+    public enableIPCheck?: boolean = true;
+    public resolveSessionId?: NextSessionIdResolver = null;
 }
 export class NextSessionManager {
-    constructor(public store: ISessionStore) {
+    constructor(public store: ISessionStore, public options?: NextSessionOptions) {
         if (!this.store) this.store = new InMemorySessionStore({});
+        if (!this.options) {
+            this.options = new NextSessionOptions();
+        }
         this.use = this.use.bind(this);
     }
 
     async use(req: Request & { session: any, sessionId: any, userAgent: any }, res: Response, next: NextFunction) {
         const _self = this;
-        var sessionId = req.header("sessionid");
+        var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
         var forwardedIP = (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = formatIP(req.socket.remoteAddress);
         if (isInternalIPAddress(ip)) ip = formatIP(forwardedIP);

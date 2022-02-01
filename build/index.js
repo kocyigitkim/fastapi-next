@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
+exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
 var NextKnexPlugin_1 = require("./plugins/NextKnexPlugin");
 Object.defineProperty(exports, "NextKnexPlugin", { enumerable: true, get: function () { return NextKnexPlugin_1.NextKnexPlugin; } });
 exports.RequestParams = __importStar(require("./RequestParams"));
@@ -43,6 +43,7 @@ Object.defineProperty(exports, "ValidationResult", { enumerable: true, get: func
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return ValidationResult_1.ValidationError; } });
 var NextSessionManager_1 = require("./session/NextSessionManager");
 Object.defineProperty(exports, "NextSessionManager", { enumerable: true, get: function () { return NextSessionManager_1.NextSessionManager; } });
+Object.defineProperty(exports, "NextSessionOptions", { enumerable: true, get: function () { return NextSessionManager_1.NextSessionOptions; } });
 var ISessionStore_1 = require("./session/ISessionStore");
 Object.defineProperty(exports, "ISessionStore", { enumerable: true, get: function () { return ISessionStore_1.ISessionStore; } });
 var InMemorySessionStore_1 = require("./session/InMemorySessionStore");
