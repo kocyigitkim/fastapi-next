@@ -1,21 +1,62 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RedisSessionStore = void 0;
 const ISessionStore_1 = require("./ISessionStore");
-const connect_redis_1 = __importDefault(require("connect-redis"));
-const redis_1 = __importDefault(require("redis"));
+const redis_1 = require("redis");
 const noop = () => { };
 class RedisSessionStore extends ISessionStore_1.ISessionStore {
-    constructor(config) {
+    constructor(config, ttl = 30 * 60) {
         super();
         this.config = config;
-        var redisStore = (0, connect_redis_1.default)({ Store: ISessionStore_1.ISessionStore });
+        this.ttl = ttl;
         this.init = this.init.bind(this);
-        var store = new redisStore({ client: redis_1.default.createClient(config) });
-        this.store = store;
+        var client = (0, redis_1.createClient)(config);
+        client.on('error', console.error);
+        this.client = client;
+    }
+    get(sid, cb) {
+        this.client.get(sid).then((result) => {
+            try {
+                if (cb)
+                    cb(null, JSON.parse(result));
+            }
+            catch (err) {
+                if (cb)
+                    cb(err);
+            }
+        }).catch((err) => {
+            if (cb)
+                cb(err);
+        });
+    }
+    set(sid, sess, cb) {
+        this.client.set(sid, JSON.stringify(sess), {
+            EX: this.ttl
+        }).then((result) => {
+            if (cb)
+                cb(null, this);
+        }).catch((err) => {
+            if (cb)
+                cb(err);
+        });
+    }
+    touch(sid, sess, cb) {
+        this.client.expire(sid, this.ttl).then((result) => {
+            if (cb)
+                cb(null, this);
+        }).catch((err) => {
+            if (cb)
+                cb(err);
+        });
+    }
+    destroy(sid, cb) {
+        this.client.del(sid).then((result) => {
+            if (cb)
+                cb(null, this);
+        }).catch((err) => {
+            if (cb)
+                cb(err);
+        });
     }
 }
 exports.RedisSessionStore = RedisSessionStore;

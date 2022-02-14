@@ -1,20 +1,19 @@
-import {EventEmitter} from 'events'
-const noop = () => {};
+const noop = () => { };
 
-export class ISessionStore{
-    constructor(){
-        EventEmitter.call(this);
+export class ISessionStore {
+    constructor() {
+
     }
-    init(manager, cb = noop){}
-    get(sid, cb = noop){}
-    set(sid, sess, cb = noop){}
-    touch(sid, sess, cb = noop){}
-    destroy(sid, cb = noop){}
-    clear(cb = noop){}
-    length(cb = noop){}
-    ids(cb = noop){}
-    all(cb = noop){}
-    _getTTL(sess){}
-    _getAllKeys(cb = noop){}
-    _scanKeys(cb = noop){}
+    public init(manager, cb = noop) { }
+    public get(sid, cb = noop) { }
+    public set(sid, sess, cb = noop) { }
+    public touch(sid, sess, cb = noop) { }
+    public destroy(sid, cb = noop) { }
+    public clear(cb = noop) { }
+    public length(cb = noop) { }
+    public ids(cb = noop) { }
+    public all(cb = noop) { }
+    public _getTTL(sess) { }
+    public _getAllKeys(cb = noop) { }
+    public _scanKeys(cb = noop) { }
 }

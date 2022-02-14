@@ -1,13 +1,13 @@
 import knex, { Knex } from "knex";
-import { NextPlugin } from "../plugins/NextPlugin";
+import { NextPlugin } from "./NextPlugin";
 import { NextApplication } from "../NextApplication";
 import { NextContextBase } from "../NextContext";
 
 
 export class NextKnexPlugin extends NextPlugin<Knex>{
     private knex: Knex;
-    constructor(public config: Knex.Config) {
-        super("db", true);
+    constructor(public config: Knex.Config, public pluginName: string = "db") {
+        super(pluginName, true);
         this.knex = knex(config);
         
     }

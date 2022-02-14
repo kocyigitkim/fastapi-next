@@ -27,11 +27,13 @@ class NextApplication extends events_1.default {
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
     }
-    async registerInMemorySession() {
-        this.express.use(new _1.NextSessionManager(null).use);
+    async registerInMemorySession(options) {
+        this.express.use(new _1.NextSessionManager(null, options).use);
     }
-    async registerRedisSession(config) {
-        this.express.use(new _1.NextSessionManager(new RedisSessionStore_1.RedisSessionStore(config).store).use);
+    async registerRedisSession(config, ttl = 30 * 60, options) {
+        var session = new RedisSessionStore_1.RedisSessionStore(config, ttl);
+        await session.client.connect();
+        this.express.use(new _1.NextSessionManager(session, options).use);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
@@ -44,10 +46,10 @@ class NextApplication extends events_1.default {
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();
-        this.emit('start', this);
-        this.express.listen(this.options.port, () => {
+        this.server = this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
+        this.emit('start', this);
     }
     async stop() {
         this.emit('stop', this);

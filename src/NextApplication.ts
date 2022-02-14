@@ -9,6 +9,9 @@ import { NextRouteBuilder } from './routing/NextRouteBuilder';
 import cors from 'cors'
 import { NextSessionManager } from '.';
 import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
+import http from 'http'
+import { RedisClientOptions } from 'redis';
+import { NextSessionOptions } from './session/NextSessionManager';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -16,6 +19,7 @@ export class NextApplication extends EventEmitter {
     public log: NextLog;
     public profiler: NextProfiler;
     public routeBuilder: NextRouteBuilder;
+    public server: http.Server;
     public constructor(options: NextOptions) {
         super();
         this.options = options;
@@ -28,11 +32,13 @@ export class NextApplication extends EventEmitter {
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
     }
-    public async registerInMemorySession() {
-        this.express.use(new NextSessionManager(null).use);
+    public async registerInMemorySession(options?: NextSessionOptions) {
+        this.express.use(new NextSessionManager(null, options).use);
     }
-    public async registerRedisSession(config: RedisOptions) {
-        this.express.use(new NextSessionManager(new RedisSessionStore(config).store).use);
+    public async registerRedisSession(config: RedisClientOptions<any, any>, ttl: number = 30 * 60, options?: NextSessionOptions) {
+        var session = new RedisSessionStore(config, ttl);
+        await session.client.connect();
+        this.express.use(new NextSessionManager(session, options).use);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();
@@ -47,10 +53,10 @@ export class NextApplication extends EventEmitter {
     }
     public async start(): Promise<void> {
         NextRunning();
-        this.emit('start', this);
-        this.express.listen(this.options.port, () => {
+        this.server = this.express.listen(this.options.port, () => {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
+        this.emit('start', this);
     }
     public async stop(): Promise<void> {
         this.emit('stop', this);
