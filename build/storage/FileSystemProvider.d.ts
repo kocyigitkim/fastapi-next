@@ -7,6 +7,8 @@ export declare class FileSystemProviderConfig {
 export declare class FileSystemProvider {
     config: FileSystemProviderConfig;
     constructor(config?: FileSystemProviderConfig);
+    deleteFile(filePath: string): Promise<void>;
+    deleteFolder(dirPath: string): Promise<void>;
     getFile(filePath: string): Promise<Buffer>;
     getFileStream(filePath: string): Promise<Stream>;
     getFileStreamWithRange(filePath: string, start: number, end: number): Promise<Stream>;
