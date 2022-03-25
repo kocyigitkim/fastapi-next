@@ -1,3 +1,5 @@
+import path from "path";
+
 // ? Mathematic
 export function precisionRound(number: number, precision: number) {
     var factor = Math.pow(10, precision);
@@ -48,4 +50,10 @@ export function isInternalIPAddress(ip: string) {
         if (v4parts[0] === 192 && v4parts[1] === 168) return true;
         return false;
     }
+}
+
+export function checkPathsByNormalization(path1: string, path2: string) {
+    path1 = path.normalize(path1);
+    path2 = path.normalize(path2);
+    return path1 === path2;
 }

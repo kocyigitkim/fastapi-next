@@ -35,7 +35,7 @@ class NextRouteBuilder {
         if (app.options.debug) {
             app.log.info(`Registering route ${httpMethod} ${expressRoutePath}`);
         }
-        var route = require(realpath);
+        var route = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
         if (parts.length > 1 && parts[parts.length - 1] === "index") {
             app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
@@ -67,22 +67,42 @@ class NextRouteBuilder {
             }
             // ? Validation
             if (route.validate) {
-                try {
-                    var validationResult = route.validate(ctx);
-                    if (validationResult instanceof Promise) {
-                        validationResult = await validationResult.catch(app.log.error);
+                if (typeof route.validate === 'function') {
+                    try {
+                        var validationResult = route.validate(ctx);
+                        if (validationResult instanceof Promise) {
+                            validationResult = await validationResult.catch(app.log.error);
+                        }
+                        if (!validationResult || !validationResult.success) {
+                            res.status(500).json(new __1.ApiResponse(false, "validation error!", validationResult));
+                            return;
+                        }
                     }
-                    if (!validationResult || !validationResult.success) {
-                        res.status(500).json(new __1.ApiResponse(false, "validation error!", validationResult));
+                    catch (err) {
+                        app.log.error(err);
+                        var errorResult = new ValidationResult_1.ValidationResult();
+                        errorResult.error("err", (err || new Error()).toString());
+                        res.status(500).json(new __1.ApiResponse(false, "validation error!", errorResult));
                         return;
                     }
                 }
-                catch (err) {
-                    app.log.error(err);
-                    var errorResult = new ValidationResult_1.ValidationResult();
-                    errorResult.error("err", (err || new Error()).toString());
-                    res.status(500).json(new __1.ApiResponse(false, "validation error!", errorResult));
-                    return;
+                else if (typeof route.validate === 'object') {
+                    var validateSchema = route.validate;
+                    var isError = false;
+                    var result = await validateSchema.validate(ctx.all).catch((err) => {
+                        isError = true;
+                        return err;
+                    });
+                    if (isError) {
+                        var yupResult = new ValidationResult_1.ValidationResult();
+                        var yupError = result;
+                        yupResult.error(yupError.path, yupError.message);
+                        res.status(400).json(new __1.ApiResponse(false, "validation error!", yupResult));
+                        return;
+                    }
+                    else {
+                        ctx.body = result;
+                    }
                 }
             }
             // ? Execution

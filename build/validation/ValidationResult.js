@@ -13,6 +13,12 @@ class ValidationResult {
         });
         this.success = false;
     }
+    addError(field, message) {
+        this.errors.push({
+            field: field,
+            message: message
+        });
+    }
 }
 exports.ValidationResult = ValidationResult;
 class ValidationError {

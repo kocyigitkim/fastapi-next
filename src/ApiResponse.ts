@@ -1,18 +1,19 @@
 export class ApiResponse<T> {
-    success?: boolean = false;
-    message?: string;
-    data?: T;
+    success: boolean = false;
+    message: string | null;
+    data: T | null;
     constructor(success?: boolean, message?: string, data?: T) {
         this.success = success;
-        this.message = message;
-        this.data = data;
+        this.message = message || null;
+        this.data = data || null;
     }
-    setError(message: string) {
-        this.message = message;
+    setError(message?: string) {
+        this.message = message || "ERROR";
         this.success = false;
         return this;
     }
-    setSuccess(data: T) {
+    setSuccess(data?: T, message?: string) {
+        this.message = message || "SUCCESS";
         this.success = true;
         this.data = data;
         return this;

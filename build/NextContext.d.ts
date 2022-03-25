@@ -26,6 +26,7 @@ export declare class NextContextBase implements INextContextBase {
     req: Request;
     res: Response;
     next: NextFunction;
+    all: any;
     body: any;
     query: any;
     params: any;

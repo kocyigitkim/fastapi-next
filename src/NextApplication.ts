@@ -12,6 +12,9 @@ import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
 import http from 'http'
 import { RedisClientOptions } from 'redis';
 import { NextSessionOptions } from './session/NextSessionManager';
+import { FileSystemSessionStore } from './session/FileSystemSessionStore';
+
+export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -20,6 +23,11 @@ export class NextApplication extends EventEmitter {
     public profiler: NextProfiler;
     public routeBuilder: NextRouteBuilder;
     public server: http.Server;
+    public sessionManager: NextSessionManager;
+    public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
+        super.on(eventName, listener);
+        return this;
+    }
     public constructor(options: NextOptions) {
         super();
         this.options = options;
@@ -32,13 +40,16 @@ export class NextApplication extends EventEmitter {
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
     }
+    public async registerFileSystemSession(rootPath: string, options?: NextSessionOptions) {
+        this.express.use((this.sessionManager = new NextSessionManager(new FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
+    }
     public async registerInMemorySession(options?: NextSessionOptions) {
-        this.express.use(new NextSessionManager(null, options).use);
+        this.express.use((this.sessionManager = new NextSessionManager(null, options)).use);
     }
     public async registerRedisSession(config: RedisClientOptions<any, any>, ttl: number = 30 * 60, options?: NextSessionOptions) {
-        var session = new RedisSessionStore(config, ttl);
+        var session = new RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
-        this.express.use(new NextSessionManager(session, options).use);
+        this.express.use((this.sessionManager = new NextSessionManager(session, options)).use);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();

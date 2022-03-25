@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextSessionManager = exports.NextSessionOptions = void 0;
+exports.NextSessionManager = exports.NextSessionBudget = exports.NextSessionOptions = void 0;
 const __1 = require("..");
 const uuid_1 = require("uuid");
 const utils_1 = require("../utils");
+const crypto_1 = require("crypto");
 class NextSessionOptions {
     constructor() {
         this.enableForwardedHeader = true;
@@ -12,6 +13,9 @@ class NextSessionOptions {
     }
 }
 exports.NextSessionOptions = NextSessionOptions;
+class NextSessionBudget {
+}
+exports.NextSessionBudget = NextSessionBudget;
 class NextSessionManager {
     constructor(store, options) {
         this.store = store;
@@ -22,6 +26,42 @@ class NextSessionManager {
             this.options = new NextSessionOptions();
         }
         this.use = this.use.bind(this);
+    }
+    async retrieveSession(sessionId) {
+        if (sessionId) {
+            await new Promise((resolve) => {
+                try {
+                    this.store.touch(sessionId, {}, () => resolve(null));
+                }
+                catch (err) {
+                    resolve(null);
+                }
+            }).catch(console.error);
+            var result = (await (0, utils_1.waitCallback)(this.store, this.store.get, sessionId));
+            if (result) {
+                return { id: sessionId, data: result && result.session };
+            }
+        }
+        var newSession = {
+            id: (0, crypto_1.randomUUID)(),
+            data: {}
+        };
+        await (0, utils_1.waitCallback)(this.store, this.store.set, newSession.id, {
+            session: newSession.data
+        });
+        return newSession;
+    }
+    async destroySession(sessionId) {
+        if (sessionId) {
+            await (0, utils_1.waitCallback)(this.store, this.store.destroy, sessionId);
+        }
+    }
+    async setSession(sessionId, data) {
+        if (sessionId) {
+            await (0, utils_1.waitCallback)(this.store, this.store.set, sessionId, {
+                session: data
+            });
+        }
     }
     async use(req, res, next) {
         const _self = this;
@@ -36,7 +76,7 @@ class NextSessionManager {
         var isGranted = true;
         if (sessionId) {
             try {
-                _self.store.touch(sessionId, req.session);
+                await new Promise((resolve) => (_self.store.touch(sessionId, req.session, () => resolve(null))));
             }
             catch (err) {
                 console.error(err);

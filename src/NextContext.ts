@@ -39,6 +39,7 @@ export class NextContextBase implements INextContextBase {
     //#endregion
 
     //#region Request Parameters
+    public all: any;
     public body: any;
     public query: any;
     public params: any;
@@ -72,6 +73,7 @@ export class NextContextBase implements INextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
+        this.all = { ...req.params, ...req.query, ...req.body };
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;

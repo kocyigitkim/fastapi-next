@@ -7,7 +7,8 @@ import { NextFlag } from '../NextFlag';
 import { ValidationResult } from '../validation/ValidationResult';
 import { NextRouteAction } from './NextRouteAction';
 import { NextRouteResponse } from './NextRouteResponse';
-
+import { AnyObjectSchema } from 'yup'
+import { ValidationError } from 'yup';
 export class NextRouteBuilder {
     private paths: string[] = [];
     constructor(app: NextApplication) {
@@ -32,7 +33,7 @@ export class NextRouteBuilder {
         if (app.options.debug) {
             app.log.info(`Registering route ${httpMethod} ${expressRoutePath}`);
         }
-        var route: NextRouteAction = require(realpath);
+        var route: NextRouteAction = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
         if (parts.length > 1 && parts[parts.length - 1] === "index") {
             app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
@@ -69,24 +70,44 @@ export class NextRouteBuilder {
 
             // ? Validation
             if (route.validate) {
-                try {
-                    var validationResult = route.validate(ctx);
-                    if (validationResult instanceof Promise) {
-                        validationResult = await validationResult.catch(app.log.error);
-                    }
-                    if (!validationResult || !validationResult.success) {
-                        res.status(500).json(new ApiResponse<ValidationResult>(false, "validation error!", validationResult));
+                if (typeof route.validate === 'function') {
+                    try {
+                        var validationResult = route.validate(ctx);
+                        if (validationResult instanceof Promise) {
+                            validationResult = await validationResult.catch(app.log.error);
+                        }
+                        if (!validationResult || !validationResult.success) {
+                            res.status(500).json(new ApiResponse<ValidationResult>(false, "validation error!", validationResult));
+                            return;
+                        }
+                    } catch (err) {
+                        app.log.error(err);
+                        var errorResult = new ValidationResult();
+                        errorResult.error("err", (err || new Error()).toString());
+                        res.status(500).json(new ApiResponse<ValidationResult>(false, "validation error!", errorResult));
                         return;
                     }
-                } catch (err) {
-                    app.log.error(err);
-                    var errorResult = new ValidationResult();
-                    errorResult.error("err", (err || new Error()).toString());
-                    res.status(500).json(new ApiResponse<ValidationResult>(false, "validation error!", errorResult));
-                    return;
+                }
+                else if (typeof route.validate === 'object') {
+                    var validateSchema = route.validate as AnyObjectSchema;
+                    var isError = false;
+                    var result = await validateSchema.validate(ctx.all).catch((err) => {
+                        isError = true;
+                        return err;
+                    });
+                    if (isError) {
+                        var yupResult = new ValidationResult();
+                        var yupError: ValidationError = result as ValidationError;
+                        yupResult.error(yupError.path, yupError.message);
+                        res.status(400).json(new ApiResponse<ValidationResult>(false, "validation error!", yupResult));
+                        return;
+                    }
+                    else {
+                        ctx.body = result;
+                    }
                 }
             }
-            
+
             // ? Execution
             var result = route.default(ctx);
             var isError = false;

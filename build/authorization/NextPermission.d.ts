@@ -1,6 +1,6 @@
 export interface NextPermission {
-    method: string;
+    anonymous: boolean;
     path: string;
-    accept: string[];
+    prefix: boolean;
 }
 //# sourceMappingURL=NextPermission.d.ts.map

@@ -55,6 +55,14 @@ export class NextAuthorization extends NextAuthorizationBase {
                 }
                 return Boolean(permissions.find(p => {
                     var currentPath = path.normalize((p.Path || "")).replace(/\\/g, "/")
+                    // ? if star is used, it means all paths
+                    if(currentPath === '*'){
+                        return true;
+                    }
+                    // ? if ends with star and starts with permission path, it means all paths
+                    if(currentPath.endsWith('*')){
+                        return currentPath.substring(0, currentPath.length - 1) === requestedPath;
+                    }
                     return requestedPath == currentPath;
                 }));
             }

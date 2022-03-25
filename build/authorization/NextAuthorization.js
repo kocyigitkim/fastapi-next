@@ -37,6 +37,14 @@ class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
                 }
                 return Boolean(permissions.find(p => {
                     var currentPath = path_1.default.normalize((p.Path || "")).replace(/\\/g, "/");
+                    // ? if star is used, it means all paths
+                    if (currentPath === '*') {
+                        return true;
+                    }
+                    // ? if ends with star and starts with permission path, it means all paths
+                    if (currentPath.endsWith('*')) {
+                        return currentPath.substring(0, currentPath.length - 1) === requestedPath;
+                    }
                     return requestedPath == currentPath;
                 }));
             }

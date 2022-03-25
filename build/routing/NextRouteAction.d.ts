@@ -1,10 +1,12 @@
+import { BaseSchema } from 'yup';
+import { AnyObjectSchema } from 'yup';
 import { ApiResponse, NextRouteResponse } from '..';
 import { NextPermission } from '../authorization/NextPermission';
 import { NextContextBase } from '../NextContext';
 import { ValidationResult } from '../validation/ValidationResult';
 export interface NextRouteAction {
     default(ctx: NextContextBase): Promise<ApiResponse<any> | NextRouteResponse | any>;
-    validate(ctx: NextContextBase): ValidationResult;
+    validate: ((ctx: NextContextBase) => ValidationResult) | AnyObjectSchema | BaseSchema | null;
     permission: NextPermission | undefined;
 }
 //# sourceMappingURL=NextRouteAction.d.ts.map

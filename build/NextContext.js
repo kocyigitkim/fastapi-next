@@ -9,6 +9,7 @@ class NextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
+        this.all = Object.assign(Object.assign(Object.assign({}, req.params), req.query), req.body);
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;

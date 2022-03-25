@@ -4,6 +4,7 @@ import { ISessionStore } from "./ISessionStore";
 
 import { v4 as uuid } from 'uuid';
 import { checkIfValidIPV6, formatIP, isInternalIPAddress, waitCallback } from '../utils';
+import { randomUUID } from "crypto";
 
 export interface NextSessionIdResolver {
     (req: Request): Promise<string>;
@@ -12,6 +13,12 @@ export class NextSessionOptions {
     public enableForwardedHeader?: boolean = true;
     public enableIPCheck?: boolean = true;
     public resolveSessionId?: NextSessionIdResolver = null;
+    public ttl?: number;
+}
+
+export class NextSessionBudget {
+    public id: string;
+    public data: any;
 }
 export class NextSessionManager {
     constructor(public store: ISessionStore, public options?: NextSessionOptions) {
@@ -21,6 +28,48 @@ export class NextSessionManager {
         }
         this.use = this.use.bind(this);
     }
+
+    async retrieveSession(sessionId: string): Promise<NextSessionBudget> {
+        if (sessionId) {
+            await new Promise((resolve) => {
+                try {
+                    this.store.touch(sessionId, {}, () => resolve(null));
+                } catch (err) {
+                    resolve(null);
+                }
+            }
+            ).catch(console.error);
+            var result: any = (await waitCallback(this.store, this.store.get, sessionId));
+            if (result) {
+                return { id: sessionId, data: result && result.session };
+            }
+
+        }
+
+        var newSession = {
+            id: randomUUID(),
+            data: {}
+        };
+        await waitCallback(this.store, this.store.set, newSession.id, {
+            session: newSession.data
+        });
+        return newSession;
+    }
+
+    async destroySession(sessionId: string): Promise<void> {
+        if (sessionId) {
+            await waitCallback(this.store, this.store.destroy, sessionId);
+        }
+    }
+
+    async setSession(sessionId: string, data: any): Promise<void> {
+        if (sessionId) {
+            await waitCallback(this.store, this.store.set, sessionId, {
+                session: data
+            });
+        }
+    }
+
 
     async use(req: Request & { session: any, sessionId: any, userAgent: any }, res: Response, next: NextFunction) {
         const _self = this;
@@ -35,7 +84,7 @@ export class NextSessionManager {
         var isGranted = true;
         if (sessionId) {
             try {
-                _self.store.touch(sessionId, req.session);
+                await new Promise((resolve) => (_self.store.touch(sessionId, req.session, () => resolve(null))));
             } catch (err) { console.error(err); }
             var result: any = (await waitCallback(_self.store, _self.store.get, sessionId));
             if (!result) {
