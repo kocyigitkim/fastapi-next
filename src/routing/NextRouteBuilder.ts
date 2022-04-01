@@ -7,8 +7,7 @@ import { NextFlag } from '../NextFlag';
 import { ValidationResult } from '../validation/ValidationResult';
 import { NextRouteAction } from './NextRouteAction';
 import { NextRouteResponse } from './NextRouteResponse';
-import { AnyObjectSchema } from 'yup'
-import { ValidationError } from 'yup';
+import { AnyObjectSchema, ValidationError } from 'yup'
 export class NextRouteBuilder {
     private paths: string[] = [];
     constructor(app: NextApplication) {
