@@ -1,1 +1,1 @@
-{"version":3,"file":"NextPermission.d.ts","sourceRoot":"","sources":["../../src/authorization/NextPermission.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,cAAc;IAC3B,SAAS,EAAE,OAAO,CAAC;IACnB,IAAI,EAAE,MAAM,CAAC;IACb,MAAM,EAAE,OAAO,CAAC;CAEnB"}
+{"version":3,"file":"NextPermission.d.ts","sourceRoot":"","sources":["../../src/authorization/NextPermission.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,cAAc;IAC3B,SAAS,EAAE,OAAO,CAAC;IACnB,IAAI,EAAE,MAAM,CAAC;IACb,MAAM,EAAE,QAAQ,CAAC;CACpB"}
