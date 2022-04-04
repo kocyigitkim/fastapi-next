@@ -13,6 +13,7 @@ const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
 class NextRouteBuilder {
     constructor(app) {
+        this.app = app;
         this.paths = [];
         this.paths = app.options.routerDirs;
         this.paths.forEach(p => {
@@ -41,6 +42,9 @@ class NextRouteBuilder {
             app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
         }
     }
+    register(subPath, method, definition) {
+        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, definition));
+    }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
             var ctx = new __1.NextContextBase(req, res, next);
@@ -60,7 +64,7 @@ class NextRouteBuilder {
             }
             // ? Permission
             if (app.options.authorization) {
-                if (!await app.options.authorization.check(ctx)) {
+                if (!await app.options.authorization.check(ctx, route.permission)) {
                     res.status(403).json(new __1.ApiResponse().setError("Forbidden"));
                     return;
                 }

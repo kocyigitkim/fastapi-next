@@ -23,6 +23,7 @@ class NextContextBase {
         this.path = req.path;
         this.session = req.session;
         this.sessionId = (this.session && this.session.id) || req.sessionId;
+        this.items = {};
     }
     //#endregion
     get token() {

@@ -43,6 +43,7 @@ export declare class NextContextBase implements INextContextBase {
     fileCount?: number;
     session: Object;
     sessionId: string;
+    items: Object;
     get token(): string | null;
     constructor(req: Request, res: Response, next: NextFunction);
 }

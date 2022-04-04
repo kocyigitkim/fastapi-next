@@ -61,6 +61,10 @@ export class NextContextBase implements INextContextBase {
     public sessionId: string;
     //#endregion
 
+    //#region Session Parameters
+    public items: Object;
+    //#endregion
+
     public get token(): string | null {
         return (this.req as any).token || (this.req as any).access_token || (this.req as any).accessToken || null;
     }
@@ -88,6 +92,7 @@ export class NextContextBase implements INextContextBase {
 
         this.session = (req as any).session;
         this.sessionId = (this.session && (this.session as any).id) || (req as any).sessionId;
+        this.items = {};
     }
 }
 

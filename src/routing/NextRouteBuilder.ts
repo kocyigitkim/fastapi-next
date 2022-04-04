@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
+import fs, { appendFile } from 'fs';
 import path from 'path';
 import { Stream } from 'stream';
 import { ApiResponse, NextApplication, NextContextBase } from '..';
@@ -11,7 +11,7 @@ import { AnyObjectSchema } from 'yup'
 import { ValidationError } from 'yup';
 export class NextRouteBuilder {
     private paths: string[] = [];
-    constructor(app: NextApplication) {
+    constructor(public app: NextApplication) {
         this.paths = app.options.routerDirs;
         this.paths.forEach(p => {
             var results = this.scanDir(p);
@@ -40,6 +40,10 @@ export class NextRouteBuilder {
         }
     }
 
+    public register(subPath: string, method: string, definition: (ctx: NextContextBase) => Promise<any>) {
+        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, definition));
+    }
+
     private routeMiddleware(app: NextApplication) {
         return async (route: any, req: Request, res: Response, next: NextFunction) => {
             var ctx: NextContextBase = new NextContextBase(req, res, next);
@@ -62,7 +66,7 @@ export class NextRouteBuilder {
 
             // ? Permission
             if (app.options.authorization) {
-                if (!await app.options.authorization.check(ctx)) {
+                if (!await app.options.authorization.check(ctx, route.permission)) {
                     res.status(403).json(new ApiResponse().setError("Forbidden"))
                     return;
                 }

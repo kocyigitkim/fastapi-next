@@ -2,13 +2,19 @@ import path from "path";
 import { Stream } from "stream";
 import fs from "fs";
 
+/**
+    * @deprecated
+*/
 export class FileSystemProviderConfig {
     public constructor(public rootPath: string) {
     }
 }
+/**
+ * @deprecated
+ */
 export class FileSystemProvider {
-    constructor(public config: FileSystemProviderConfig = { rootPath: path.join(process.cwd(), 'storage') }) {}
-    
+    constructor(public config: FileSystemProviderConfig = { rootPath: path.join(process.cwd(), 'storage') }) { }
+
     public async deleteFile(filePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
             fs.unlink(path.join(this.config.rootPath, filePath), (err) => {

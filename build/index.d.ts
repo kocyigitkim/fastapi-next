@@ -16,6 +16,6 @@ export { ApiResponse } from './ApiResponse';
 export { FileSystemProvider, FileSystemProviderConfig } from './storage/FileSystemProvider';
 export { NextAuthorization } from './authorization/NextAuthorization';
 export { NextAuthorizationBase } from './authorization/NextAuthorizationBase';
-export { NextPermission } from './authorization/NextPermission';
+export { NextPermissionDefinition as NextPermission } from './authorization/NextPermission';
 export { NextFlag } from './NextFlag';
 //# sourceMappingURL=index.d.ts.map

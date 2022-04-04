@@ -6,12 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileSystemProvider = exports.FileSystemProviderConfig = void 0;
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+/**
+    * @deprecated
+*/
 class FileSystemProviderConfig {
     constructor(rootPath) {
         this.rootPath = rootPath;
     }
 }
 exports.FileSystemProviderConfig = FileSystemProviderConfig;
+/**
+ * @deprecated
+ */
 class FileSystemProvider {
     constructor(config = { rootPath: path_1.default.join(process.cwd(), 'storage') }) {
         this.config = config;

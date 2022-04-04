@@ -1,9 +1,15 @@
 /// <reference types="node" />
 import { Stream } from "stream";
+/**
+    * @deprecated
+*/
 export declare class FileSystemProviderConfig {
     rootPath: string;
     constructor(rootPath: string);
 }
+/**
+ * @deprecated
+ */
 export declare class FileSystemProvider {
     config: FileSystemProviderConfig;
     constructor(config?: FileSystemProviderConfig);
