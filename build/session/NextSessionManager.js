@@ -66,12 +66,13 @@ class NextSessionManager {
     async use(req, res, next) {
         const _self = this;
         var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
-        var forwardedIP = (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
+        var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = (0, utils_1.formatIP)(req.socket.remoteAddress);
-        if ((0, utils_1.isInternalIPAddress)(ip))
+        if (forwardedIP)
             ip = (0, utils_1.formatIP)(forwardedIP);
         var isV6 = (0, utils_1.checkIfValidIPV6)(ip);
         var userAgent = req.headers['user-agent'];
+        req.ip = ip;
         var isNewSession = false;
         var isGranted = true;
         if (sessionId) {
