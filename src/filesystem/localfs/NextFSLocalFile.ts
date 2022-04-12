@@ -28,4 +28,31 @@ export class NextFSLocalFile extends NextFSFile {
     public async exists(): Promise<boolean> {
         return fs.existsSync(this.fullPath);
     }
+    public async writeBuffer(buffer: Buffer): Promise<void> {
+        fs.writeFileSync(this.fullPath, buffer);
+    }
+    public async appendBuffer(buffer: Buffer): Promise<void> {
+        fs.appendFileSync(this.fullPath, buffer);
+    }
+    public async readBuffer(size: number = -1): Promise<Buffer> {
+        return fs.readFileSync(this.fullPath);
+    }
+    public async delete(): Promise<boolean> {
+        try {
+            fs.unlinkSync(this.fullPath);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    }
+    public async move(newPath: string): Promise<boolean> {
+        try {
+            fs.renameSync(this.fullPath, newPath);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    }
 }

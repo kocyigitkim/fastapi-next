@@ -44,7 +44,7 @@ export class NextRouteBuilder {
     }
 
     private routeMiddleware(app: NextApplication) {
-        return async (route: any, req: Request, res: Response, next: NextFunction) => {
+        return async (route: NextRouteAction, req: Request, res: Response, next: NextFunction) => {
             var ctx: NextContextBase = new NextContextBase(req, res, next);
 
             for (var plugin of app.registry.getPlugins()) {
@@ -112,7 +112,7 @@ export class NextRouteBuilder {
             }
 
             // ? Execution
-            var result = route.default(ctx);
+            var result : any = route.default(ctx);
             var isError = false;
             if (result instanceof Promise) {
                 result = await result.catch((err) => {

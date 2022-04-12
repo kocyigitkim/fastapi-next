@@ -3,6 +3,8 @@ import { NextFSObject } from '../NextFSObject';
 import { NextFSManager } from "../NextFSManager";
 import { NextFSLocalDirectory } from "./NextFSLocalDirectory";
 import { NextFSLocalFile } from "./NextFSLocalFile";
+import { NextFSFile } from '../NextFSFile';
+import { NextFSDirectory } from '../NextFSDirectory';
 
 
 export class NextFSLocalManager extends NextFSManager {
@@ -19,10 +21,10 @@ export class NextFSLocalManager extends NextFSManager {
     public static async exists(path: string): Promise<boolean> {
         return fs.existsSync(path);
     }
-    public static async createFile(path: string): Promise<NextFSObject> {
+    public static async createFile(path: string): Promise<NextFSFile> {
         return new NextFSLocalFile(path);
     }
-    public static async createDirectory(path: string): Promise<NextFSObject> {
+    public static async createDirectory(path: string): Promise<NextFSDirectory> {
         return new NextFSLocalDirectory(path);
     }
     public static async delete(path: string): Promise<boolean> {
@@ -62,5 +64,13 @@ export class NextFSLocalManager extends NextFSManager {
             return false;
         }
     }
-
+    public static async upload(path: string, file: string | Buffer): Promise<boolean> {
+        try {
+            fs.writeFileSync(path, file);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    }
 }

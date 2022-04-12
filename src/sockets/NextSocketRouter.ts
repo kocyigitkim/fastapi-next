@@ -15,7 +15,7 @@ export class NextSocketRouter {
         var route = this.routes.find(r => checkPathsByNormalization(r.path, message.path));
         var sctx = new NextSocketContext(message, socket);
         if (route) {
-            await route.action.call(route, ctx, sctx);
+            await route.action.call(route, ctx, sctx).catch(console.error);
         }
         else {
             sctx.send({
