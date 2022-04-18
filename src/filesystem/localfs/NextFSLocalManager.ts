@@ -3,6 +3,8 @@ import { NextFSObject } from '../NextFSObject';
 import { NextFSManager } from "../NextFSManager";
 import { NextFSLocalDirectory } from "./NextFSLocalDirectory";
 import { NextFSLocalFile } from "./NextFSLocalFile";
+import { NextFSFile } from '../NextFSFile';
+import { NextFSDirectory } from '../NextFSDirectory';
 
 
 export class NextFSLocalManager extends NextFSManager {
@@ -62,5 +64,13 @@ export class NextFSLocalManager extends NextFSManager {
             return false;
         }
     }
-
+    public static async upload(path: string, file: string | Buffer): Promise<boolean> {
+        try {
+            fs.writeFileSync(path, file);
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    }
 }

@@ -3,6 +3,7 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { NextContextBase } from "../NextContext";
 import { NextSocketRouter } from "./NextSocketRouter";
 import { NextSocketOptions } from "./NextSocketOptions";
+import { NextSocketMessageBase } from "./NextSocketMessageBase";
 
 export class NextSocket {
     public server: WebSocketServer;
@@ -11,13 +12,13 @@ export class NextSocket {
         this.start = this.start.bind(this);
         this.registerEvents = this.registerEvents.bind(this);
         app.on('start', (app: NextApplication) => {
-            this.start(app);
+            this.start();
         })
     }
-    private async start(app: NextApplication) {
+    private async start() {
         this.server = new WebSocketServer({
             ...this.options,
-            server: app.server
+            server: this.app.server
         });
 
         this.registerEvents();

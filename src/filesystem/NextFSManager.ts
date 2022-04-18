@@ -1,3 +1,5 @@
+import { NextFSDirectory } from './NextFSDirectory';
+import { NextFSFile } from './NextFSFile';
 import { NextFSObject } from './NextFSObject';
 
 
@@ -24,6 +26,9 @@ export class NextFSManager {
         return false;
     }
     public async rename(path: string, newName: string): Promise<boolean> {
+        return false;
+    }
+    public static async upload(path: string, file: string | Buffer): Promise<boolean> {
         return false;
     }
 }

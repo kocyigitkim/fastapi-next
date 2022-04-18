@@ -11,6 +11,7 @@ export declare class NextDebug {
     constructor(profiler: NextProfiler, context: Request);
     complete(): void;
     error(err: Error): void;
+    new(): void;
 }
 export declare class NextProfiler {
     app: NextApplication;
