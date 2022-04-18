@@ -11,5 +11,6 @@ export declare class InMemorySessionStore extends ISessionStore {
     get(id: any, callback: any): void;
     set(id: any, value: any, callback: any): void;
     destroy(id: any, callback: any): void;
+    touch(id: any, value: any, callback: any): void;
 }
 //# sourceMappingURL=InMemorySessionStore.d.ts.map
