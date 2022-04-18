@@ -15,6 +15,8 @@ const cors_1 = __importDefault(require("cors"));
 const _1 = require(".");
 const RedisSessionStore_1 = require("./session/RedisSessionStore");
 const FileSystemSessionStore_1 = require("./session/FileSystemSessionStore");
+const NextSocket_1 = require("./sockets/NextSocket");
+const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
@@ -50,6 +52,12 @@ class NextApplication extends events_1.default {
             await plugin.init(this);
         }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
+        if (this.options.sockets) {
+            this.socket = new NextSocket_1.NextSocket(this.options.sockets, this);
+            this.socketRouter = new NextSocketRouter_1.NextSocketRouter();
+            this.socket.router = this.socketRouter;
+            this.socketRouter.registerRouters(this.options.socketRouterDirs);
+        }
         this.emit('init', this);
     }
     async start() {

@@ -10,6 +10,8 @@ import { NextSessionManager } from '.';
 import http from 'http';
 import { RedisClientOptions } from 'redis';
 import { NextSessionOptions } from './session/NextSessionManager';
+import { NextSocket } from './sockets/NextSocket';
+import { NextSocketRouter } from './sockets/NextSocketRouter';
 export declare type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export declare class NextApplication extends EventEmitter {
     express: express.Application;
@@ -20,6 +22,8 @@ export declare class NextApplication extends EventEmitter {
     routeBuilder: NextRouteBuilder;
     server: http.Server;
     sessionManager: NextSessionManager;
+    socket?: NextSocket;
+    socketRouter?: NextSocketRouter;
     on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this;
     constructor(options: NextOptions);
     registerFileSystemSession(rootPath: string, options?: NextSessionOptions): Promise<void>;

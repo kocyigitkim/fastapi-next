@@ -72,7 +72,7 @@ class NextSessionManager {
             ip = (0, utils_1.formatIP)(forwardedIP);
         var isV6 = (0, utils_1.checkIfValidIPV6)(ip);
         var userAgent = req.headers['user-agent'];
-        req.ip = ip;
+        req.clientIp = ip;
         var isNewSession = false;
         var isGranted = true;
         if (sessionId) {

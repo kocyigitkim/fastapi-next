@@ -8,6 +8,8 @@ class NextOptions {
         this.routerDirs = [];
         this.cors = null;
         this.authorization = null;
+        this.sockets = null;
+        this.socketRouterDirs = [];
     }
 }
 exports.NextOptions = NextOptions;

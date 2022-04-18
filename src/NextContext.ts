@@ -83,7 +83,7 @@ export class NextContextBase implements INextContextBase {
         this.protocol = req.protocol;
         this.files = (req as any).files;
         this.fileCount = (req as any).fileCount;
-        this.ip = req.ip;
+        this.ip = ((req as any).clientIp) || req.ip;
         this.ipv4 = ((req.ip || "").split(":")[0]) === req.ip;
         this.ipv6 = !this.ipv4;
         this.method = req.method;

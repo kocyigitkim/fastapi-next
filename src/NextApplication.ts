@@ -13,6 +13,8 @@ import http from 'http'
 import { RedisClientOptions } from 'redis';
 import { NextSessionOptions } from './session/NextSessionManager';
 import { FileSystemSessionStore } from './session/FileSystemSessionStore';
+import { NextSocket } from './sockets/NextSocket';
+import { NextSocketRouter } from './sockets/NextSocketRouter';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -24,6 +26,8 @@ export class NextApplication extends EventEmitter {
     public routeBuilder: NextRouteBuilder;
     public server: http.Server;
     public sessionManager: NextSessionManager;
+    public socket?: NextSocket;
+    public socketRouter?: NextSocketRouter;
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -60,6 +64,12 @@ export class NextApplication extends EventEmitter {
         }
 
         this.routeBuilder = new NextRouteBuilder(this);
+        if(this.options.sockets){
+            this.socket = new NextSocket(this.options.sockets, this);
+            this.socketRouter = new NextSocketRouter();
+            this.socket.router = this.socketRouter;
+            this.socketRouter.registerRouters(this.options.socketRouterDirs);
+        }
         this.emit('init', this);
     }
     public async start(): Promise<void> {
