@@ -1,6 +1,7 @@
 import path from 'path'
 import { NextContextBase } from "../NextContext";
 import { NextAuthorizationBase } from "./NextAuthorizationBase";
+import { NextPermissionDefinition } from './NextPermission';
 
 export interface NextRole {
     Id: any;
@@ -13,7 +14,13 @@ export interface NextPermission {
 export interface NextUser {
     Id: any;
 }
+export interface AuthorizedRecordResult {
+    success: boolean;
+    data: any;
+    name?: string;
+}
 
+export type RetrieveAuthorizedRecord = (ctx: NextContextBase, user: NextUser, role: NextRole, permissions: NextPermission[]) => Promise<AuthorizedRecordResult>;
 export type RetrieveCurrentUserDelegate = (ctx: NextContextBase) => Promise<NextUser>;
 export type RetrieveUserRoleDelegate = (ctx: NextContextBase, UserId: any) => Promise<NextRole>;
 export type RetrieveRolePermissionDelegate = (ctx: NextContextBase, RoleId: any) => Promise<NextPermission[]>;
@@ -23,12 +30,13 @@ export class NextAuthorization extends NextAuthorizationBase {
     public retrieveCurrentUser?: RetrieveCurrentUserDelegate;
     public retrieveUserRole?: RetrieveUserRoleDelegate;
     public retrieveRolePermissions?: RetrieveRolePermissionDelegate;
+    public retrieveAuthorizedRecord?: RetrieveAuthorizedRecord;
     public modifyRequestedPath?: ModifyRequestedPathDelegate;
     constructor() {
         super();
     }
 
-    public async check(ctx: NextContextBase): Promise<boolean> {
+    public async check(ctx: NextContextBase, permission: NextPermissionDefinition): Promise<boolean> {
         if (!this.retrieveCurrentUser) {
             throw new Error("retrieveCurrentUser is not defined");
         }
@@ -53,8 +61,36 @@ export class NextAuthorization extends NextAuthorizationBase {
                 if (this.modifyRequestedPath) {
                     requestedPath = this.modifyRequestedPath(requestedPath);
                 }
+                // ? Custom authorization
+                if (permission && permission.custom) {
+                    var r = permission.custom({
+                        ctx,
+                        user,
+                        role,
+                        permissions,
+                        requestedPath
+                    });
+                    return Boolean((r instanceof Promise) ? (await r.catch(console.error) || false) : r);
+                }
+                // ? Record based authozization
+                if (this.retrieveAuthorizedRecord) {
+                    var authRecordStatus = await this.retrieveAuthorizedRecord(ctx, user, role, permissions);
+                    if (authRecordStatus.success && authRecordStatus.name) {
+                        ctx.items[authRecordStatus.name] = authRecordStatus.data;
+                    }
+                    return authRecordStatus.success;
+                }
+                // ? Default authorization
                 return Boolean(permissions.find(p => {
                     var currentPath = path.normalize((p.Path || "")).replace(/\\/g, "/")
+                    // ? if star is used, it means all paths
+                    if (currentPath === '*') {
+                        return true;
+                    }
+                    // ? if ends with star and starts with permission path, it means all paths
+                    if (currentPath.endsWith('*')) {
+                        return currentPath.substring(0, currentPath.length - 1) === requestedPath;
+                    }
                     return requestedPath == currentPath;
                 }));
             }

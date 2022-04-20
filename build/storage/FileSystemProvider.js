@@ -6,15 +6,45 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileSystemProvider = exports.FileSystemProviderConfig = void 0;
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+/**
+    * @deprecated
+*/
 class FileSystemProviderConfig {
     constructor(rootPath) {
         this.rootPath = rootPath;
     }
 }
 exports.FileSystemProviderConfig = FileSystemProviderConfig;
+/**
+ * @deprecated
+ */
 class FileSystemProvider {
     constructor(config = { rootPath: path_1.default.join(process.cwd(), 'storage') }) {
         this.config = config;
+    }
+    async deleteFile(filePath) {
+        return new Promise((resolve, reject) => {
+            fs_1.default.unlink(path_1.default.join(this.config.rootPath, filePath), (err) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
+    }
+    async deleteFolder(dirPath) {
+        return new Promise((resolve, reject) => {
+            fs_1.default.rm(path_1.default.join(this.config.rootPath, dirPath), { recursive: true }, (err) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve();
+                }
+            });
+        });
     }
     async getFile(filePath) {
         return new Promise((resolve, reject) => {

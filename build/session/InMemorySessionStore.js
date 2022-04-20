@@ -57,5 +57,17 @@ class InMemorySessionStore extends ISessionStore_1.ISessionStore {
                 callback("Session not exists", v);
         }
     }
+    touch(id, value, callback) {
+        var v = this.store[id];
+        if (v && v.value) {
+            v.ttl = new Date(new Date().valueOf() + this.targetTTL + 1000);
+            if (callback)
+                callback(null, v.value);
+        }
+        else {
+            if (callback)
+                callback("Session not exists", v);
+        }
+    }
 }
 exports.InMemorySessionStore = InMemorySessionStore;

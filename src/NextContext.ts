@@ -39,6 +39,7 @@ export class NextContextBase implements INextContextBase {
     //#endregion
 
     //#region Request Parameters
+    public all: any;
     public body: any;
     public query: any;
     public params: any;
@@ -60,6 +61,10 @@ export class NextContextBase implements INextContextBase {
     public sessionId: string;
     //#endregion
 
+    //#region Session Parameters
+    public items: Object;
+    //#endregion
+
     public get token(): string | null {
         return (this.req as any).token || (this.req as any).access_token || (this.req as any).accessToken || null;
     }
@@ -72,12 +77,13 @@ export class NextContextBase implements INextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
+        this.all = { ...req.params, ...req.query, ...req.body };
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;
         this.files = (req as any).files;
         this.fileCount = (req as any).fileCount;
-        this.ip = req.ip;
+        this.ip = ((req as any).clientIp) || req.ip;
         this.ipv4 = ((req.ip || "").split(":")[0]) === req.ip;
         this.ipv6 = !this.ipv4;
         this.method = req.method;
@@ -86,6 +92,7 @@ export class NextContextBase implements INextContextBase {
 
         this.session = (req as any).session;
         this.sessionId = (this.session && (this.session as any).id) || (req as any).sessionId;
+        this.items = {};
     }
 }
 

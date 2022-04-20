@@ -1,6 +1,6 @@
 {
   "name": "fastapi-next",
-  "version": "1.1.2",
+  "version": "1.1.14",
   "description": "Next Generation of Fast Api",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -29,6 +29,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.3",
+    "crypto": "^1.0.1",
     "http": "0.0.1-security",
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
@@ -38,7 +39,9 @@
     "node-fetch": "^3.2.3",
     "redis": "^4.0.6",
     "uuid": "^8.3.2",
-    "validator": "^13.7.0"
+    "validator": "^13.7.0",
+    "ws": "^8.5.0",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@types/connect-redis": "^0.0.18",
@@ -51,6 +54,8 @@
     "@types/node-fetch": "^3.0.3",
     "@types/redis": "^4.0.11",
     "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
+    "@types/yup": "^0.29.13",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"

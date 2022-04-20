@@ -1,3 +1,5 @@
+import path from "path";
+
 // ? Mathematic
 export function precisionRound(number: number, precision: number) {
     var factor = Math.pow(10, precision);
@@ -58,4 +60,9 @@ export function getTokenFromHeader(header: string) {
 }
 export function normalizeUrlPath(path: string) {
     return path.replace(/\/+/g, "/").replace(/(^\/)|(\/$)/g, "");
+}
+export function checkPathsByNormalization(path1: string, path2: string) {
+    path1 = path.normalize(path1);
+    path2 = path.normalize(path2);
+    return path1 === path2;
 }

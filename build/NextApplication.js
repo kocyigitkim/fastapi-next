@@ -14,6 +14,9 @@ const NextRouteBuilder_1 = require("./routing/NextRouteBuilder");
 const cors_1 = __importDefault(require("cors"));
 const _1 = require(".");
 const RedisSessionStore_1 = require("./session/RedisSessionStore");
+const FileSystemSessionStore_1 = require("./session/FileSystemSessionStore");
+const NextSocket_1 = require("./sockets/NextSocket");
+const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
@@ -27,13 +30,20 @@ class NextApplication extends events_1.default {
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
     }
-    async registerInMemorySession() {
-        this.express.use(new _1.NextSessionManager(null).use);
+    on(eventName, listener) {
+        super.on(eventName, listener);
+        return this;
     }
-    async registerRedisSession(config, ttl = 30 * 60) {
-        var session = new RedisSessionStore_1.RedisSessionStore(config, ttl);
+    async registerFileSystemSession(rootPath, options) {
+        this.express.use((this.sessionManager = new _1.NextSessionManager(new FileSystemSessionStore_1.FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
+    }
+    async registerInMemorySession(options) {
+        this.express.use((this.sessionManager = new _1.NextSessionManager(null, options)).use);
+    }
+    async registerRedisSession(config, ttl = 30 * 60, options) {
+        var session = new RedisSessionStore_1.RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
-        this.express.use(new _1.NextSessionManager(session).use);
+        this.express.use((this.sessionManager = new _1.NextSessionManager(session, options)).use);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
@@ -42,6 +52,12 @@ class NextApplication extends events_1.default {
             await plugin.init(this);
         }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
+        if (this.options.sockets) {
+            this.socket = new NextSocket_1.NextSocket(this.options.sockets, this);
+            this.socketRouter = new NextSocketRouter_1.NextSocketRouter();
+            this.socket.router = this.socketRouter;
+            this.socketRouter.registerRouters(this.options.socketRouterDirs);
+        }
         this.emit('init', this);
     }
     async start() {

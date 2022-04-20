@@ -33,6 +33,10 @@ class NextDebug {
         log.error("Stack trace:");
         log.error(err.stack);
     }
+    new() {
+        var log = this.profiler.app.log;
+        log.log(`${this.context.method} ${this.context.path} requested`);
+    }
 }
 exports.NextDebug = NextDebug;
 class NextProfiler {
@@ -45,6 +49,7 @@ class NextProfiler {
         var debug = new NextDebug(this, req);
         res.on('close', debug.complete);
         res.on('error', debug.error);
+        debug.new();
         try {
             next();
         }

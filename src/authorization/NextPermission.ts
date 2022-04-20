@@ -1,7 +1,7 @@
 import { NextContextBase } from "../NextContext";
 
-export interface NextPermission {
-    method: string;
+export interface NextPermissionDefinition {
+    anonymous: boolean;
     path: string;
-    accept: string[];
+    custom: Function;
 }

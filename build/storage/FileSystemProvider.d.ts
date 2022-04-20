@@ -1,12 +1,20 @@
 /// <reference types="node" />
 import { Stream } from "stream";
+/**
+    * @deprecated
+*/
 export declare class FileSystemProviderConfig {
     rootPath: string;
     constructor(rootPath: string);
 }
+/**
+ * @deprecated
+ */
 export declare class FileSystemProvider {
     config: FileSystemProviderConfig;
     constructor(config?: FileSystemProviderConfig);
+    deleteFile(filePath: string): Promise<void>;
+    deleteFolder(dirPath: string): Promise<void>;
     getFile(filePath: string): Promise<Buffer>;
     getFileStream(filePath: string): Promise<Stream>;
     getFileStreamWithRange(filePath: string, start: number, end: number): Promise<Stream>;

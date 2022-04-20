@@ -4,29 +4,87 @@ import { ISessionStore } from "./ISessionStore";
 
 import { v4 as uuid } from 'uuid';
 import { checkIfValidIPV6, formatIP, isInternalIPAddress, waitCallback } from '../utils';
+import { randomUUID } from "crypto";
+
+export interface NextSessionIdResolver {
+    (req: Request): Promise<string>;
+}
 export class NextSessionOptions {
-    public enableForwardedHeader: boolean = true;
+    public enableForwardedHeader?: boolean = true;
+    public enableIPCheck?: boolean = true;
+    public resolveSessionId?: NextSessionIdResolver = null;
+    public ttl?: number;
+}
+
+export class NextSessionBudget {
+    public id: string;
+    public data: any;
 }
 export class NextSessionManager {
-    constructor(public store: ISessionStore) {
+    constructor(public store: ISessionStore, public options?: NextSessionOptions) {
         if (!this.store) this.store = new InMemorySessionStore({});
+        if (!this.options) {
+            this.options = new NextSessionOptions();
+        }
         this.use = this.use.bind(this);
     }
 
+    async retrieveSession(sessionId: string): Promise<NextSessionBudget> {
+        if (sessionId) {
+            await new Promise((resolve) => {
+                try {
+                    this.store.touch(sessionId, {}, () => resolve(null));
+                } catch (err) {
+                    resolve(null);
+                }
+            }
+            ).catch(console.error);
+            var result: any = (await waitCallback(this.store, this.store.get, sessionId));
+            if (result) {
+                return { id: sessionId, data: result && result.session };
+            }
+
+        }
+
+        var newSession = {
+            id: randomUUID(),
+            data: {}
+        };
+        await waitCallback(this.store, this.store.set, newSession.id, {
+            session: newSession.data
+        });
+        return newSession;
+    }
+
+    async destroySession(sessionId: string): Promise<void> {
+        if (sessionId) {
+            await waitCallback(this.store, this.store.destroy, sessionId);
+        }
+    }
+
+    async setSession(sessionId: string, data: any): Promise<void> {
+        if (sessionId) {
+            await waitCallback(this.store, this.store.set, sessionId, {
+                session: data
+            });
+        }
+    }
+
+
     async use(req: Request & { session: any, sessionId: any, userAgent: any }, res: Response, next: NextFunction) {
         const _self = this;
-        var sessionId = req.header("sessionid");
-        var forwardedIP = (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
+        var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
+        var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = formatIP(req.socket.remoteAddress);
-        if (isInternalIPAddress(ip)) ip = formatIP(forwardedIP);
+        if (forwardedIP) ip = formatIP(forwardedIP);
         var isV6 = checkIfValidIPV6(ip);
-
         var userAgent = req.headers['user-agent'];
+        (req as any).clientIp = ip;
         var isNewSession = false;
         var isGranted = true;
         if (sessionId) {
             try {
-                _self.store.touch(sessionId, req.session);
+                await new Promise((resolve) => (_self.store.touch(sessionId, req.session, () => resolve(null))));
             } catch (err) { console.error(err); }
             var result: any = (await waitCallback(_self.store, _self.store.get, sessionId));
             if (!result) {

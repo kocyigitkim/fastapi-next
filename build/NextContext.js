@@ -9,12 +9,13 @@ class NextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
+        this.all = Object.assign(Object.assign(Object.assign({}, req.params), req.query), req.body);
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;
         this.files = req.files;
         this.fileCount = req.fileCount;
-        this.ip = req.ip;
+        this.ip = (req.clientIp) || req.ip;
         this.ipv4 = ((req.ip || "").split(":")[0]) === req.ip;
         this.ipv6 = !this.ipv4;
         this.method = req.method;
@@ -22,6 +23,7 @@ class NextContextBase {
         this.path = req.path;
         this.session = req.session;
         this.sessionId = (this.session && this.session.id) || req.sessionId;
+        this.items = {};
     }
     //#endregion
     get token() {

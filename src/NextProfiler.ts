@@ -14,8 +14,8 @@ export class NextDebug {
         this.error = this.error.bind(this);
     }
     complete() {
-        if(!this.profiler.app.options.debug) return;
-        
+        if (!this.profiler.app.options.debug) return;
+
         var elapsed = (new Date().valueOf() - this.requestDate.valueOf());
         var log = this.profiler.app.log;
         log.log(`${this.context.method} ${this.context.path} completed in ${elapsed} ms`);
@@ -31,6 +31,10 @@ export class NextDebug {
         log.error("Stack trace:");
         log.error(err.stack);
     }
+    new() {
+        var log = this.profiler.app.log;
+        log.log(`${this.context.method} ${this.context.path} requested`);
+    }
 }
 export class NextProfiler {
     constructor(public app: NextApplication, public options: NextProfilerOptions = new NextProfilerOptions()) {
@@ -40,6 +44,7 @@ export class NextProfiler {
         var debug = new NextDebug(this, req);
         res.on('close', debug.complete);
         res.on('error', debug.error);
+        debug.new();
         try {
             next();
         } catch (err) {

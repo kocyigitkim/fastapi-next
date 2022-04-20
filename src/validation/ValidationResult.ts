@@ -8,6 +8,12 @@ export class ValidationResult {
         });
         this.success = false;
     }
+    public addError(field: string, message: string) {
+        this.errors.push({
+            field: field,
+            message: message
+        });
+    }
 }
 export class ValidationError {
     public field: string;

@@ -5,15 +5,16 @@ class ApiResponse {
     constructor(success, message, data) {
         this.success = false;
         this.success = success;
-        this.message = message;
-        this.data = data;
+        this.message = message || null;
+        this.data = data || null;
     }
     setError(message) {
-        this.message = message;
+        this.message = message || "ERROR";
         this.success = false;
         return this;
     }
-    setSuccess(data) {
+    setSuccess(data, message) {
+        this.message = message || "SUCCESS";
         this.success = true;
         this.data = data;
         return this;

@@ -1,10 +1,13 @@
+import { BaseSchema } from 'yup';
+import { AnyObjectSchema } from 'yup';
 import { ApiResponse, NextRouteResponse } from '..'
-import { NextPermission } from '../authorization/NextPermission'
+import { NextPermissionDefinition } from '../authorization/NextPermission'
 import { NextContextBase } from '../NextContext'
 import { ValidationResult } from '../validation/ValidationResult'
 
 export interface NextRouteAction {
-    default(ctx: NextContextBase): Promise<ApiResponse<any> | NextRouteResponse | any>;
-    validate(ctx: NextContextBase): ValidationResult;
-    permission: NextPermission | undefined;
+    default(ctx: NextContextBase): Promise<ApiResponse<any> | NextRouteResponse | any> | (ApiResponse<any> | NextRouteResponse);
+    validate: ((ctx: NextContextBase) => ValidationResult) | AnyObjectSchema | BaseSchema | null;
+    permission: NextPermissionDefinition | undefined;
+
 }

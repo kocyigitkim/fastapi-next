@@ -1,5 +1,6 @@
 import { CorsOptions } from "cors";
 import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
+import { NextSocketOptions } from "../sockets/NextSocketOptions";
 
 
 export class NextOptions {
@@ -8,4 +9,6 @@ export class NextOptions {
     public routerDirs: string[] = [];
     public cors: CorsOptions = null;
     public authorization?: NextAuthorizationBase = null;
+    public sockets?: NextSocketOptions = null;
+    public socketRouterDirs?: string[] = [];
 }
