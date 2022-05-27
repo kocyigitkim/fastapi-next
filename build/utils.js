@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkPathsByNormalization = exports.isInternalIPAddress = exports.formatIP = exports.checkIfValidIPV6 = exports.waitCallback = exports.precisionRound = void 0;
+exports.checkPathsByNormalization = exports.normalizeUrlPath = exports.getTokenFromHeader = exports.isInternalIPAddress = exports.formatIP = exports.checkIfValidIPV6 = exports.waitCallback = exports.precisionRound = void 0;
 const path_1 = __importDefault(require("path"));
 // ? Mathematic
 function precisionRound(number, precision) {
@@ -62,6 +62,17 @@ function isInternalIPAddress(ip) {
     }
 }
 exports.isInternalIPAddress = isInternalIPAddress;
+function getTokenFromHeader(header) {
+    if (header && header.startsWith('Bearer ')) {
+        return header.slice(7, header.length);
+    }
+    return null;
+}
+exports.getTokenFromHeader = getTokenFromHeader;
+function normalizeUrlPath(path) {
+    return path.replace(/\/+/g, "/").replace(/(^\/)|(\/$)/g, "");
+}
+exports.normalizeUrlPath = normalizeUrlPath;
 function checkPathsByNormalization(path1, path2) {
     path1 = path_1.default.normalize(path1);
     path2 = path_1.default.normalize(path2);

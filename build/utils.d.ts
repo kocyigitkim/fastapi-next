@@ -3,5 +3,7 @@ export declare function waitCallback<T>(_this: T, action: any, ...args: any[]): 
 export declare function checkIfValidIPV6(str: any): boolean;
 export declare function formatIP(str: any): any;
 export declare function isInternalIPAddress(ip: string): boolean;
+export declare function getTokenFromHeader(header: string): string;
+export declare function normalizeUrlPath(path: string): string;
 export declare function checkPathsByNormalization(path1: string, path2: string): boolean;
 //# sourceMappingURL=utils.d.ts.map

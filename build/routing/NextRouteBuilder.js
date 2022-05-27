@@ -120,16 +120,16 @@ class NextRouteBuilder {
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
                 if (result.hasBody) {
+                    for (var header in result.headers) {
+                        res.setHeader(header, result.headers[header]);
+                    }
+                    res.status(result.statusCode);
                     if (result.body instanceof stream_1.Stream) {
-                        res.status(result.statusCode);
-                        for (var header in result.headers) {
-                            res.setHeader(header, result.headers[header]);
-                        }
                         result.body.pipe(res);
                         return;
                     }
                     else {
-                        res.status(result.statusCode).send(result.body);
+                        res.send(result.body);
                         return;
                     }
                 }

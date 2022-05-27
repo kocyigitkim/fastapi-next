@@ -112,7 +112,7 @@ export class NextRouteBuilder {
             }
 
             // ? Execution
-            var result : any = route.default(ctx);
+            var result: any = route.default(ctx);
             var isError = false;
             if (result instanceof Promise) {
                 result = await result.catch((err) => {
@@ -122,16 +122,16 @@ export class NextRouteBuilder {
             }
             if (result instanceof NextRouteResponse) {
                 if (result.hasBody) {
+                    for (var header in result.headers) {
+                        res.setHeader(header, result.headers[header]);
+                    }
+                    res.status(result.statusCode);
                     if (result.body instanceof Stream) {
-                        res.status(result.statusCode);
-                        for (var header in result.headers) {
-                            res.setHeader(header, result.headers[header]);
-                        }
                         result.body.pipe(res);
                         return;
                     }
                     else {
-                        res.status(result.statusCode).send(result.body);
+                        res.send(result.body);
                         return;
                     }
                 } else {

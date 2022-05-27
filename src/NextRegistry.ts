@@ -11,7 +11,7 @@ export class NextRegistry {
         this._plugins = [];
     }
 
-    public register(plugin: NextPlugin<any>) {
+    public register<T = any>(plugin: NextPlugin<T> | any) {
         this._plugins.push(plugin);
     }
     public getPlugins(): NextPlugin<any>[] {

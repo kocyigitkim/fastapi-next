@@ -18,6 +18,7 @@ class ValidationResult {
             field: field,
             message: message
         });
+        this.success = false;
     }
 }
 exports.ValidationResult = ValidationResult;
