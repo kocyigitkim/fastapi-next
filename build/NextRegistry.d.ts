@@ -4,7 +4,7 @@ export declare class NextRegistry {
     private _plugins;
     private app;
     constructor(app: NextApplication);
-    register(plugin: NextPlugin<any>): void;
+    register<T = any>(plugin: NextPlugin<T> | any): void;
     getPlugins(): NextPlugin<any>[];
     getPlugin(name: string): NextPlugin<any>;
     destroy(): Promise<void>;
