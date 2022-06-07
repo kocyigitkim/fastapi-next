@@ -17,7 +17,14 @@ export class RedisSessionStore extends ISessionStore {
         super();
         this.init = this.init.bind(this);
         var client = createClient(config);
-        client.on('error', console.error);
+        client.on('error', (err) => {
+            console.error(err);
+            // ? automatically reconnect after a disconnect
+            client.disconnect().finally(() => {
+                client.connect();
+            });
+        });
+
         this.client = client;
     }
     public get(sid: any, cb?: any): void {

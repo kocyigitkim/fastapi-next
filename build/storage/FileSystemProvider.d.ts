@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node 2" />
 import { Stream } from "stream";
 /**
     * @deprecated

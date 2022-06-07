@@ -62,13 +62,6 @@ class NextRouteBuilder {
                     ctx[plugin.name] = await plugin.retrieve.call(plugin, ctx);
                 }
             }
-            // ? Permission
-            if (app.options.authorization) {
-                if (!await app.options.authorization.check(ctx, route.permission)) {
-                    res.status(403).json(new __1.ApiResponse().setError("Forbidden"));
-                    return;
-                }
-            }
             // ? Validation
             if (route.validate) {
                 if (typeof route.validate === 'function') {
@@ -109,6 +102,13 @@ class NextRouteBuilder {
                     }
                 }
             }
+            // ? Permission
+            if (app.options.authorization) {
+                if (!await app.options.authorization.check(ctx, route.permission)) {
+                    res.status(403).json(new __1.ApiResponse().setError("Forbidden"));
+                    return;
+                }
+            }
             // ? Execution
             var result = route.default(ctx);
             var isError = false;
@@ -120,16 +120,16 @@ class NextRouteBuilder {
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
                 if (result.hasBody) {
+                    res.status(result.statusCode);
+                    for (var header in result.headers) {
+                        res.setHeader(header, result.headers[header]);
+                    }
                     if (result.body instanceof stream_1.Stream) {
-                        res.status(result.statusCode);
-                        for (var header in result.headers) {
-                            res.setHeader(header, result.headers[header]);
-                        }
                         result.body.pipe(res);
                         return;
                     }
                     else {
-                        res.status(result.statusCode).send(result.body);
+                        res.send(result.body);
                         return;
                     }
                 }

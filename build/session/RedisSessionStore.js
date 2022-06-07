@@ -11,7 +11,13 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         this.ttl = ttl;
         this.init = this.init.bind(this);
         var client = (0, redis_1.createClient)(config);
-        client.on('error', console.error);
+        client.on('error', (err) => {
+            console.error(err);
+            // ? automatically reconnect after a disconnect
+            client.disconnect().finally(() => {
+                client.connect();
+            });
+        });
         this.client = client;
     }
     get(sid, cb) {
