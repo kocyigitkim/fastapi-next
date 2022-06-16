@@ -1,5 +1,6 @@
 import { ISessionStore } from "./ISessionStore";
-import redis, { RedisClientOptions } from 'redis';
+import redis, { RedisClientType } from 'redis';
+import { RedisClientOptions } from '@redis/client';
 export interface RedisOptions {
     host: string;
     password?: string;
@@ -9,7 +10,7 @@ export interface RedisOptions {
 export declare class RedisSessionStore extends ISessionStore {
     config: RedisClientOptions<any, any>;
     ttl: number;
-    client: redis.RedisClientType<any>;
+    client: RedisClientType<any, any, redis.RedisScripts>;
     constructor(config: RedisClientOptions<any, any>, ttl?: number);
     get(sid: any, cb?: any): void;
     set(sid: any, sess: any, cb?: any): void;

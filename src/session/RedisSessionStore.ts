@@ -1,6 +1,7 @@
 import { ISessionStore } from "./ISessionStore";
-import connectRedis from 'connect-redis';
-import redis, { RedisClientOptions, createClient } from 'redis';
+import redis, { createClient, RedisClientType } from 'redis';
+import { RedisClientOptions } from '@redis/client'
+
 const noop = () => { };
 
 export interface RedisOptions {
@@ -12,7 +13,7 @@ export interface RedisOptions {
 
 export class RedisSessionStore extends ISessionStore {
 
-    public client: redis.RedisClientType<any>;
+    public client: RedisClientType<any, any, redis.RedisScripts>;
     constructor(public config: RedisClientOptions<any, any>, public ttl: number = 30 * 60) {
         super();
         this.init = this.init.bind(this);
@@ -24,7 +25,6 @@ export class RedisSessionStore extends ISessionStore {
                 client.connect();
             });
         });
-
         this.client = client;
     }
     public get(sid: any, cb?: any): void {
