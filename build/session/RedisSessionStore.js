@@ -26,9 +26,9 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         return this.isAlive ? NextOptions_1.NextHealthCheckStatus.Alive() : NextOptions_1.NextHealthCheckStatus.Dead();
     }
     handleError(err) {
-        const errorMessage = (err || "").toString();
-        // if noauth error or no connection error, reconnect
-        if (errorMessage.includes("NOAUTH") || errorMessage.includes("ECONNREFUSED")) {
+        const errorMessage = (err || "").toString().toLowerCase();
+        // if noauth error or no connection error or client is closed, reconnect
+        if (errorMessage.includes("noauth") || errorMessage.includes("econnrefused") || errorMessage.includes("closed")) {
             console.warn("Redis session store error:", errorMessage);
             console.log("Trying to reconnect...");
             this.isAlive = false;
