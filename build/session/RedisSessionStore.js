@@ -10,15 +10,31 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         this.config = config;
         this.ttl = ttl;
         this.init = this.init.bind(this);
+        this.handleError = this.handleError.bind(this);
         var client = (0, redis_1.createClient)(config);
         client.on('error', (err) => {
-            console.error(err);
-            // ? automatically reconnect after a disconnect
-            client.disconnect().finally(() => {
-                client.connect();
-            });
+            this.handleError(err);
         });
         this.client = client;
+    }
+    handleError(err) {
+        const errorMessage = (err || "").toString();
+        // if noauth error or no connection error, reconnect
+        if (errorMessage.includes("NOAUTH") || errorMessage.includes("ECONNREFUSED")) {
+            console.warn("Redis session store error:", errorMessage);
+            console.log("Trying to reconnect...");
+            this.client.disconnect().finally(() => {
+                this.client.connect().then(() => {
+                    console.log('Reconnected to Redis');
+                }).catch((err) => {
+                    console.error("Error reconnecting to Redis:", err);
+                    setTimeout(this.handleError.bind(this, err), 1000);
+                });
+            });
+        }
+        else {
+            console.error(err);
+        }
     }
     get(sid, cb) {
         this.client.get(sid).then((result) => {
@@ -33,6 +49,7 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         }).catch((err) => {
             if (cb)
                 cb(err);
+            this.handleError(err);
         });
     }
     set(sid, sess, cb) {
@@ -44,6 +61,7 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         }).catch((err) => {
             if (cb)
                 cb(err);
+            this.handleError(err);
         });
     }
     touch(sid, sess, cb) {
@@ -53,6 +71,7 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         }).catch((err) => {
             if (cb)
                 cb(err);
+            this.handleError(err);
         });
     }
     destroy(sid, cb) {
@@ -62,6 +81,7 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
         }).catch((err) => {
             if (cb)
                 cb(err);
+            this.handleError(err);
         });
     }
 }

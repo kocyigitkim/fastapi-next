@@ -12,6 +12,7 @@ export declare class RedisSessionStore extends ISessionStore {
     ttl: number;
     client: RedisClientType<any, any, redis.RedisScripts>;
     constructor(config: RedisClientOptions<any, any>, ttl?: number);
+    private handleError;
     get(sid: any, cb?: any): void;
     set(sid: any, sess: any, cb?: any): void;
     touch(sid: any, sess: any, cb?: any): void;
