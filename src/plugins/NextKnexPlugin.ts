@@ -1,6 +1,7 @@
 import { NextPlugin } from "./NextPlugin";
 import { NextApplication } from "../NextApplication";
 import { NextContextBase } from "../NextContext";
+import { NextHealthCheckStatus } from "../config/NextOptions";
 
 export class NextKnexPlugin extends NextPlugin<any>{
     private knex: any;
@@ -13,5 +14,14 @@ export class NextKnexPlugin extends NextPlugin<any>{
     }
     public async retrieve(next: NextContextBase): Promise<any> {
         return this.knex;
+    }
+    public async healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
+        const result = await this.knex.raw("select 1 as alive").catch(()=>{});
+        if(Array.isArray(result) && result[0] && result[0].alive === 1){
+            return NextHealthCheckStatus.Alive();
+        }
+        else{
+            return NextHealthCheckStatus.Dead();
+        }
     }
 }

@@ -27,6 +27,9 @@ class NextSessionManager {
         }
         this.use = this.use.bind(this);
     }
+    async healthCheck() {
+        return await this.store.healthCheck();
+    }
     async retrieveSession(sessionId) {
         if (sessionId) {
             await new Promise((resolve) => {

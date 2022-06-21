@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextApplication = void 0;
 const events_1 = __importDefault(require("events"));
 const express_1 = __importDefault(require("express"));
+const NextOptions_1 = require("./config/NextOptions");
 const NextInitializationHeader_1 = require("./NextInitializationHeader");
 const NextLog_1 = require("./NextLog");
 const NextProfiler_1 = require("./NextProfiler");
@@ -17,15 +18,24 @@ const RedisSessionStore_1 = require("./session/RedisSessionStore");
 const FileSystemSessionStore_1 = require("./session/FileSystemSessionStore");
 const NextSocket_1 = require("./sockets/NextSocket");
 const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
+const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
         this.options = options;
         this.express = (0, express_1.default)();
         // ? Default Express Plugins
-        this.express.use((0, cors_1.default)(options.cors));
-        this.express.use(express_1.default.json({ type: 'application/json' }));
-        this.express.use(express_1.default.urlencoded({ type: 'application/x-www-form-urlencoded' }));
+        if (options.cors)
+            this.express.use((0, cors_1.default)(options.cors));
+        else
+            this.express.use((0, cors_1.default)({
+                origin: '*',
+                methods: '*',
+                allowedHeaders: '*',
+                preflightContinue: true
+            }));
+        this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((options.bodyParser && options.bodyParser.json) || {}))));
+        this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((options.bodyParser && options.bodyParser.urlencoded) || {}))));
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
@@ -33,6 +43,13 @@ class NextApplication extends events_1.default {
     on(eventName, listener) {
         super.on(eventName, listener);
         return this;
+    }
+    enableHealthCheck() {
+        this.healthProfiler = new NextHealthProfiler_1.NextHealthProfiler();
+        this.options.healthCheck = new NextOptions_1.NextHealthCheckOptions();
+    }
+    registerHealthCheck(name, obj) {
+        this.healthProfiler.register(name, obj);
     }
     async registerFileSystemSession(rootPath, options) {
         this.express.use((this.sessionManager = new _1.NextSessionManager(new FileSystemSessionStore_1.FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
@@ -44,6 +61,7 @@ class NextApplication extends events_1.default {
         var session = new RedisSessionStore_1.RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new _1.NextSessionManager(session, options)).use);
+        this.registerHealthCheck("sessionManager", this.sessionManager);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();

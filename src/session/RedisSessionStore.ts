@@ -1,6 +1,7 @@
 import { ISessionStore } from "./ISessionStore";
 import redis, { createClient, RedisClientType } from 'redis';
 import { RedisClientOptions } from '@redis/client'
+import { NextHealthCheckStatus } from "../config/NextOptions";
 
 const noop = () => { };
 
@@ -14,6 +15,7 @@ export interface RedisOptions {
 export class RedisSessionStore extends ISessionStore {
 
     public client: RedisClientType<any, any, redis.RedisScripts>;
+    private isAlive = false;
     constructor(public config: RedisClientOptions<any, any>, public ttl: number = 30 * 60) {
         super();
         this.init = this.init.bind(this);
@@ -22,7 +24,13 @@ export class RedisSessionStore extends ISessionStore {
         client.on('error', (err) => {
             this.handleError(err);
         });
+        client.on('connection', () => {
+            this.isAlive = true;
+        });
         this.client = client;
+    }
+    async healthCheck(): Promise<NextHealthCheckStatus> {
+        return this.isAlive ? NextHealthCheckStatus.Alive() : NextHealthCheckStatus.Dead();
     }
     private handleError(err: any) {
         const errorMessage = (err || "").toString();
@@ -30,9 +38,11 @@ export class RedisSessionStore extends ISessionStore {
         if (errorMessage.includes("NOAUTH") || errorMessage.includes("ECONNREFUSED")) {
             console.warn("Redis session store error:", errorMessage);
             console.log("Trying to reconnect...");
+            this.isAlive = false;
             this.client.disconnect().finally(() => {
                 this.client.connect().then(() => {
                     console.log('Reconnected to Redis');
+                    this.isAlive = true;
                 }).catch((err) => {
                     console.error("Error reconnecting to Redis:", err);
                     setTimeout(this.handleError.bind(this, err), 1000);
@@ -51,6 +61,7 @@ export class RedisSessionStore extends ISessionStore {
             } catch (err) {
                 if (cb) cb(err);
             }
+            this.isAlive = true;
         }).catch((err) => {
             if (cb) cb(err);
             this.handleError(err);
@@ -61,6 +72,7 @@ export class RedisSessionStore extends ISessionStore {
             EX: this.ttl
         }).then((result) => {
             if (cb) cb(null, this);
+            this.isAlive = true;
         }).catch((err) => {
             if (cb) cb(err);
             this.handleError(err);
@@ -69,6 +81,7 @@ export class RedisSessionStore extends ISessionStore {
     public touch(sid: any, sess: any, cb?: any): void {
         this.client.expire(sid, this.ttl).then((result) => {
             if (cb) cb(null, this);
+            this.isAlive = true;
         }).catch((err) => {
             if (cb) cb(err);
             this.handleError(err);
@@ -77,6 +90,7 @@ export class RedisSessionStore extends ISessionStore {
     public destroy(sid: any, cb?: any): void {
         this.client.del(sid).then((result) => {
             if (cb) cb(null, this);
+            this.isAlive = true;
         }).catch((err) => {
             if (cb) cb(err);
             this.handleError(err);

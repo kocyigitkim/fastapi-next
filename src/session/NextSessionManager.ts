@@ -5,6 +5,8 @@ import { ISessionStore } from "./ISessionStore";
 import { v4 as uuid } from 'uuid';
 import { checkIfValidIPV6, formatIP, isInternalIPAddress, waitCallback } from '../utils';
 import { randomUUID } from "crypto";
+import { IHealth } from "../health/IHealth";
+import { NextHealthCheckStatus } from "../config/NextOptions";
 
 export interface NextSessionIdResolver {
     (req: Request): Promise<string>;
@@ -20,13 +22,16 @@ export class NextSessionBudget {
     public id: string;
     public data: any;
 }
-export class NextSessionManager {
+export class NextSessionManager implements IHealth {
     constructor(public store: ISessionStore, public options?: NextSessionOptions) {
         if (!this.store) this.store = new InMemorySessionStore({});
         if (!this.options) {
             this.options = new NextSessionOptions();
         }
         this.use = this.use.bind(this);
+    }
+    async healthCheck(): Promise<NextHealthCheckStatus> {
+        return await this.store.healthCheck();
     }
 
     async retrieveSession(sessionId: string): Promise<NextSessionBudget> {

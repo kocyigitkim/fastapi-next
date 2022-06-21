@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InMemorySessionStore = void 0;
+const NextOptions_1 = require("../config/NextOptions");
 const ISessionStore_1 = require("./ISessionStore");
 class InMemorySessionStore extends ISessionStore_1.ISessionStore {
     constructor(config) {
@@ -14,6 +15,9 @@ class InMemorySessionStore extends ISessionStore_1.ISessionStore {
         this.targetTTL = this.config.ttl;
     }
     ;
+    async healthCheck() {
+        return NextOptions_1.NextHealthCheckStatus.Alive();
+    }
     async worker() {
         const _self = this;
         while (true) {

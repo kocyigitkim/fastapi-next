@@ -1,4 +1,5 @@
-import { NextContextBase } from "..";
+import { NextApplication, NextContextBase } from "..";
+import { NextHealthCheckStatus } from "../config/NextOptions";
 import { NextPlugin } from "./NextPlugin";
 
 export class NextObjectPlugin extends NextPlugin<any>{
@@ -7,5 +8,8 @@ export class NextObjectPlugin extends NextPlugin<any>{
     }
     public async retrieve(next: NextContextBase): Promise<any> {
         return this.obj;
+    }
+    public async healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Alive();
     }
 }

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import { NextApplication } from '.';
 
 export interface INextContextBase {
     //#region Express Parameters
@@ -32,6 +33,8 @@ export interface INextContextBase {
     get token(): string | null;
 }
 export class NextContextBase implements INextContextBase {
+    public app: NextApplication;
+
     //#region Express Parameters
     public req: Request;
     public res: Response;

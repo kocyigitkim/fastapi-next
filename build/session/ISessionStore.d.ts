@@ -1,5 +1,8 @@
-export declare class ISessionStore {
+import { NextHealthCheckStatus } from "../config/NextOptions";
+import { IHealth } from "../health/IHealth";
+export declare class ISessionStore implements IHealth {
     constructor();
+    healthCheck(): Promise<NextHealthCheckStatus>;
     init(manager: any, cb?: () => void): void;
     get(sid: any, cb?: () => void): void;
     set(sid: any, sess: any, cb?: () => void): void;

@@ -1,6 +1,7 @@
 import { NextPlugin } from './NextPlugin';
 import { FileSystemProvider, FileSystemProviderConfig } from '../storage/FileSystemProvider';
 import { NextApplication, NextContextBase } from '..';
+import { NextHealthCheckStatus } from '../config/NextOptions';
 
 export class NextFileSystemPlugin extends NextPlugin<any>{
     private provider: FileSystemProvider;
@@ -13,5 +14,8 @@ export class NextFileSystemPlugin extends NextPlugin<any>{
     }
     public async retrieve(next: NextContextBase): Promise<any> {
         return this.provider;
+    }
+    public async healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Alive();
     }
 }

@@ -11,6 +11,8 @@ import { AnyObjectSchema, ValidationError } from 'yup'
 export class NextRouteBuilder {
     private paths: string[] = [];
     constructor(public app: NextApplication) {
+        this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
+
         this.paths = app.options.routerDirs;
         this.paths.forEach(p => {
             var results = this.scanDir(p);
@@ -18,6 +20,57 @@ export class NextRouteBuilder {
                 this.registerRoute(p, routePath, app, realpath);
             });
         });
+
+        this.handleHealthCheckEndpoints();
+    }
+    private handleHealthCheckEndpoints() {
+        if (this.app.options.healthCheck) {
+            // Liveness check
+            var isFirstInit = false;
+            this.register(this.app.options.healthCheck.livenessPath, "get", async (ctx) => {
+                try {
+                    if (isFirstInit)
+                        return new NextRouteResponse(200, "OK", true);
+
+                    const plugins = this.app.registry.getPlugins();
+                    const pluginHealths = await Promise.all(plugins.map(p => p.healthCheck(this.app)));
+                    const objectHealths = await this.app.healthProfiler.healthCheck();
+                    if (this.app.options.debug) {
+                        console.log('Health Check', pluginHealths, objectHealths);
+                    }
+                    const hasError = pluginHealths.some(h => !h.success) || objectHealths.some(h => !h.status.success);
+                    if (hasError) {
+                        return new NextRouteResponse(503, JSON.stringify(pluginHealths, null, 2), true);
+                    }
+                    else {
+                        isFirstInit = true;
+                        return new NextRouteResponse(200, "OK", true);
+                    }
+                } catch (err) {
+                    return new NextRouteResponse(503, err.message, true);
+                }
+            });
+            // Readiness check
+            this.register(this.app.options.healthCheck.readinessPath, "get", async (ctx) => {
+                try {
+                    const plugins = this.app.registry.getPlugins();
+                    const pluginHealths = await Promise.all(plugins.map(p => p.healthCheck(this.app)));
+                    const objectHealths = await this.app.healthProfiler.healthCheck();
+                    const hasError = pluginHealths.some(h => !h.success) || objectHealths.some(h => !h.status.success);
+                    if (this.app.options.debug) {
+                        console.log('Health Check', pluginHealths, objectHealths);
+                    }
+                    if (hasError) {
+                        return new NextRouteResponse(503, JSON.stringify(pluginHealths, null, 2), true);
+                    }
+                    else {
+                        return new NextRouteResponse(200, "OK", true);
+                    }
+                } catch (err) {
+                    return new NextRouteResponse(503, err.message, true);
+                }
+            });
+        }
     }
     private registerRoute(p: string, routePath: any, app: NextApplication, realpath: any) {
         var parts = path.relative(p, routePath).split(path.sep);
@@ -40,13 +93,13 @@ export class NextRouteBuilder {
     }
 
     public register(subPath: string, method: string, definition: (ctx: NextContextBase) => Promise<any>) {
-        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, definition));
+        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
     }
 
     private routeMiddleware(app: NextApplication) {
         return async (route: NextRouteAction, req: Request, res: Response, next: NextFunction) => {
             var ctx: NextContextBase = new NextContextBase(req, res, next);
-
+            ctx.app = app;
             for (var plugin of app.registry.getPlugins()) {
                 var mwResult = await plugin.middleware.call(plugin, ctx).catch(app.log.error);
                 if (typeof mwResult === 'boolean' && !mwResult) {

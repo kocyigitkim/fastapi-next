@@ -1,3 +1,4 @@
+import { NextHealthCheckStatus } from "../config/NextOptions";
 import { ISessionStore } from "./ISessionStore";
 
 export interface InMemorySessionConfig {
@@ -21,6 +22,9 @@ export class InMemorySessionStore extends ISessionStore {
         this.destroy = this.destroy.bind(this);
         this.worker = this.worker.call(this);
         this.targetTTL = this.config.ttl;
+    }
+    async healthCheck(): Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Alive();
     }
     async worker() {
         const _self = this;

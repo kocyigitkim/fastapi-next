@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextFileResolverPlugin = exports.NextFile = void 0;
 const multer_1 = __importDefault(require("multer"));
 const __1 = require("..");
+const NextOptions_1 = require("../config/NextOptions");
 class NextFile {
 }
 exports.NextFile = NextFile;
@@ -44,6 +45,9 @@ class NextFileResolverPlugin extends __1.NextPlugin {
             }
         }
         return true;
+    }
+    async healthCheck(next) {
+        return NextOptions_1.NextHealthCheckStatus.Alive();
     }
 }
 exports.NextFileResolverPlugin = NextFileResolverPlugin;

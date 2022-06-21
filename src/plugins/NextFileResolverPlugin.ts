@@ -1,5 +1,6 @@
 import multer, { Multer, Options as MulterOptions } from "multer";
 import { NextApplication, NextContextBase, NextPlugin } from "..";
+import { NextHealthCheckStatus } from "../config/NextOptions";
 import { NextFlag } from "../NextFlag";
 
 export class NextFile {
@@ -45,5 +46,8 @@ export class NextFileResolverPlugin extends NextPlugin<any> {
             }
         }
         return true;
+    }
+    public async healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Alive();
     }
 }

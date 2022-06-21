@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ISessionStore = void 0;
+const NextOptions_1 = require("../config/NextOptions");
 const noop = () => { };
 class ISessionStore {
     constructor() {
     }
+    async healthCheck() { return NextOptions_1.NextHealthCheckStatus.Dead(); }
     init(manager, cb = noop) { }
     get(sid, cb = noop) { }
     set(sid, sess, cb = noop) { }

@@ -1,3 +1,4 @@
+import { NextHealthCheckStatus } from "../config/NextOptions";
 import { ISessionStore } from "./ISessionStore";
 export interface InMemorySessionConfig {
     ttl?: number;
@@ -7,6 +8,7 @@ export declare class InMemorySessionStore extends ISessionStore {
     config: InMemorySessionConfig;
     targetTTL: number;
     constructor(config: any);
+    healthCheck(): Promise<NextHealthCheckStatus>;
     worker(): Promise<void>;
     get(id: any, callback: any): void;
     set(id: any, value: any, callback: any): void;

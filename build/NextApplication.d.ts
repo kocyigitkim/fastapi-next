@@ -13,6 +13,8 @@ import { RedisClientOptions } from 'redis';
 import { NextSessionOptions } from './session/NextSessionManager';
 import { NextSocket } from './sockets/NextSocket';
 import { NextSocketRouter } from './sockets/NextSocketRouter';
+import { NextHealthProfiler } from './health/NextHealthProfiler';
+import { IHealth } from './health/IHealth';
 export declare type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export declare class NextApplication extends EventEmitter {
     express: express.Application;
@@ -25,7 +27,10 @@ export declare class NextApplication extends EventEmitter {
     sessionManager: NextSessionManager;
     socket?: NextSocket;
     socketRouter?: NextSocketRouter;
+    healthProfiler?: NextHealthProfiler;
     on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this;
+    enableHealthCheck(): void;
+    registerHealthCheck(name: string, obj: IHealth): void;
     constructor(options: NextOptions);
     registerFileSystemSession(rootPath: string, options?: NextSessionOptions): Promise<void>;
     registerInMemorySession(options?: NextSessionOptions): Promise<void>;

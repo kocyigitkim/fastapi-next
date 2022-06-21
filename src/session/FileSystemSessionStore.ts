@@ -1,5 +1,6 @@
 import { ISessionStore } from "./ISessionStore";
 import fs from 'fs'
+import { NextHealthCheckStatus } from "../config/NextOptions";
 
 export class FileSystemSessionStore extends ISessionStore {
     public rootPath: string;
@@ -11,6 +12,9 @@ export class FileSystemSessionStore extends ISessionStore {
         this.get = this.get.bind(this);
         this.set = this.set.bind(this);
         this.destroy = this.destroy.bind(this);
+    }
+    async healthCheck(): Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Alive();
     }
     async get(id, callback) {
         var filePath = this.rootPath + "/" + id;

@@ -1,5 +1,6 @@
 /// <reference types="multer" />
 import { NextFunction, Request, Response } from 'express';
+import { NextApplication } from '.';
 export interface INextContextBase {
     req: Request;
     res: Response;
@@ -23,6 +24,7 @@ export interface INextContextBase {
     get token(): string | null;
 }
 export declare class NextContextBase implements INextContextBase {
+    app: NextApplication;
     req: Request;
     res: Response;
     next: NextFunction;

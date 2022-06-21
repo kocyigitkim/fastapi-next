@@ -1,3 +1,4 @@
+import { NextHealthCheckStatus } from "../config/NextOptions";
 import { NextApplication } from "../NextApplication";
 import { NextContextBase } from "../NextContext";
 import { NextFlag } from "../NextFlag";
@@ -13,5 +14,8 @@ export class NextPlugin<T> {
     }
     public async retrieve(next: NextContextBase) : Promise<T>{
         return null;
+    }
+    public async healthCheck(next: NextApplication) : Promise<NextHealthCheckStatus> {
+        return NextHealthCheckStatus.Dead();
     }
 }

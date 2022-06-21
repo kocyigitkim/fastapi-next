@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import express from 'express';
-import { NextOptions } from './config/NextOptions';
+import { NextHealthCheckOptions, NextOptions } from './config/NextOptions';
 import { NextInitializationHeader, NextRunning } from './NextInitializationHeader';
 import { NextConsoleLog, NextLog } from './NextLog';
 import { NextProfiler, NextProfilerOptions } from './NextProfiler';
@@ -15,6 +15,8 @@ import { NextSessionOptions } from './session/NextSessionManager';
 import { FileSystemSessionStore } from './session/FileSystemSessionStore';
 import { NextSocket } from './sockets/NextSocket';
 import { NextSocketRouter } from './sockets/NextSocketRouter';
+import { NextHealthProfiler } from './health/NextHealthProfiler';
+import { IHealth } from './health/IHealth';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -28,18 +30,32 @@ export class NextApplication extends EventEmitter {
     public sessionManager: NextSessionManager;
     public socket?: NextSocket;
     public socketRouter?: NextSocketRouter;
+    public healthProfiler?: NextHealthProfiler;
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
+    }
+    public enableHealthCheck() {
+        this.healthProfiler = new NextHealthProfiler();
+        this.options.healthCheck = new NextHealthCheckOptions();
+    }
+    public registerHealthCheck(name: string, obj: IHealth) {
+        this.healthProfiler.register(name, obj);
     }
     public constructor(options: NextOptions) {
         super();
         this.options = options;
         this.express = express();
         // ? Default Express Plugins
-        this.express.use(cors(options.cors));
-        this.express.use(express.json({ type: 'application/json' }));
-        this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded' }));
+        if (options.cors) this.express.use(cors(options.cors));
+        else this.express.use(cors({
+            origin: '*',
+            methods: '*',
+            allowedHeaders: '*',
+            preflightContinue: true
+        }));
+        this.express.use(express.json({ type: 'application/json', ...((options.bodyParser && options.bodyParser.json) || {}) }));
+        this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((options.bodyParser && options.bodyParser.urlencoded) || {}) }));
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
@@ -54,6 +70,7 @@ export class NextApplication extends EventEmitter {
         var session = new RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new NextSessionManager(session, options)).use);
+        this.registerHealthCheck("sessionManager", this.sessionManager);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();
@@ -64,7 +81,7 @@ export class NextApplication extends EventEmitter {
         }
 
         this.routeBuilder = new NextRouteBuilder(this);
-        if(this.options.sockets){
+        if (this.options.sockets) {
             this.socket = new NextSocket(this.options.sockets, this);
             this.socketRouter = new NextSocketRouter();
             this.socket.router = this.socketRouter;

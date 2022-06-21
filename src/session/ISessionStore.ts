@@ -1,9 +1,13 @@
+import { NextHealthCheckStatus } from "../config/NextOptions";
+import { IHealth } from "../health/IHealth";
+
 const noop = () => { };
 
-export class ISessionStore {
+export class ISessionStore implements IHealth {
     constructor() {
 
     }
+    async healthCheck(): Promise<NextHealthCheckStatus> { return NextHealthCheckStatus.Dead(); }
     public init(manager, cb = noop) { }
     public get(sid, cb = noop) { }
     public set(sid, sess, cb = noop) { }
