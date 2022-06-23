@@ -70,7 +70,7 @@ export class NextApplication extends EventEmitter {
         var session = new RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new NextSessionManager(session, options)).use);
-        this.registerHealthCheck("sessionManager", this.sessionManager);
+        if (this.options.healthCheck) this.registerHealthCheck("sessionManager", this.sessionManager);
     }
     public async init(): Promise<void> {
         NextInitializationHeader();

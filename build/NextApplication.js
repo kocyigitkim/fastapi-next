@@ -61,7 +61,8 @@ class NextApplication extends events_1.default {
         var session = new RedisSessionStore_1.RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new _1.NextSessionManager(session, options)).use);
-        this.registerHealthCheck("sessionManager", this.sessionManager);
+        if (this.options.healthCheck)
+            this.registerHealthCheck("sessionManager", this.sessionManager);
     }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
