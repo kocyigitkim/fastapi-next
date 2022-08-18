@@ -39,6 +39,7 @@ class NextApplication extends events_1.default {
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
+        this.on('error', console.error);
     }
     on(eventName, listener) {
         super.on(eventName, listener);

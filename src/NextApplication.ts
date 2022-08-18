@@ -59,6 +59,7 @@ export class NextApplication extends EventEmitter {
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
+        this.on('error', console.error);
     }
     public async registerFileSystemSession(rootPath: string, options?: NextSessionOptions) {
         this.express.use((this.sessionManager = new NextSessionManager(new FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
