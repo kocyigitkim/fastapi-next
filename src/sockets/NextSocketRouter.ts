@@ -34,21 +34,6 @@ export class NextSocketRouter {
     }
     public async registerRouters(dirs: string[]) {
         for (var dir of dirs) {
-            // var files = fs.readdirSync(dir, { withFileTypes: true });
-            // for (var file of files) {
-            //     if (file.isFile() && (file.name.endsWith('.js') || file.name.endsWith('.ts'))) {
-            //         var filePath = path.basename(path.join(dir, file.name));
-            //         var methodPath = path.relative(process.cwd(), path.join(dir, filePath));
-            //         var route = require(path.join(dir, file.name));
-            //         if (route.default) {
-            //             this.registerRoute(methodPath, route.default);
-            //         }
-            //         console.log('Register route: ' + methodPath);
-            //     }
-            //     else if (file.isDirectory()) {
-            //         this.registerRouters([path.join(dir, file.name)]);
-            //     }
-            // }
             var files: {
                 routepath: string;
                 realpath: string;

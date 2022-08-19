@@ -3,12 +3,17 @@ import WebSocket, { WebSocketServer } from 'ws'
 import { NextContextBase } from "../NextContext";
 import { NextSocketRouter } from "./NextSocketRouter";
 import { NextSocketOptions } from "./NextSocketOptions";
-import { NextSocketMessageBase } from "./NextSocketMessageBase";
+import { NextSocketContext } from "./NextSocketContext";
 
 export class NextSocket {
     public server: WebSocketServer;
     public router: NextSocketRouter;
+    private connections: WebSocket[];
+    public getConnections(){
+        return this.connections;
+    }
     constructor(public options: NextSocketOptions, public app: NextApplication) {
+        this.connections = [];
         this.start = this.start.bind(this);
         this.registerEvents = this.registerEvents.bind(this);
         app.on('start', (app: NextApplication) => {
@@ -35,6 +40,7 @@ export class NextSocket {
                     (ctx as any)[plugin.name] = await plugin.retrieve.call(plugin, ctx);
                 }
             }
+            this.connections.push(socket);
             socket.on('message', (data: any) => {
                 try {
                     var message = JSON.parse(data);
@@ -45,6 +51,9 @@ export class NextSocket {
             });
             socket.on('error', (err: Error) => {
                 this.app.emit('error', err);
+            });
+            socket.on('close', () => {
+                this.connections = this.connections.filter(c => c !== socket);
             });
         })
     }

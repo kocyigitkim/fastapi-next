@@ -17,6 +17,7 @@ import { NextSocket } from './sockets/NextSocket';
 import { NextSocketRouter } from './sockets/NextSocketRouter';
 import { NextHealthProfiler } from './health/NextHealthProfiler';
 import { IHealth } from './health/IHealth';
+import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -31,6 +32,7 @@ export class NextApplication extends EventEmitter {
     public socket?: NextSocket;
     public socketRouter?: NextSocketRouter;
     public healthProfiler?: NextHealthProfiler;
+    public realtime?: NextRealtimeFunctions;
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -44,6 +46,7 @@ export class NextApplication extends EventEmitter {
     }
     public constructor(options: NextOptions) {
         super();
+        this.realtime = new NextRealtimeFunctions(this);
         this.options = options;
         this.express = express();
         // ? Default Express Plugins

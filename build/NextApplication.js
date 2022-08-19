@@ -19,9 +19,11 @@ const FileSystemSessionStore_1 = require("./session/FileSystemSessionStore");
 const NextSocket_1 = require("./sockets/NextSocket");
 const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
 const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
+const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
+        this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
         this.options = options;
         this.express = (0, express_1.default)();
         // ? Default Express Plugins
