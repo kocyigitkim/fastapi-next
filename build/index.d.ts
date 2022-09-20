@@ -27,4 +27,8 @@ export { NextFSLocalFile } from './filesystem/localfs/NextFSLocalFile';
 export { NextFSLocalDirectory } from './filesystem/localfs/NextFSLocalDirectory';
 export { NextFSLocalManager } from './filesystem/localfs/NextFSLocalManager';
 export { NextObjectPlugin } from './plugins/NextObjectPlugin';
+export { ParallelJob } from './parallelism/ParallelJob';
+export type { ParallelJobEventNames } from './parallelism/ParallelJobEventNames';
+export { ParallelJobState } from './parallelism/ParallelJobState';
+export { NextSocketOptions } from './sockets/NextSocketOptions';
 //# sourceMappingURL=index.d.ts.map

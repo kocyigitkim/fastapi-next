@@ -15,14 +15,28 @@ class NextRouteBuilder {
     constructor(app) {
         this.app = app;
         this.paths = [];
+        const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
         this.paths = app.options.routerDirs;
-        this.paths.forEach(p => {
-            var results = this.scanDir(p);
-            results.forEach(({ routePath, realpath }) => {
-                this.registerRoute(p, routePath, app, realpath);
+        if (!isScanDirectoryDisabled) {
+            this.paths.forEach(p => {
+                try {
+                    var results = this.scanDir(p);
+                    results.forEach(({ routePath, realpath }) => {
+                        this.registerRoute(p, routePath, app, realpath);
+                    });
+                }
+                catch (err) {
+                    console.error(err);
+                }
             });
-        });
+        }
+        const glob = global;
+        if (Array.isArray(glob.__fastapi_routes_rest)) {
+            glob.__fastapi_routes_rest.forEach((route) => {
+                this.register(route.details.routePath, route.details.detectedMethod, route.init());
+            });
+        }
         this.handleHealthCheckEndpoints();
     }
     handleHealthCheckEndpoints() {

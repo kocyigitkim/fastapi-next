@@ -11,15 +11,29 @@ import { AnyObjectSchema, ValidationError } from 'yup'
 export class NextRouteBuilder {
     private paths: string[] = [];
     constructor(public app: NextApplication) {
+        const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
 
         this.paths = app.options.routerDirs;
-        this.paths.forEach(p => {
-            var results = this.scanDir(p);
-            results.forEach(({ routePath, realpath }: any) => {
-                this.registerRoute(p, routePath, app, realpath);
+        if (!isScanDirectoryDisabled) {
+            this.paths.forEach(p => {
+                try {
+                    var results = this.scanDir(p);
+                    results.forEach(({ routePath, realpath }: any) => {
+                        this.registerRoute(p, routePath, app, realpath);
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
             });
-        });
+        }
+
+        const glob = (global as any);
+        if (Array.isArray(glob.__fastapi_routes_rest)) {
+            glob.__fastapi_routes_rest.forEach((route: any) => {
+                this.register(route.details.routePath, route.details.detectedMethod, route.init());
+            });
+        }
 
         this.handleHealthCheckEndpoints();
     }

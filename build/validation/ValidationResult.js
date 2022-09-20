@@ -20,6 +20,17 @@ class ValidationResult {
         });
         this.success = false;
     }
+    async validateYup(schema, data) {
+        var isError = false;
+        var result = await schema.validate(data).catch(err => {
+            isError = true;
+            return err;
+        });
+        if (isError) {
+            var err = result;
+            this.error(err.path, err.message);
+        }
+    }
 }
 exports.ValidationResult = ValidationResult;
 class ValidationError {

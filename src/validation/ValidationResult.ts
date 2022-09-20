@@ -1,3 +1,5 @@
+import { AnySchema, ObjectSchema, StringSchema, ValidationError as YupValidationError } from "yup";
+
 export class ValidationResult {
     public errors: ValidationError[] = [];
     public success: boolean = true;
@@ -14,6 +16,17 @@ export class ValidationResult {
             message: message
         });
         this.success = false;
+    }
+    public async validateYup(schema: AnySchema | StringSchema | ObjectSchema<any>, data: any){
+        var isError = false;
+        var result = await schema.validate(data).catch(err=>{
+            isError = true;
+            return err;
+        })
+        if(isError){
+            var err : YupValidationError  = result as YupValidationError;
+            this.error(err.path, err.message);
+        }
     }
 }
 export class ValidationError {

@@ -33,26 +33,40 @@ export class NextSocketRouter {
         }
     }
     public async registerRouters(dirs: string[]) {
-        for (var dir of dirs) {
-            var files: {
-                routepath: string;
-                realpath: string;
-            }[] = this.scanDir(dir);
-            for (var file of files) {
-                var parts = path.relative(dir, file.realpath).split(path.sep);
-                var methodPath = "/" + parts.map(part => {
-                    return part.replace(/\[/g, ":").replace(/\]/g, "");
-                }).join("/");
-                var fileExtension = path.basename(methodPath).split(".")[1];
-                if (fileExtension) {
-                    methodPath = methodPath.substring(0, methodPath.length - fileExtension.length - 1);
+        const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
+        if (!isScanDirectoryDisabled) {
+            for (var dir of dirs) {
+                try {
+                    var files: {
+                        routepath: string;
+                        realpath: string;
+                    }[] = this.scanDir(dir);
+                    for (var file of files) {
+                        var parts = path.relative(dir, file.realpath).split(path.sep);
+                        var methodPath = "/" + parts.map(part => {
+                            return part.replace(/\[/g, ":").replace(/\]/g, "");
+                        }).join("/");
+                        var fileExtension = path.basename(methodPath).split(".")[1];
+                        if (fileExtension) {
+                            methodPath = methodPath.substring(0, methodPath.length - fileExtension.length - 1);
+                        }
+                        var route = require(file.realpath);
+                        if (route.default) {
+                            this.registerRoute(methodPath, route.default);
+                        }
+                        console.log('Register socket route: ' + methodPath);
+                    }
+                } catch (e) {
+                    console.error(e);
                 }
-                var route = require(file.realpath);
-                if (route.default) {
-                    this.registerRoute(methodPath, route.default);
-                }
-                console.log('Register socket route: ' + methodPath);
             }
+        }
+
+        const glob = (global as any);
+        if (Array.isArray(glob.__fastapi_routes_ws)) {
+            glob.__fastapi_routes_ws.forEach((route: any) => {
+                this.registerRoute(route.details.routePath, route.init());
+            });
         }
     }
 
