@@ -1,4 +1,5 @@
 import { CorsOptions } from "cors";
+import { NextAuthentication } from "../authentication/NextAuthentication";
 import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
 import { NextSocketOptions } from "../sockets/NextSocketOptions";
 export declare class NextOptions {
@@ -7,10 +8,13 @@ export declare class NextOptions {
     routerDirs: string[];
     cors?: CorsOptions;
     authorization?: NextAuthorizationBase;
+    authentication?: NextAuthentication;
     sockets?: NextSocketOptions;
     socketRouterDirs?: string[];
     healthCheck?: NextHealthCheckOptions;
     bodyParser?: NextBodyParserOptions;
+    staticDir?: string;
+    routeNotFoundContent?: string;
 }
 export declare class NextBodyParserOptions {
     json?: {

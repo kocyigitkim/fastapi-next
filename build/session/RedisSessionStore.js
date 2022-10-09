@@ -76,6 +76,17 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
             this.handleError(err);
         });
     }
+    _setTTL(sid, ttl, cb) {
+        this.client.expire(sid, ttl).then((result) => {
+            if (cb)
+                cb();
+            this.isAlive = true;
+        }).catch((err) => {
+            if (cb)
+                cb();
+            this.handleError(err);
+        });
+    }
     touch(sid, sess, cb) {
         this.client.expire(sid, this.ttl).then((result) => {
             if (cb)

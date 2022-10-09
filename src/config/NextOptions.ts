@@ -1,4 +1,5 @@
 import { CorsOptions } from "cors";
+import { NextAuthentication } from "../authentication/NextAuthentication";
 import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
 import { NextSocketOptions } from "../sockets/NextSocketOptions";
 
@@ -9,13 +10,16 @@ export class NextOptions {
     public routerDirs: string[] = [];
     public cors?: CorsOptions = null;
     public authorization?: NextAuthorizationBase = null;
+    public authentication?: NextAuthentication = null;
     public sockets?: NextSocketOptions = null;
     public socketRouterDirs?: string[] = [];
     public healthCheck?: NextHealthCheckOptions;
     public bodyParser?: NextBodyParserOptions;
+    public staticDir?: string;
+    public routeNotFoundContent?: string;
 }
 
-export class NextBodyParserOptions{
+export class NextBodyParserOptions {
     public json?: {
         limit: string;
         strict: boolean;

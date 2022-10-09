@@ -18,6 +18,7 @@ export declare class RedisSessionStore extends ISessionStore {
     private handleError;
     get(sid: any, cb?: any): void;
     set(sid: any, sess: any, cb?: any): void;
+    _setTTL(sid: any, ttl: any, cb?: () => void): void;
     touch(sid: any, sess: any, cb?: any): void;
     destroy(sid: any, cb?: any): void;
 }

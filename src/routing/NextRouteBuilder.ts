@@ -101,7 +101,7 @@ export class NextRouteBuilder {
         }
         var route: NextRouteAction = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
-        if (parts.length > 1 && parts[parts.length - 1] === "index") {
+        if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
             app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
         }
     }

@@ -1,6 +1,7 @@
 /// <reference types="multer" />
 import { NextFunction, Request, Response } from 'express';
-import { NextApplication } from '.';
+import { NextApplication } from './NextApplication';
+import { NextSessionManager } from './session/NextSessionManager';
 export interface INextContextBase {
     req: Request;
     res: Response;
@@ -21,6 +22,7 @@ export interface INextContextBase {
     fileCount?: number;
     session: Object;
     sessionId: string;
+    sessionManager: NextSessionManager;
     get token(): string | null;
 }
 export declare class NextContextBase implements INextContextBase {
@@ -45,6 +47,7 @@ export declare class NextContextBase implements INextContextBase {
     fileCount?: number;
     session: Object;
     sessionId: string;
+    sessionManager: NextSessionManager;
     items: Object;
     get token(): string | null;
     constructor(req: Request, res: Response, next: NextFunction);

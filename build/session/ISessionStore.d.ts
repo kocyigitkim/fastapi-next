@@ -15,5 +15,6 @@ export declare class ISessionStore implements IHealth {
     _getTTL(sess: any): void;
     _getAllKeys(cb?: () => void): void;
     _scanKeys(cb?: () => void): void;
+    _setTTL(sid: any, ttl: any, cb?: () => void): void;
 }
 //# sourceMappingURL=ISessionStore.d.ts.map

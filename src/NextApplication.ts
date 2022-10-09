@@ -80,6 +80,10 @@ export class NextApplication extends EventEmitter {
         NextInitializationHeader();
         this.emit('preinit', this);
 
+        if (this.options.authentication) {
+            this.options.authentication.register(this);
+        }
+
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
@@ -92,6 +96,22 @@ export class NextApplication extends EventEmitter {
             this.socketRouter.registerRouters(this.options.socketRouterDirs);
         }
         this.emit('init', this);
+
+        // ? Static file serving
+        if (this.options.staticDir) {
+            this.express.use(express.static(this.options.staticDir));
+        }
+
+        // ? Route not found
+        this.express.use("*", (req, res, next) => {
+            if (req.method?.toLowerCase() === "get") {
+                if (req.headers["content-type"]?.toLowerCase() === "text/html") {
+                    res.status(200);
+                    res.header("Content-Type", "text/html");
+                    res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
+                }
+            }
+        });
     }
     public async start(): Promise<void> {
         NextRunning();

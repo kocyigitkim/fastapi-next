@@ -66,6 +66,11 @@ class NextSessionManager {
             });
         }
     }
+    async setSessionTTL(sessionId, ttl) {
+        if (sessionId) {
+            await (0, utils_1.waitCallback)(this.store, this.store._setTTL, sessionId, ttl);
+        }
+    }
     async use(req, res, next) {
         const _self = this;
         var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
@@ -76,8 +81,6 @@ class NextSessionManager {
         var isV6 = (0, utils_1.checkIfValidIPV6)(ip);
         var userAgent = req.headers['user-agent'];
         req.clientIp = ip;
-        var isNewSession = false;
-        var isGranted = true;
         if (sessionId) {
             try {
                 await new Promise((resolve) => (_self.store.touch(sessionId, req.session, () => resolve(null))));
@@ -87,7 +90,6 @@ class NextSessionManager {
             }
             var result = (await (0, utils_1.waitCallback)(_self.store, _self.store.get, sessionId));
             if (!result) {
-                isNewSession = true;
                 result = { session: {}, ip: !isV6 ? ip : null, ipv6: isV6 ? ip : null, userAgent: userAgent };
             }
             if (isV6 && !result.ipv6) {
@@ -99,7 +101,6 @@ class NextSessionManager {
             result.userAgent = userAgent;
             req.session = result.session || {};
             if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
-                isGranted = false;
                 req.session = {};
                 req.sessionId = (0, uuid_1.v4)();
                 req.userAgent = userAgent;
@@ -111,7 +112,6 @@ class NextSessionManager {
             res.setHeader("sessionid", sessionId);
             result = await (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, {});
             req.session = {};
-            isNewSession = true;
         }
         res.on('finish', () => {
             if ((!req.session || Object.keys(req.session).length == 0) && req.sessionId) {
@@ -123,6 +123,7 @@ class NextSessionManager {
         });
         req.sessionManager = _self;
         req.sessionId = sessionId;
+        req.sessionManager = _self;
         next();
     }
 }

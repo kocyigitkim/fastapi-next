@@ -75,8 +75,14 @@ export class NextSessionManager implements IHealth {
         }
     }
 
+    async setSessionTTL(sessionId: string, ttl: number) {
+        if (sessionId) {
+            await waitCallback(this.store, this.store._setTTL, sessionId, ttl);
+        }
+    }
 
-    async use(req: Request & { session: any, sessionId: any, userAgent: any }, res: Response, next: NextFunction) {
+
+    async use(req: Request & { session: any, sessionId: any, userAgent: any, sessionManager: any }, res: Response, next: NextFunction) {
         const _self = this;
         var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
         var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
@@ -85,15 +91,12 @@ export class NextSessionManager implements IHealth {
         var isV6 = checkIfValidIPV6(ip);
         var userAgent = req.headers['user-agent'];
         (req as any).clientIp = ip;
-        var isNewSession = false;
-        var isGranted = true;
         if (sessionId) {
             try {
                 await new Promise((resolve) => (_self.store.touch(sessionId, req.session, () => resolve(null))));
             } catch (err) { console.error(err); }
             var result: any = (await waitCallback(_self.store, _self.store.get, sessionId));
             if (!result) {
-                isNewSession = true;
                 result = { session: {}, ip: !isV6 ? ip : null, ipv6: isV6 ? ip : null, userAgent: userAgent };
             }
             if (isV6 && !result.ipv6) {
@@ -106,7 +109,6 @@ export class NextSessionManager implements IHealth {
 
             req.session = result.session || {};
             if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
-                isGranted = false;
                 req.session = {};
                 req.sessionId = uuid();
                 req.userAgent = userAgent;
@@ -118,7 +120,6 @@ export class NextSessionManager implements IHealth {
             res.setHeader("sessionid", sessionId);
             result = await waitCallback(_self.store, _self.store.set, sessionId, {});
             req.session = {};
-            isNewSession = true;
         }
         res.on('finish', () => {
             if ((!req.session || Object.keys(req.session).length == 0) && req.sessionId) {
@@ -130,6 +131,7 @@ export class NextSessionManager implements IHealth {
         });
         (req as any).sessionManager = _self;
         req.sessionId = sessionId;
+        req.sessionManager = _self;
         next();
     }
 }

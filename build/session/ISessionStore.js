@@ -19,5 +19,6 @@ class ISessionStore {
     _getTTL(sess) { }
     _getAllKeys(cb = noop) { }
     _scanKeys(cb = noop) { }
+    _setTTL(sid, ttl, cb = noop) { }
 }
 exports.ISessionStore = ISessionStore;

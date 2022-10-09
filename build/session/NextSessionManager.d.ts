@@ -23,10 +23,12 @@ export declare class NextSessionManager implements IHealth {
     retrieveSession(sessionId: string): Promise<NextSessionBudget>;
     destroySession(sessionId: string): Promise<void>;
     setSession(sessionId: string, data: any): Promise<void>;
+    setSessionTTL(sessionId: string, ttl: number): Promise<void>;
     use(req: Request & {
         session: any;
         sessionId: any;
         userAgent: any;
+        sessionManager: any;
     }, res: Response, next: NextFunction): Promise<void>;
 }
 //# sourceMappingURL=NextSessionManager.d.ts.map

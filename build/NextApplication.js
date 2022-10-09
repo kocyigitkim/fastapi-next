@@ -70,6 +70,9 @@ class NextApplication extends events_1.default {
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
+        if (this.options.authentication) {
+            this.options.authentication.register(this);
+        }
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
@@ -81,6 +84,21 @@ class NextApplication extends events_1.default {
             this.socketRouter.registerRouters(this.options.socketRouterDirs);
         }
         this.emit('init', this);
+        // ? Static file serving
+        if (this.options.staticDir) {
+            this.express.use(express_1.default.static(this.options.staticDir));
+        }
+        // ? Route not found
+        this.express.use("*", (req, res, next) => {
+            var _a, _b;
+            if (((_a = req.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === "get") {
+                if (((_b = req.headers["content-type"]) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === "text/html") {
+                    res.status(200);
+                    res.header("Content-Type", "text/html");
+                    res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
+                }
+            }
+        });
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();

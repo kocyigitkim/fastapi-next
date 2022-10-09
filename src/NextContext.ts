@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
-import { NextApplication } from '.';
+
+import { NextApplication } from './NextApplication';
+import { NextSessionManager } from './session/NextSessionManager';
 
 export interface INextContextBase {
     //#region Express Parameters
@@ -28,6 +30,7 @@ export interface INextContextBase {
     //#region Session Parameters
     session: Object;
     sessionId: string;
+    sessionManager: NextSessionManager;
     //#endregion
 
     get token(): string | null;
@@ -62,6 +65,7 @@ export class NextContextBase implements INextContextBase {
     //#region Session Parameters
     public session: Object;
     public sessionId: string;
+    public sessionManager: NextSessionManager;
     //#endregion
 
     //#region Session Parameters

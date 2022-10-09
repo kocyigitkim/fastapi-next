@@ -78,6 +78,15 @@ export class RedisSessionStore extends ISessionStore {
             this.handleError(err);
         });
     }
+    public _setTTL(sid: any, ttl: any, cb?: () => void): void {
+        this.client.expire(sid, ttl).then((result) => {
+            if (cb) cb();
+            this.isAlive = true;
+        }).catch((err) => {
+            if (cb) cb();
+            this.handleError(err);
+        });
+    }
     public touch(sid: any, sess: any, cb?: any): void {
         this.client.expire(sid, this.ttl).then((result) => {
             if (cb) cb(null, this);

@@ -20,4 +20,5 @@ export class ISessionStore implements IHealth {
     public _getTTL(sess) { }
     public _getAllKeys(cb = noop) { }
     public _scanKeys(cb = noop) { }
+    public _setTTL(sid, ttl, cb = noop) { }
 }
