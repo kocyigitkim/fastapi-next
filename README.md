@@ -5,3 +5,6 @@ Fast Api is an application development interface for fast, dynamic and secure se
 
 # Start here
 > [Fast Api Start](https://github.com/kocyigitkim/fastapi-next-start)
+
+# Guidance
+> [Guidance](https://docs.kocyigit.kim/tr/fastapi/getting-started)
