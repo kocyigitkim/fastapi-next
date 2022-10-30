@@ -9,6 +9,17 @@ class NextRegistry {
     register(plugin) {
         this._plugins.push(plugin);
     }
+    registerMiddleware(func) {
+        this._plugins.push({
+            middleware: func.bind({})
+        });
+    }
+    registerObject(name, obj) {
+        this._plugins.push({
+            name: name,
+            retrieve: () => obj
+        });
+    }
     getPlugins() {
         return this._plugins;
     }

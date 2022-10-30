@@ -10,7 +10,7 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
         const password = (context.body as any).password;
 
         if (username && password) {
-
+            
         }
         else {
             result.success = false;

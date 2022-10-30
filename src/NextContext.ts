@@ -103,7 +103,7 @@ export class NextContextBase implements INextContextBase {
     }
 }
 
-export interface NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> extends INextContextBase {
+export type NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> = INextContextBase & NextContextBase & {
     body: TBODY;
     query: TQUERY;
     params: TPARAMS;

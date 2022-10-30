@@ -20,6 +20,8 @@ const NextSocket_1 = require("./sockets/NextSocket");
 const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
 const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
 const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
+const JWTController_1 = require("./security/JWT/JWTController");
+const NextClientBuilder_1 = require("./client/NextClientBuilder");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
@@ -67,6 +69,14 @@ class NextApplication extends events_1.default {
         if (this.options.healthCheck)
             this.registerHealthCheck("sessionManager", this.sessionManager);
     }
+    registerJWT(jwt) {
+        this.options.security.jwt = jwt || new NextOptions_1.NextJwtOptions();
+        // ? Register JWT Controller
+        if (this.options.security.jwt) {
+            this.jwtController = new JWTController_1.JWTController(this);
+            this.jwtController.RegisterJWTController();
+        }
+    }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
@@ -88,6 +98,8 @@ class NextApplication extends events_1.default {
         if (this.options.staticDir) {
             this.express.use(express_1.default.static(this.options.staticDir));
         }
+        // ? Build Client Script
+        new NextClientBuilder_1.NextClientBuilder(this).build();
         // ? Route not found
         this.express.use("*", (req, res, next) => {
             var _a, _b;
@@ -106,6 +118,9 @@ class NextApplication extends events_1.default {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
         this.emit('start', this);
+        if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
+            this.jwtController.RegisterRefresh();
+        }
     }
     async stop() {
         this.emit('stop', this);

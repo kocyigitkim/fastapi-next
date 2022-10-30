@@ -25,4 +25,5 @@ var NextRouteResponseStatus;
     NextRouteResponseStatus[NextRouteResponseStatus["UNSUPPORTED_MEDIA_TYPE"] = 415] = "UNSUPPORTED_MEDIA_TYPE";
     NextRouteResponseStatus[NextRouteResponseStatus["UNAUTHORIZED"] = 401] = "UNAUTHORIZED";
     NextRouteResponseStatus[NextRouteResponseStatus["UNKNOWN"] = 0] = "UNKNOWN";
+    NextRouteResponseStatus[NextRouteResponseStatus["REDIRECT"] = 302] = "REDIRECT";
 })(NextRouteResponseStatus = exports.NextRouteResponseStatus || (exports.NextRouteResponseStatus = {}));

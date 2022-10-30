@@ -52,9 +52,9 @@ export declare class NextContextBase implements INextContextBase {
     get token(): string | null;
     constructor(req: Request, res: Response, next: NextFunction);
 }
-export interface NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> extends INextContextBase {
+export declare type NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> = INextContextBase & NextContextBase & {
     body: TBODY;
     query: TQUERY;
     params: TPARAMS;
-}
+};
 //# sourceMappingURL=NextContext.d.ts.map

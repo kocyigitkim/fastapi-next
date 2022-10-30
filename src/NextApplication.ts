@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import express from 'express';
-import { NextHealthCheckOptions, NextOptions } from './config/NextOptions';
+import { NextHealthCheckOptions, NextJwtOptions, NextOptions } from './config/NextOptions';
 import { NextInitializationHeader, NextRunning } from './NextInitializationHeader';
 import { NextConsoleLog, NextLog } from './NextLog';
 import { NextProfiler, NextProfilerOptions } from './NextProfiler';
@@ -18,6 +18,8 @@ import { NextSocketRouter } from './sockets/NextSocketRouter';
 import { NextHealthProfiler } from './health/NextHealthProfiler';
 import { IHealth } from './health/IHealth';
 import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
+import { JWTController } from './security/JWT/JWTController';
+import { NextClientBuilder } from './client/NextClientBuilder';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -33,6 +35,7 @@ export class NextApplication extends EventEmitter {
     public socketRouter?: NextSocketRouter;
     public healthProfiler?: NextHealthProfiler;
     public realtime?: NextRealtimeFunctions;
+    public jwtController?: JWTController;
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -66,6 +69,7 @@ export class NextApplication extends EventEmitter {
     }
     public async registerFileSystemSession(rootPath: string, options?: NextSessionOptions) {
         this.express.use((this.sessionManager = new NextSessionManager(new FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
+
     }
     public async registerInMemorySession(options?: NextSessionOptions) {
         this.express.use((this.sessionManager = new NextSessionManager(null, options)).use);
@@ -75,6 +79,14 @@ export class NextApplication extends EventEmitter {
         await session.client.connect();
         this.express.use((this.sessionManager = new NextSessionManager(session, options)).use);
         if (this.options.healthCheck) this.registerHealthCheck("sessionManager", this.sessionManager);
+    }
+    public registerJWT(jwt?: NextJwtOptions) {
+        this.options.security.jwt = jwt || new NextJwtOptions();
+        // ? Register JWT Controller
+        if (this.options.security.jwt) {
+            this.jwtController = new JWTController(this);
+            (this.jwtController as any).RegisterJWTController();
+        }
     }
     public async init(): Promise<void> {
         NextInitializationHeader();
@@ -102,6 +114,9 @@ export class NextApplication extends EventEmitter {
             this.express.use(express.static(this.options.staticDir));
         }
 
+        // ? Build Client Script
+        new NextClientBuilder(this).build();
+
         // ? Route not found
         this.express.use("*", (req, res, next) => {
             if (req.method?.toLowerCase() === "get") {
@@ -112,6 +127,7 @@ export class NextApplication extends EventEmitter {
                 }
             }
         });
+
     }
     public async start(): Promise<void> {
         NextRunning();
@@ -119,6 +135,10 @@ export class NextApplication extends EventEmitter {
             this.log.info(`Server listening on port ${this.options.port}`);
         });
         this.emit('start', this);
+
+        if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
+            this.jwtController.RegisterRefresh();
+        }
     }
     public async stop(): Promise<void> {
         this.emit('stop', this);

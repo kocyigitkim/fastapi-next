@@ -2,6 +2,8 @@ import { CorsOptions } from "cors";
 import { NextAuthentication } from "../authentication/NextAuthentication";
 import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
 import { NextSocketOptions } from "../sockets/NextSocketOptions";
+import { Algorithm as JWTAlgorithm, VerifyOptions as JWTVerifyOptions, SignOptions as JWTSignOptions, JwtPayload } from 'jsonwebtoken';
+import { NextApplication } from "../NextApplication";
 export declare class NextOptions {
     debug: boolean;
     port: number;
@@ -15,6 +17,33 @@ export declare class NextOptions {
     bodyParser?: NextBodyParserOptions;
     staticDir?: string;
     routeNotFoundContent?: string;
+    enableServices?: boolean;
+    rendering?: NextRenderingOptions;
+    security: NextSecurityOptions;
+}
+export declare class NextSecurityOptions {
+    jwt?: NextJwtOptions;
+}
+export declare class NextJwtOptions {
+    algorithm?: JWTAlgorithm;
+    secret?: string;
+    checkIfGranted?: (req: Request) => Promise<boolean>;
+    verifyOptions?: JWTVerifyOptions;
+    verifyPayload?: (payload: any) => Promise<any>;
+    signOptions?: JWTSignOptions;
+    createPayload?: (req: Request, app: NextApplication, additional: any) => Promise<any>;
+    messages?: {
+        unauthorized: string;
+        invalidToken: string;
+    };
+    refreshWhen?: (payload: JwtPayload) => Promise<boolean>;
+    resolveSessionId?: (payload: JwtPayload) => Promise<string>;
+    refreshTokenWhenExpired?: boolean;
+    anonymousPaths?: (string | RegExp)[];
+}
+export declare class NextRenderingOptions {
+    viewDir?: string;
+    enabled?: boolean;
 }
 export declare class NextBodyParserOptions {
     json?: {

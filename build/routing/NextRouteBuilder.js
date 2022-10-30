@@ -15,6 +15,7 @@ class NextRouteBuilder {
     constructor(app) {
         this.app = app;
         this.paths = [];
+        this.registeredRoutes = [];
         const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
         this.paths = app.options.routerDirs;
@@ -104,12 +105,17 @@ class NextRouteBuilder {
         }
         var route = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
-        if (parts.length > 1 && parts[parts.length - 1] === "index") {
-            app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
+        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod });
+        if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
+            const modifiedPath = expressRoutePath.substring(0, expressRoutePath.length - "index".length);
+            app.express[httpMethod](modifiedPath, (this.routeMiddleware(app)).bind(null, route));
+            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod });
         }
     }
     register(subPath, method, definition) {
-        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
+        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
+        this.registeredRoutes.push({ path: subPath, action: { default: definition }, method: method });
+        return res;
     }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
@@ -126,7 +132,11 @@ class NextRouteBuilder {
                     }
                 }
                 if (plugin.showInContext) {
-                    ctx[plugin.name] = await plugin.retrieve.call(plugin, ctx);
+                    var retrieveResult = plugin.retrieve.call(plugin, ctx);
+                    if (retrieveResult instanceof Promise) {
+                        retrieveResult = await retrieveResult.catch(app.log.error);
+                    }
+                    ctx[plugin.name] = retrieveResult;
                 }
             }
             // ? Validation
@@ -186,6 +196,10 @@ class NextRouteBuilder {
                 });
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
+                if (result.statusCode == NextRouteResponse_1.NextRouteResponseStatus.REDIRECT) {
+                    res.redirect(result.statusCode, result.body);
+                    return;
+                }
                 if (result.hasBody) {
                     res.status(result.statusCode);
                     for (var header in result.headers) {

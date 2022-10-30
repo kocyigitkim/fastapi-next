@@ -14,6 +14,7 @@ export class JWTController {
     public verifyPayload: (payload: any) => Promise<any> = (payload) => new Promise(resolve => resolve(payload));
     public signOptions: JWTSignOptions = null;
     public createPayload: (req: Request, app: NextApplication, additional: any) => Promise<any> = (req, app) => new Promise(resolve => resolve({}));
+    public anonymousPaths: (string | RegExp)[] = [];
     public messages = {
         unauthorized: "Unauthorized",
         invalidToken: "Invalid token"
@@ -37,6 +38,24 @@ export class JWTController {
                 next();
                 return;
             }
+
+            if (Array.isArray(this.anonymousPaths)) {
+                for (var p of this.anonymousPaths) {
+                    if (p instanceof RegExp) {
+                        if (p.test(path)) {
+                            next();
+                            return;
+                        }
+                    }
+                    else {
+                        if (p == path) {
+                            next();
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (serviceToken && granted) {
                 jwt.verify(serviceToken, this.secret, {
                     ...this.verifyOptions,
@@ -102,6 +121,46 @@ export class JWTController {
             }
             next();
         });
+    }
+
+    private RegisterJWTController() {
+        var mountIndex = 0;
+        if ((this.app as any).sessionMiddlewareOffset) {
+            mountIndex = (this.app as any).sessionMiddlewareOffset;
+        }
+
+        for (var option in this.app.options.security.jwt) {
+            this.app.jwtController[option] = this.app.options.security.jwt[option];
+        }
+        if (!this.app.options.security.jwt.resolveSessionId) {
+            this.app.options.security.jwt.resolveSessionId = (payload: any) => new Promise(resolve => resolve(payload.sessionId));
+        }
+
+        // Register session id resolver for JWT
+        this.app.express.use(async (req, res, next) => {
+            try {
+                console.log("JWT session id resolver");
+                var resolvedToken = req.headers && req.headers["authorization"];
+                if (resolvedToken) {
+                    if (resolvedToken.startsWith("bearer ")) {
+                        resolvedToken = resolvedToken.substring(7);
+                    }
+                    var args: any = JSON.parse(Buffer.from(resolvedToken.split('.')[1], 'base64').toString("utf8"))
+                    var sessionId = await this.app.options.security.jwt.resolveSessionId(args).catch(console.error);
+                    if (sessionId) {
+                        // Pass the session id to the request
+                        (req as any).sessionId = sessionId;
+                    }
+                }
+            } catch (e) {
+                this.app.log.error(e);
+            }
+            console.log("JWT session id resolver end");
+            next();
+        });
+
+
+        this.RegisterVerify();
     }
     public async CreateToken(req: Request): Promise<string> {
         var payload = await this.createPayload(req, this.app, {}).catch(console.error);

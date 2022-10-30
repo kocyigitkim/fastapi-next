@@ -20,5 +20,6 @@ export enum NextRouteResponseStatus {
     UNPROCESSABLE_ENTITY = 422,
     UNSUPPORTED_MEDIA_TYPE = 415,
     UNAUTHORIZED = 401,
-    UNKNOWN = 0
+    UNKNOWN = 0,
+    REDIRECT = 302
 }

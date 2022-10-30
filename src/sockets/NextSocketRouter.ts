@@ -21,6 +21,9 @@ export class NextSocketRouter {
         var route = this.routes.find(r => checkPathsByNormalization(r.path, message.path));
         var sctx = new NextSocketContext(message, socket);
         if (route) {
+            if (ctx.sessionId) {
+                (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).catch(ctx.app.log.error);
+            }
             var response = await route.action.call(route, ctx, sctx).catch(console.error);
             sctx.send(response);
         }

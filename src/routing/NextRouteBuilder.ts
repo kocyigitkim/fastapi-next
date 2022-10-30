@@ -6,10 +6,11 @@ import { ApiResponse, NextApplication, NextContextBase } from '..';
 import { NextFlag } from '../NextFlag';
 import { ValidationResult } from '../validation/ValidationResult';
 import { NextRouteAction } from './NextRouteAction';
-import { NextRouteResponse } from './NextRouteResponse';
+import { NextRouteResponse, NextRouteResponseStatus } from './NextRouteResponse';
 import { AnyObjectSchema, ValidationError } from 'yup'
 export class NextRouteBuilder {
     private paths: string[] = [];
+    public registeredRoutes: { path: string, method: string, action: NextRouteAction }[] = [];
     constructor(public app: NextApplication) {
         const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
@@ -101,13 +102,18 @@ export class NextRouteBuilder {
         }
         var route: NextRouteAction = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
+        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod });
         if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
-            app.express[httpMethod](expressRoutePath.substring(0, expressRoutePath.length - "index".length), (this.routeMiddleware(app)).bind(null, route));
+            const modifiedPath = expressRoutePath.substring(0, expressRoutePath.length - "index".length);
+            app.express[httpMethod](modifiedPath, (this.routeMiddleware(app)).bind(null, route));
+            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod });
         }
     }
 
     public register(subPath: string, method: string, definition: (ctx: NextContextBase) => Promise<any>) {
-        return this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
+        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
+        this.registeredRoutes.push({ path: subPath, action: { default: definition } as any, method: method });
+        return res;
     }
 
     private routeMiddleware(app: NextApplication) {
@@ -126,7 +132,11 @@ export class NextRouteBuilder {
                 }
 
                 if (plugin.showInContext) {
-                    (ctx as any)[plugin.name] = await plugin.retrieve.call(plugin, ctx);
+                    var retrieveResult = plugin.retrieve.call(plugin, ctx);
+                    if (retrieveResult instanceof Promise) {
+                        retrieveResult = await retrieveResult.catch(app.log.error);
+                    }
+                    (ctx as any)[plugin.name] = retrieveResult;
                 }
             }
 
@@ -188,6 +198,10 @@ export class NextRouteBuilder {
                 });
             }
             if (result instanceof NextRouteResponse) {
+                if (result.statusCode == NextRouteResponseStatus.REDIRECT) {
+                    res.redirect(result.statusCode, result.body);
+                    return;
+                }
                 if (result.hasBody) {
                     res.status(result.statusCode);
                     for (var header in result.headers) {

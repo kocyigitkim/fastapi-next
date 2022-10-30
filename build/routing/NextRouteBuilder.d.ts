@@ -1,7 +1,13 @@
 import { NextApplication, NextContextBase } from '..';
+import { NextRouteAction } from './NextRouteAction';
 export declare class NextRouteBuilder {
     app: NextApplication;
     private paths;
+    registeredRoutes: {
+        path: string;
+        method: string;
+        action: NextRouteAction;
+    }[];
     constructor(app: NextApplication);
     private handleHealthCheckEndpoints;
     private registerRoute;

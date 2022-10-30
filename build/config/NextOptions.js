@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextOptions = void 0;
+exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
 class NextOptions {
     constructor() {
         this.debug = false;
@@ -11,9 +11,43 @@ class NextOptions {
         this.authentication = null;
         this.sockets = null;
         this.socketRouterDirs = [];
+        this.enableServices = false;
+        this.security = new NextSecurityOptions();
     }
 }
 exports.NextOptions = NextOptions;
+class NextSecurityOptions {
+}
+exports.NextSecurityOptions = NextSecurityOptions;
+class NextJwtOptions {
+    constructor() {
+        this.algorithm = "HS256";
+        this.secret = "secret";
+        this.checkIfGranted = () => new Promise(resolve => resolve(true));
+        this.verifyOptions = null;
+        this.verifyPayload = (payload) => new Promise(resolve => resolve(payload));
+        this.signOptions = null;
+        this.createPayload = (req, app) => new Promise(resolve => resolve({}));
+        this.messages = {
+            unauthorized: "Unauthorized",
+            invalidToken: "Invalid token"
+        };
+        this.refreshWhen = (payload) => new Promise(resolve => {
+            var isTokenExpired = payload.exp && payload.exp < new Date().getTime();
+            resolve(isTokenExpired);
+        });
+        this.resolveSessionId = (payload) => new Promise(resolve => resolve(payload.sessionId));
+        this.refreshTokenWhenExpired = true;
+        this.anonymousPaths = [];
+    }
+}
+exports.NextJwtOptions = NextJwtOptions;
+class NextRenderingOptions {
+    constructor() {
+        this.enabled = false;
+    }
+}
+exports.NextRenderingOptions = NextRenderingOptions;
 class NextBodyParserOptions {
 }
 exports.NextBodyParserOptions = NextBodyParserOptions;
