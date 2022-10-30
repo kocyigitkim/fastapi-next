@@ -1,7 +1,7 @@
 ![Fast Api Next](https://github.com/kocyigitkim/fastapi-next/raw/main/assets/images/logo.png "Fast Api Next")
 
 # Fast Api Next
-Fast Api is an application development interface for fast, dynamic and secure server side softwares. Fast Api works based on Express.JS library. You can manage sessions with effortless, connect plugins with plugin registry, debug response times and more...
+Fast Api provides to create advanced level api infrastructures without any effort. It's manage sessions, plugins, middleware-functions automatically and creates secure connections between client and api gateway. Also, you can create real-time routers via enabling web socket support.
 
 # Start here
 > [Fast Api Start](https://github.com/kocyigitkim/fastapi-next-start)
