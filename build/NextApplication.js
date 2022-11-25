@@ -109,6 +109,12 @@ class NextApplication extends events_1.default {
                     res.header("Content-Type", "text/html");
                     res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
                 }
+                else {
+                    next();
+                }
+            }
+            else {
+                next();
             }
         });
     }

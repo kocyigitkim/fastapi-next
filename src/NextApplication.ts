@@ -125,6 +125,12 @@ export class NextApplication extends EventEmitter {
                     res.header("Content-Type", "text/html");
                     res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
                 }
+                else {
+                    next();
+                }
+            }
+            else {
+                next();
             }
         });
 
