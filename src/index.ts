@@ -1,3 +1,4 @@
+
 export { NextKnexPlugin } from './plugins/NextKnexPlugin';
 export * as RequestParams from './RequestParams';
 export { NextApplication } from "./NextApplication";
@@ -31,3 +32,6 @@ export { ParallelJob } from './parallelism/ParallelJob'
 export type { ParallelJobEventNames } from './parallelism/ParallelJobEventNames'
 export { ParallelJobState } from './parallelism/ParallelJobState'
 export { NextSocketOptions } from './sockets/NextSocketOptions'
+export { NextAuthentication } from './authentication/NextAuthentication';
+export { NextAuthenticationMethod } from './authentication/NextAuthenticationMethod'
+export { NextBasicAuthenticationMethod } from './authentication/methods/NextBasicAuthenticationMethod'

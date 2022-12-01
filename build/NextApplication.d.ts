@@ -35,7 +35,7 @@ export declare class NextApplication extends EventEmitter {
     on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this;
     enableHealthCheck(): void;
     registerHealthCheck(name: string, obj: IHealth): void;
-    constructor(options: NextOptions);
+    constructor(options?: NextOptions);
     registerFileSystemSession(rootPath: string, options?: NextSessionOptions): Promise<void>;
     registerInMemorySession(options?: NextSessionOptions): Promise<void>;
     registerRedisSession(config: RedisClientOptions<any, any>, ttl?: number, options?: NextSessionOptions): Promise<void>;

@@ -111,6 +111,7 @@ export class NextRouteBuilder {
     }
 
     public register(subPath: string, method: string, definition: (ctx: NextContextBase) => Promise<any>) {
+        method = (method || "get").toLowerCase();
         var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
         this.registeredRoutes.push({ path: subPath, action: { default: definition } as any, method: method });
         return res;

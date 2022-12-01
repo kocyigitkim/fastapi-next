@@ -7,12 +7,14 @@ class NextOptions {
         this.port = 5000;
         this.routerDirs = [];
         this.cors = null;
+        this.disableCorsMiddleware = false;
         this.authorization = null;
         this.authentication = null;
         this.sockets = null;
         this.socketRouterDirs = [];
         this.enableServices = false;
         this.security = new NextSecurityOptions();
+        this.switchLoggerAsConsole = false;
     }
 }
 exports.NextOptions = NextOptions;

@@ -4,10 +4,7 @@ import { NextApplication } from "../NextApplication";
 import { ApiResponse } from "../ApiResponse";
 import { NextAuthenticationMethod } from "./NextAuthenticationMethod";
 import { NextAuthenticationResult } from "./NextAuthenticationResult";
-import { NextPlugin } from "../plugins/NextPlugin";
-import { NextContextBase } from "../NextContext";
-import { NextFlag } from "../NextFlag";
-import { NextHealthCheckStatus } from "../config/NextOptions";
+import { NextAuthenticationPlugin } from "./plugins/NextAuthenticationPlugin";
 
 export class NextAuthentication {
     public retrieveUser: (id: string) => Promise<NextUser>;
@@ -30,42 +27,6 @@ export class NextAuthentication {
 
 }
 
-export class NextAuthenticationPlugin extends NextPlugin<any>{
-    public name: string = "NextAuthenticationPlugin";
-    public async retrieve(ctx: NextContextBase): Promise<any> {
-        var authenticationResult: NextAuthenticationResult = null;
-        if (ctx.session) {
-            authenticationResult = (ctx.session as any).nextAuthentication;
-        }
-        return authenticationResult;
-    }
-    
-    public async middleware(ctx: NextContextBase): Promise<boolean | NextFlag> {
-        var isGranted = false;
-        var authenticationResult: NextAuthenticationResult = null;
-        if (ctx.session) {
-            authenticationResult = (ctx.session as any).nextAuthentication;
-        }
-        if (authenticationResult.validationCode) {
-            if (authenticationResult.additionalInfo) {
-                if (Boolean(authenticationResult.additionalInfo["validationCode"])) {
-                    isGranted = true;
-                }
-            }
-        }
-        else {
-            if (authenticationResult.user) {
-                isGranted = true;
-            }
-        }
-        return isGranted ? NextFlag.Continue : NextFlag.Exit;
-    }
-
-    public healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
-        return Promise.resolve(NextHealthCheckStatus.Alive());
-    }
-}
-
 function registerAuthenticationMethodToApplication(method: NextAuthenticationMethod, app: NextApplication) {
 
     const cleanResult = (result: NextAuthenticationResult) => {
@@ -80,20 +41,20 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
                 delete result.user.additionalInfo;
             }
         }
+        (result as any).message = result.error;
+        delete result.error;
         return result;
     }
 
     if (method.loginPath) {
-        app.routeBuilder.register(method.loginPath, "POST", async (ctx) => {
+        app.routeBuilder.register(method.loginPath, "post", async (ctx) => {
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
                 if (ctx.session) {
                     (ctx.session as any).nextAuthentication = result;
                 }
-                response.data = cleanResult(result);
-                response.success = true;
-                response.message = "authentication successful";
+                response = cleanResult(result) as any;
             }
             else {
                 response.setError("authentication failed. may be the method is not implemented");
@@ -101,17 +62,15 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
             return response;
         });
     }
-    if (method.logout) {
-        app.routeBuilder.register(method.logoutPath, "POST", async (ctx) => {
+    if (method.logoutPath) {
+        app.routeBuilder.register(method.logoutPath, "post", async (ctx) => {
             var result = await method.logout(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
                 if (ctx.session) {
                     (ctx.session as any).nextAuthentication = null;
                 }
-                response.data = cleanResult(result);
-                response.success = true;
-                response.message = "logout successful";
+                response = cleanResult(result) as any;
             }
             else {
                 response.setError("logout failed. may be the method is not implemented");
@@ -119,14 +78,12 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
             return response;
         });
     }
-    if (method.info) {
-        app.routeBuilder.register(method.infoPath, "GET", async (ctx) => {
+    if (method.infoPath) {
+        app.routeBuilder.register(method.infoPath, "post", async (ctx) => {
             var result = await method.info(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
-                response.data = cleanResult(result);
-                response.success = true;
-                response.message = "info successful";
+                response = cleanResult(result) as any;
             }
             else {
                 response.setError("info failed. may be the method is not implemented");
@@ -134,14 +91,12 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
             return response;
         });
     }
-    if (method.validate) {
-        app.routeBuilder.register(method.validatePath, "POST", async (ctx) => {
+    if (method.validatePath) {
+        app.routeBuilder.register(method.validatePath, "post", async (ctx) => {
             var result = await method.validate(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
-                response.data = cleanResult(result);
-                response.success = true;
-                response.message = "validation successful";
+                response = cleanResult(result) as any;
             }
             else {
                 response.setError("validation failed. may be the method is not implemented");

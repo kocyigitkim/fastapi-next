@@ -20,6 +20,7 @@ import { IHealth } from './health/IHealth';
 import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
 import { JWTController } from './security/JWT/JWTController';
 import { NextClientBuilder } from './client/NextClientBuilder';
+import { Logger } from './logs/Logger';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -47,19 +48,21 @@ export class NextApplication extends EventEmitter {
     public registerHealthCheck(name: string, obj: IHealth) {
         this.healthProfiler.register(name, obj);
     }
-    public constructor(options: NextOptions) {
+    public constructor(options?: NextOptions) {
         super();
         this.realtime = new NextRealtimeFunctions(this);
-        this.options = options;
+        this.options = options || new NextOptions();
         this.express = express();
         // ? Default Express Plugins
-        if (options.cors) this.express.use(cors(options.cors));
-        else this.express.use(cors({
-            origin: '*',
-            methods: '*',
-            allowedHeaders: '*',
-            preflightContinue: true
-        }));
+        if (!options.disableCorsMiddleware) {
+            if (options.cors) this.express.use(cors(options.cors));
+            else this.express.use(cors({
+                origin: '*',
+                methods: '*',
+                allowedHeaders: '*',
+                preflightContinue: true
+            }));
+        }
         this.express.use(express.json({ type: 'application/json', ...((options.bodyParser && options.bodyParser.json) || {}) }));
         this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((options.bodyParser && options.bodyParser.urlencoded) || {}) }));
         this.registry = new NextRegistry(this);
@@ -92,15 +95,17 @@ export class NextApplication extends EventEmitter {
         NextInitializationHeader();
         this.emit('preinit', this);
 
-        if (this.options.authentication) {
-            this.options.authentication.register(this);
-        }
-
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
 
         this.routeBuilder = new NextRouteBuilder(this);
+
+        if (this.options.authentication) {
+            console.log("Registering Authentication");
+            this.options.authentication.register(this);
+        }
+
         if (this.options.sockets) {
             this.socket = new NextSocket(this.options.sockets, this);
             this.socketRouter = new NextSocketRouter();
@@ -124,14 +129,10 @@ export class NextApplication extends EventEmitter {
                     res.status(200);
                     res.header("Content-Type", "text/html");
                     res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
-                }
-                else {
-                    next();
+                    return;
                 }
             }
-            else {
-                next();
-            }
+            next();
         });
 
     }
@@ -144,6 +145,14 @@ export class NextApplication extends EventEmitter {
 
         if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
             this.jwtController.RegisterRefresh();
+        }
+        if (this.options.switchLoggerAsConsole) {
+            console.log = Logger.log;
+            console.error = Logger.error;
+            console.warn = Logger.warn;
+            console.info = Logger.info;
+            console.debug = Logger.debug;
+            console.trace = Logger.trace;
         }
     }
     public async stop(): Promise<void> {

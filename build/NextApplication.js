@@ -22,22 +22,25 @@ const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
 const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
 const JWTController_1 = require("./security/JWT/JWTController");
 const NextClientBuilder_1 = require("./client/NextClientBuilder");
+const Logger_1 = require("./logs/Logger");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
-        this.options = options;
+        this.options = options || new NextOptions_1.NextOptions();
         this.express = (0, express_1.default)();
         // ? Default Express Plugins
-        if (options.cors)
-            this.express.use((0, cors_1.default)(options.cors));
-        else
-            this.express.use((0, cors_1.default)({
-                origin: '*',
-                methods: '*',
-                allowedHeaders: '*',
-                preflightContinue: true
-            }));
+        if (!options.disableCorsMiddleware) {
+            if (options.cors)
+                this.express.use((0, cors_1.default)(options.cors));
+            else
+                this.express.use((0, cors_1.default)({
+                    origin: '*',
+                    methods: '*',
+                    allowedHeaders: '*',
+                    preflightContinue: true
+                }));
+        }
         this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((options.bodyParser && options.bodyParser.json) || {}))));
         this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((options.bodyParser && options.bodyParser.urlencoded) || {}))));
         this.registry = new NextRegistry_1.NextRegistry(this);
@@ -80,13 +83,14 @@ class NextApplication extends events_1.default {
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
-        if (this.options.authentication) {
-            this.options.authentication.register(this);
-        }
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
+        if (this.options.authentication) {
+            console.log("Registering Authentication");
+            this.options.authentication.register(this);
+        }
         if (this.options.sockets) {
             this.socket = new NextSocket_1.NextSocket(this.options.sockets, this);
             this.socketRouter = new NextSocketRouter_1.NextSocketRouter();
@@ -108,14 +112,10 @@ class NextApplication extends events_1.default {
                     res.status(200);
                     res.header("Content-Type", "text/html");
                     res.send(this.options.routeNotFoundContent || "<h1>404 Not Found</h1>");
-                }
-                else {
-                    next();
+                    return;
                 }
             }
-            else {
-                next();
-            }
+            next();
         });
     }
     async start() {
@@ -126,6 +126,14 @@ class NextApplication extends events_1.default {
         this.emit('start', this);
         if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
             this.jwtController.RegisterRefresh();
+        }
+        if (this.options.switchLoggerAsConsole) {
+            console.log = Logger_1.Logger.log;
+            console.error = Logger_1.Logger.error;
+            console.warn = Logger_1.Logger.warn;
+            console.info = Logger_1.Logger.info;
+            console.debug = Logger_1.Logger.debug;
+            console.trace = Logger_1.Logger.trace;
         }
     }
     async stop() {

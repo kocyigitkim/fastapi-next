@@ -11,6 +11,7 @@ export class NextOptions {
     public port: number = 5000;
     public routerDirs: string[] = [];
     public cors?: CorsOptions = null;
+    public disableCorsMiddleware: boolean = false;
     public authorization?: NextAuthorizationBase = null;
     public authentication?: NextAuthentication = null;
     public sockets?: NextSocketOptions = null;
@@ -22,6 +23,7 @@ export class NextOptions {
     public enableServices?: boolean = false;
     public rendering?: NextRenderingOptions;
     public security: NextSecurityOptions = new NextSecurityOptions();
+    public switchLoggerAsConsole?: boolean = false;
 }
 
 export class NextSecurityOptions {

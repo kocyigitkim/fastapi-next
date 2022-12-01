@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextSocketOptions = exports.ParallelJobState = exports.ParallelJob = exports.NextObjectPlugin = exports.NextFSLocalManager = exports.NextFSLocalDirectory = exports.NextFSLocalFile = exports.NextFSType = exports.NextFSObject = exports.NextFSManager = exports.NextFSFile = exports.NextFSDirectory = exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
+exports.NextBasicAuthenticationMethod = exports.NextAuthenticationMethod = exports.NextAuthentication = exports.NextSocketOptions = exports.ParallelJobState = exports.ParallelJob = exports.NextObjectPlugin = exports.NextFSLocalManager = exports.NextFSLocalDirectory = exports.NextFSLocalFile = exports.NextFSType = exports.NextFSObject = exports.NextFSManager = exports.NextFSFile = exports.NextFSDirectory = exports.NextFlag = exports.NextAuthorizationBase = exports.NextAuthorization = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.ApiResponse = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.NextFileResolverPlugin = exports.NextPlugin = exports.NextRegistry = exports.NextContextBase = exports.NextOptions = exports.NextApplication = exports.RequestParams = exports.NextKnexPlugin = void 0;
 var NextKnexPlugin_1 = require("./plugins/NextKnexPlugin");
 Object.defineProperty(exports, "NextKnexPlugin", { enumerable: true, get: function () { return NextKnexPlugin_1.NextKnexPlugin; } });
 exports.RequestParams = __importStar(require("./RequestParams"));
@@ -89,3 +89,9 @@ var ParallelJobState_1 = require("./parallelism/ParallelJobState");
 Object.defineProperty(exports, "ParallelJobState", { enumerable: true, get: function () { return ParallelJobState_1.ParallelJobState; } });
 var NextSocketOptions_1 = require("./sockets/NextSocketOptions");
 Object.defineProperty(exports, "NextSocketOptions", { enumerable: true, get: function () { return NextSocketOptions_1.NextSocketOptions; } });
+var NextAuthentication_1 = require("./authentication/NextAuthentication");
+Object.defineProperty(exports, "NextAuthentication", { enumerable: true, get: function () { return NextAuthentication_1.NextAuthentication; } });
+var NextAuthenticationMethod_1 = require("./authentication/NextAuthenticationMethod");
+Object.defineProperty(exports, "NextAuthenticationMethod", { enumerable: true, get: function () { return NextAuthenticationMethod_1.NextAuthenticationMethod; } });
+var NextBasicAuthenticationMethod_1 = require("./authentication/methods/NextBasicAuthenticationMethod");
+Object.defineProperty(exports, "NextBasicAuthenticationMethod", { enumerable: true, get: function () { return NextBasicAuthenticationMethod_1.NextBasicAuthenticationMethod; } });

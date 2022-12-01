@@ -9,6 +9,7 @@ export declare class NextOptions {
     port: number;
     routerDirs: string[];
     cors?: CorsOptions;
+    disableCorsMiddleware: boolean;
     authorization?: NextAuthorizationBase;
     authentication?: NextAuthentication;
     sockets?: NextSocketOptions;
@@ -20,6 +21,7 @@ export declare class NextOptions {
     enableServices?: boolean;
     rendering?: NextRenderingOptions;
     security: NextSecurityOptions;
+    switchLoggerAsConsole?: boolean;
 }
 export declare class NextSecurityOptions {
     jwt?: NextJwtOptions;

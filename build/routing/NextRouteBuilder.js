@@ -113,6 +113,7 @@ class NextRouteBuilder {
         }
     }
     register(subPath, method, definition) {
+        method = (method || "get").toLowerCase();
         var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
         this.registeredRoutes.push({ path: subPath, action: { default: definition }, method: method });
         return res;
