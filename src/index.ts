@@ -35,3 +35,5 @@ export { NextSocketOptions } from './sockets/NextSocketOptions'
 export { NextAuthentication } from './authentication/NextAuthentication';
 export { NextAuthenticationMethod } from './authentication/NextAuthenticationMethod'
 export { NextBasicAuthenticationMethod } from './authentication/methods/NextBasicAuthenticationMethod'
+export { NextClientBuilder } from './client/NextClientBuilder'
+export { NextTwoFactorAuthenticationMethod } from './authentication/methods/NextTwoFactorAuthenticationMethod'

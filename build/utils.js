@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkPathsByNormalization = exports.normalizeUrlPath = exports.getTokenFromHeader = exports.isInternalIPAddress = exports.formatIP = exports.checkIfValidIPV6 = exports.waitCallback = exports.precisionRound = void 0;
+exports.makeType = exports.checkPathsByNormalization = exports.normalizeUrlPath = exports.getTokenFromHeader = exports.isInternalIPAddress = exports.formatIP = exports.checkIfValidIPV6 = exports.waitCallback = exports.precisionRound = void 0;
 const path_1 = __importDefault(require("path"));
 // ? Mathematic
 function precisionRound(number, precision) {
@@ -79,3 +79,11 @@ function checkPathsByNormalization(path1, path2) {
     return path1 === path2;
 }
 exports.checkPathsByNormalization = checkPathsByNormalization;
+function makeType(type, args) {
+    var t = new type();
+    for (var key in args) {
+        t[key] = args[key];
+    }
+    return t;
+}
+exports.makeType = makeType;

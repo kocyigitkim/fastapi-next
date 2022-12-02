@@ -1,4 +1,4 @@
-export class ApiResponse<T> {
+export class ApiResponse<T = any> {
     success: boolean = false;
     message: string | null;
     data: T | null;

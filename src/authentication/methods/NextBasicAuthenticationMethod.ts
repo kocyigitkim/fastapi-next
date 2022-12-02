@@ -6,9 +6,11 @@ import { NextAuthenticationResult } from "../NextAuthenticationResult";
 type RetrieveUserDelegate = (ctx: NextContextBase, username: string, password: string) => Promise<NextUser>;
 
 export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
-    public name = "Basic";
+    public static methodName = "Basic";
     constructor(public RetrieveUser?: RetrieveUserDelegate) {
         super();
+        // disable validation
+        this.validatePath = undefined;
     }
 
     public async login(context: NextContextBase): Promise<NextAuthenticationResult> {
@@ -66,23 +68,6 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
         }
         return result;
     }
-    public async validate(context: NextContextBase): Promise<NextAuthenticationResult> {
-        var result = new NextAuthenticationResult();
-        if (context.session) {
-            if ((context.session as any).user) {
-                result.success = true;
-                result.user = (context.session as any).user;
-            }
-            else {
-                result.success = false;
-                result.error = "Not logged in";
-            }
-        }
-        else {
-            result.success = false;
-            result.error = "Not logged in";
-        }
-        return result;
-    }
 
 }
+

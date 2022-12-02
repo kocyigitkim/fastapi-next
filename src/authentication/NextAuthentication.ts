@@ -5,6 +5,12 @@ import { ApiResponse } from "../ApiResponse";
 import { NextAuthenticationMethod } from "./NextAuthenticationMethod";
 import { NextAuthenticationResult } from "./NextAuthenticationResult";
 import { NextAuthenticationPlugin } from "./plugins/NextAuthenticationPlugin";
+import { NextAuthenticationMethodRegistry } from "./methods/NextAuthenticationMethodRegistry";
+import { NextBasicAuthenticationMethod } from "./methods/NextBasicAuthenticationMethod";
+import { NextTwoFactorAuthenticationMethod } from "./methods/NextTwoFactorAuthenticationMethod";
+
+NextAuthenticationMethodRegistry.register(NextBasicAuthenticationMethod);
+NextAuthenticationMethodRegistry.register(NextTwoFactorAuthenticationMethod);
 
 export class NextAuthentication {
     public retrieveUser: (id: string) => Promise<NextUser>;
@@ -28,7 +34,7 @@ export class NextAuthentication {
 }
 
 function registerAuthenticationMethodToApplication(method: NextAuthenticationMethod, app: NextApplication) {
-
+    console.log("Registering authentication method " + (method.constructor as any)?.methodName);
     const cleanResult = (result: NextAuthenticationResult) => {
         if (result.validationCode) {
             delete result.validationCode;
@@ -47,7 +53,7 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
     }
 
     if (method.loginPath) {
-        app.routeBuilder.register(method.loginPath, "post", async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.loginPath, "post", async (ctx) => {
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -63,7 +69,7 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
         });
     }
     if (method.logoutPath) {
-        app.routeBuilder.register(method.logoutPath, "post", async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.logoutPath, "post", async (ctx) => {
             var result = await method.logout(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -79,7 +85,7 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
         });
     }
     if (method.infoPath) {
-        app.routeBuilder.register(method.infoPath, "post", async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.infoPath, "post", async (ctx) => {
             var result = await method.info(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -92,7 +98,7 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
         });
     }
     if (method.validatePath) {
-        app.routeBuilder.register(method.validatePath, "post", async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.validatePath, "post", async (ctx) => {
             var result = await method.validate(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {

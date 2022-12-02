@@ -22,7 +22,7 @@ export class NextAuthenticationPlugin extends NextPlugin<any> {
         if (ctx.session) {
             authenticationResult = (ctx.session as any).nextAuthentication;
         }
-        if (authenticationResult.validationCode) {
+        if (authenticationResult && authenticationResult.validationCode) {
             if (authenticationResult.additionalInfo) {
                 if (Boolean(authenticationResult.additionalInfo["validationCode"])) {
                     isGranted = true;
@@ -30,9 +30,21 @@ export class NextAuthenticationPlugin extends NextPlugin<any> {
             }
         }
         else {
-            if (authenticationResult.user) {
+            if (authenticationResult && authenticationResult.user) {
                 isGranted = true;
             }
+        }
+        var currentPath = ctx.path;
+        for (var authMethod of ctx.app.options.authentication.Methods) {
+            if (currentPath.startsWith(authMethod.basePath)) {
+                isGranted = true;
+            }
+        }
+        if (!isGranted) {
+            ctx.res.status(401).json({
+                message: "unauthorized",
+                success: false
+            });
         }
         return isGranted ? NextFlag.Continue : NextFlag.Exit;
     }

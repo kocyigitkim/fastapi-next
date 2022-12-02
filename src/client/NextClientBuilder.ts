@@ -5,6 +5,12 @@ export class NextClientBuilder {
     }
     private buildRouters() {
         var routers = [];
+        var authLoginPaths = [];
+        if (this.app.options.authentication && Array.isArray(this.app.options.authentication.Methods)) {
+            for (var authMethod of this.app.options.authentication.Methods) {
+                authLoginPaths.push(authMethod.basePath + authMethod.loginPath);
+            }
+        }
         for (const router of this.app.routeBuilder.registeredRoutes) {
             if (!router.path.endsWith("/")) {
                 var pathParts = router.path.split("/");
@@ -26,15 +32,28 @@ export class NextClientBuilder {
             res.status(200).header("Content-Type", "text/javascript").send(`
 function FastApiRouter(path,method){
     return async (args, options)=>{
+        var localData = {};
+        try{
+            localData = JSON.parse(localStorage.getItem("fapi") || "{}");
+        } catch(e){
+            console.error(e);
+        }
         return fetch(window.fastapi_client + path, {
             ...options,
             method: method,
             body: JSON.stringify(args),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...localData,
             }
         }).then(res=>{
             //check the response content type
+            var localDataIsChanged = false;
+            if(res.headers.get("sessionid")){
+                localData.sessionid = res.headers.get("sessionid");
+                localDataIsChanged = true;
+            }
+            if(localDataIsChanged) localStorage.setItem("fapi", JSON.stringify(localData));
             if(res.headers.get("Content-Type")?.startsWith("application/json")){
                 return res.json();
             }else{

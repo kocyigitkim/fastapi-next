@@ -1,4 +1,4 @@
 
 export class NextAuthenticationValidationCode {
-    public code: string;
+    constructor(public code: string) { }
 }

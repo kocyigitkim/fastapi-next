@@ -3,11 +3,12 @@ import { NextAuthenticationResult } from "./NextAuthenticationResult";
 
 
 export class NextAuthenticationMethod {
-    public name?: string = "NextAuthenticationMethod";
-    public loginPath?: string = "/auth/login";
-    public logoutPath?: string = "/auth/logout";
-    public infoPath?: string = "/auth/me";
-    public validatePath?: string = "/auth/validate";
+    public static methodName?: string = "NextAuthenticationMethod";
+    public basePath: string = "/auth";
+    public loginPath?: string = "/login";
+    public logoutPath?: string = "/logout";
+    public infoPath?: string = "/me";
+    public validatePath?: string = "/validate";
     public async login(context: NextContextBase) {
         var r = new NextAuthenticationResult();
         r.success = false;
@@ -31,5 +32,12 @@ export class NextAuthenticationMethod {
         r.success = false;
         r.error = "Not implemented";
         return r;
+    }
+    protected generateSecureCode(length: number = 6): string{
+        var code = "";
+        for (var i = 0; i < length; i++) {
+            code += Math.floor(Math.random() * 10);
+        }
+        return code;
     }
 }

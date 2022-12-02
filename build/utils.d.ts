@@ -6,4 +6,5 @@ export declare function isInternalIPAddress(ip: string): boolean;
 export declare function getTokenFromHeader(header: string): string;
 export declare function normalizeUrlPath(path: string): string;
 export declare function checkPathsByNormalization(path1: string, path2: string): boolean;
+export declare function makeType(type: any, args: any): any;
 //# sourceMappingURL=utils.d.ts.map

@@ -66,3 +66,10 @@ export function checkPathsByNormalization(path1: string, path2: string) {
     path2 = path.normalize(path2);
     return path1 === path2;
 }
+export function makeType(type: any, args){
+    var t = new type();
+    for (var key in args) {
+        t[key] = args[key];
+    }
+    return t;
+}

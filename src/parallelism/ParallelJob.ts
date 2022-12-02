@@ -40,6 +40,11 @@ export class ParallelJob<T> extends EventEmitter {
             this.emit('stopped');
         }
     }
+    public async kill() {
+        this.stop();
+        this.stack = [];
+        this.batch = [];
+    }
     private async execute() {
         while (true) {
             if (this.state == ParallelJobState.Stop) {
