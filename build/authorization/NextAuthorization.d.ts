@@ -17,11 +17,11 @@ export interface AuthorizedRecordResult {
     data: any;
     name?: string;
 }
-export declare type RetrieveAuthorizedRecord = (ctx: NextContextBase, user: NextUser, role: NextRole, permissions: NextPermission[]) => Promise<AuthorizedRecordResult>;
-export declare type RetrieveCurrentUserDelegate = (ctx: NextContextBase) => Promise<NextUser>;
-export declare type RetrieveUserRoleDelegate = (ctx: NextContextBase, UserId: any) => Promise<NextRole>;
-export declare type RetrieveRolePermissionDelegate = (ctx: NextContextBase, RoleId: any) => Promise<NextPermission[]>;
-export declare type ModifyRequestedPathDelegate = (requestPath: string) => string;
+export type RetrieveAuthorizedRecord = (ctx: NextContextBase, user: NextUser, role: NextRole, permissions: NextPermission[]) => Promise<AuthorizedRecordResult>;
+export type RetrieveCurrentUserDelegate = (ctx: NextContextBase) => Promise<NextUser>;
+export type RetrieveUserRoleDelegate = (ctx: NextContextBase, UserId: any) => Promise<NextRole>;
+export type RetrieveRolePermissionDelegate = (ctx: NextContextBase, RoleId: any) => Promise<NextPermission[]>;
+export type ModifyRequestedPathDelegate = (requestPath: string) => string;
 export declare class NextAuthorization extends NextAuthorizationBase {
     retrieveCurrentUser?: RetrieveCurrentUserDelegate;
     retrieveUserRole?: RetrieveUserRoleDelegate;

@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextContextBase = void 0;
 class NextContextBase {
+    //#endregion
+    get token() {
+        return this.req.token || this.req.access_token || this.req.accessToken || null;
+    }
     constructor(req, res, next) {
         this.req = req;
         this.res = res;
@@ -24,10 +28,6 @@ class NextContextBase {
         this.session = req.session;
         this.sessionId = (this.session && this.session.id) || req.sessionId;
         this.items = {};
-    }
-    //#endregion
-    get token() {
-        return this.req.token || this.req.access_token || this.req.accessToken || null;
     }
 }
 exports.NextContextBase = NextContextBase;

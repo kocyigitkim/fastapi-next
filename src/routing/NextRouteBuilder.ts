@@ -8,6 +8,7 @@ import { ValidationResult } from '../validation/ValidationResult';
 import { NextRouteAction } from './NextRouteAction';
 import { NextRouteResponse, NextRouteResponseStatus } from './NextRouteResponse';
 import { AnyObjectSchema, ValidationError } from 'yup'
+import { randomUUID } from 'crypto';
 export class NextRouteBuilder {
     private paths: string[] = [];
     public registeredRoutes: { path: string, method: string, action: NextRouteAction }[] = [];
@@ -130,6 +131,10 @@ export class NextRouteBuilder {
                     if (mwResult === NextFlag.Exit) {
                         return;
                     }
+                    else if (mwResult === NextFlag.Next){
+                        next();
+                        return;
+                    }
                 }
 
                 if (plugin.showInContext) {
@@ -195,7 +200,9 @@ export class NextRouteBuilder {
             if (result instanceof Promise) {
                 result = await result.catch((err) => {
                     isError = true;
-                    app.log.error(err);
+                    var errorId = randomUUID();
+                    app.log.error(`${errorId} - ${err}`);
+                    return `Internal Server Error! Error Code: ${errorId}`;
                 });
             }
             if (result instanceof NextRouteResponse) {
@@ -222,11 +229,17 @@ export class NextRouteBuilder {
                 }
             }
             else {
-                res.set("Content-Type", "application/json");
                 if (isError) {
-                    res.status(500).json(result);
+                    if (typeof result === 'string') {
+                        res.status(500).send(result);
+                    }
+                    else {
+                        res.set("Content-Type", "application/json");
+                        res.status(500).json(result);
+                    }
                 }
                 else {
+                    res.set("Content-Type", "application/json");
                     res.status(200).json(result);
                 }
                 return;

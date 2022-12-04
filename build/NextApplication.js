@@ -22,7 +22,19 @@ const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
 const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
 const JWTController_1 = require("./security/JWT/JWTController");
 const NextClientBuilder_1 = require("./client/NextClientBuilder");
+const Logger_1 = require("./logs/Logger");
 class NextApplication extends events_1.default {
+    on(eventName, listener) {
+        super.on(eventName, listener);
+        return this;
+    }
+    enableHealthCheck() {
+        this.healthProfiler = new NextHealthProfiler_1.NextHealthProfiler();
+        this.options.healthCheck = new NextOptions_1.NextHealthCheckOptions();
+    }
+    registerHealthCheck(name, obj) {
+        this.healthProfiler.register(name, obj);
+    }
     constructor(options) {
         super();
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
@@ -46,17 +58,6 @@ class NextApplication extends events_1.default {
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
         this.on('error', console.error);
-    }
-    on(eventName, listener) {
-        super.on(eventName, listener);
-        return this;
-    }
-    enableHealthCheck() {
-        this.healthProfiler = new NextHealthProfiler_1.NextHealthProfiler();
-        this.options.healthCheck = new NextOptions_1.NextHealthCheckOptions();
-    }
-    registerHealthCheck(name, obj) {
-        this.healthProfiler.register(name, obj);
     }
     async registerFileSystemSession(rootPath, options) {
         this.express.use((this.sessionManager = new _1.NextSessionManager(new FileSystemSessionStore_1.FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
@@ -126,14 +127,14 @@ class NextApplication extends events_1.default {
         if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
             this.jwtController.RegisterRefresh();
         }
-        /* if (this.options.switchLoggerAsConsole) {
-             console.log = Logger.log;
-             console.error = Logger.error;
-             console.warn = Logger.warn;
-             console.info = Logger.info;
-             console.debug = Logger.debug;
-             console.trace = Logger.trace;
-         }*/
+        if (this.options.switchLoggerAsConsole) {
+            console.log = Logger_1.Logger.log;
+            console.error = Logger_1.Logger.error;
+            console.warn = Logger_1.Logger.warn;
+            console.info = Logger_1.Logger.info;
+            console.debug = Logger_1.Logger.debug;
+            console.trace = Logger_1.Logger.trace;
+        }
     }
     async stop() {
         this.emit('stop', this);

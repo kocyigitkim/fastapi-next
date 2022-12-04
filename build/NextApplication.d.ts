@@ -17,7 +17,7 @@ import { NextHealthProfiler } from './health/NextHealthProfiler';
 import { IHealth } from './health/IHealth';
 import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
 import { JWTController } from './security/JWT/JWTController';
-export declare type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
+export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export declare class NextApplication extends EventEmitter {
     express: express.Application;
     registry: NextRegistry;

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Application, NextFunction, Request, Response } from "express";
 import { NextApplication } from ".";
 import { NextContextBase } from "./NextContext";
@@ -32,6 +33,8 @@ export class NextDebug {
         log.error(err.stack);
     }
     new() {
+        if (!this.profiler.app.options.debug) return;
+
         var log = this.profiler.app.log;
         log.log(`${this.context.method} ${this.context.path} requested`);
     }
@@ -48,8 +51,10 @@ export class NextProfiler {
         try {
             next();
         } catch (err) {
-            debug.error(err);
-            res.sendStatus(500);
+            var errorId = randomUUID();
+            debug.error(`${errorId} - ${err}` as any);
+            res.status(500);
+            res.send("Internal Server Error - Error ID: " + errorId);
         }
     }
 }

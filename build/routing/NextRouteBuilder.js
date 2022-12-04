@@ -11,6 +11,7 @@ const __1 = require("..");
 const NextFlag_1 = require("../NextFlag");
 const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
+const crypto_1 = require("crypto");
 class NextRouteBuilder {
     constructor(app) {
         this.app = app;
@@ -131,6 +132,10 @@ class NextRouteBuilder {
                     if (mwResult === NextFlag_1.NextFlag.Exit) {
                         return;
                     }
+                    else if (mwResult === NextFlag_1.NextFlag.Next) {
+                        next();
+                        return;
+                    }
                 }
                 if (plugin.showInContext) {
                     var retrieveResult = plugin.retrieve.call(plugin, ctx);
@@ -193,7 +198,9 @@ class NextRouteBuilder {
             if (result instanceof Promise) {
                 result = await result.catch((err) => {
                     isError = true;
-                    app.log.error(err);
+                    var errorId = (0, crypto_1.randomUUID)();
+                    app.log.error(`${errorId} - ${err}`);
+                    return `Internal Server Error! Error Code: ${errorId}`;
                 });
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
@@ -221,11 +228,17 @@ class NextRouteBuilder {
                 }
             }
             else {
-                res.set("Content-Type", "application/json");
                 if (isError) {
-                    res.status(500).json(result);
+                    if (typeof result === 'string') {
+                        res.status(500).send(result);
+                    }
+                    else {
+                        res.set("Content-Type", "application/json");
+                        res.status(500).json(result);
+                    }
                 }
                 else {
+                    res.set("Content-Type", "application/json");
                     res.status(200).json(result);
                 }
                 return;

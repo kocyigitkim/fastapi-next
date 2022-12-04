@@ -20,7 +20,7 @@ import { IHealth } from './health/IHealth';
 import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
 import { JWTController } from './security/JWT/JWTController';
 import { NextClientBuilder } from './client/NextClientBuilder';
-//import { Logger } from './logs/Logger';
+import { Logger } from './logs/Logger';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
@@ -146,14 +146,14 @@ export class NextApplication extends EventEmitter {
         if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
             this.jwtController.RegisterRefresh();
         }
-       /* if (this.options.switchLoggerAsConsole) {
+        if (this.options.switchLoggerAsConsole) {
             console.log = Logger.log;
             console.error = Logger.error;
             console.warn = Logger.warn;
             console.info = Logger.info;
             console.debug = Logger.debug;
             console.trace = Logger.trace;
-        }*/
+        }
     }
     public async stop(): Promise<void> {
         this.emit('stop', this);

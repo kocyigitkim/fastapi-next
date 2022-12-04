@@ -52,7 +52,7 @@ export declare class NextContextBase implements INextContextBase {
     get token(): string | null;
     constructor(req: Request, res: Response, next: NextFunction);
 }
-export declare type NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> = INextContextBase & NextContextBase & {
+export type NextContext<TBODY, TQUERY = TBODY, TPARAMS = TBODY> = INextContextBase & NextContextBase & {
     body: TBODY;
     query: TQUERY;
     params: TPARAMS;
