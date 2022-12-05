@@ -10,3 +10,4 @@ export class NextUser {
     public additionalInfo?: any;
     public roles?: NextRole[];
 }
+
