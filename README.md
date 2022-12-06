@@ -8,3 +8,6 @@ Fast Api provides to create advanced level api infrastructures without any effor
 
 # Guidance
 > [Guidance](https://docs.kocyigit.kim/tr/fastapi/readme)
+
+# Release History
+> [Release History](https://github.com/kocyigitkim/fastapi-next/blob/main/RELEASE.md)

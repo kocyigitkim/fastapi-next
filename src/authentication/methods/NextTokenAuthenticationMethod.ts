@@ -1,13 +1,13 @@
 import { NextContextBase } from "../../NextContext";
-import { NextUser } from "../../structure/NextUser";
+import { NextToken } from "../../structure/NextToken";
 import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
 
-type RetrieveUserDelegate = (ctx: NextContextBase, username: string, password: string) => Promise<NextUser>;
+export type RetrieveTokenDelegate = (ctx: NextContextBase, token: string) => Promise<NextToken>;
 
-export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
-    public static methodName = "Basic";
-    constructor(public RetrieveUser?: RetrieveUserDelegate) {
+export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
+    public static methodName = "Token";
+    constructor(public RetrieveToken?: RetrieveTokenDelegate) {
         super();
         // disable validation
         this.validatePath = undefined;
@@ -15,11 +15,10 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
 
     public async login(context: NextContextBase): Promise<NextAuthenticationResult> {
         var result = new NextAuthenticationResult();
-        const username = (context.body as any).username;
-        const password = (context.body as any).password;
+        const token = (context.body as any).token;
 
-        if (username && password) {
-            var user = await this.RetrieveUser(context, username, password).catch(console.error);
+        if (token) {
+            var user = await this.RetrieveToken(context, token).catch(console.error);
             if (user) {
                 (context.session as any).user = user;
                 (context.session as any).authenticationMethod = this;
@@ -27,12 +26,12 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
             }
             else {
                 result.success = false;
-                result.error = "Invalid username or password";
+                result.error = "invalid token";
             }
         }
         else {
             result.success = false;
-            result.error = "invalid username or password";
+            result.error = "invalid token";
         }
 
         return result;
@@ -68,9 +67,4 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
         }
         return result;
     }
-
 }
-
-
-
-

@@ -1,4 +1,5 @@
 export enum NextFlag{
     Continue,
-    Exit
+    Exit,
+    Next
 }

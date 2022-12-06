@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextProfiler = exports.NextDebug = exports.NextProfilerOptions = void 0;
+const crypto_1 = require("crypto");
 class NextProfilerOptions {
     constructor(debug = true) {
         this.debug = debug;
@@ -34,6 +35,8 @@ class NextDebug {
         log.error(err.stack);
     }
     new() {
+        if (!this.profiler.app.options.debug)
+            return;
         var log = this.profiler.app.log;
         log.log(`${this.context.method} ${this.context.path} requested`);
     }
@@ -54,8 +57,10 @@ class NextProfiler {
             next();
         }
         catch (err) {
-            debug.error(err);
-            res.sendStatus(500);
+            var errorId = (0, crypto_1.randomUUID)();
+            debug.error(`${errorId} - ${err}`);
+            res.status(500);
+            res.send("Internal Server Error - Error ID: " + errorId);
         }
     }
 }

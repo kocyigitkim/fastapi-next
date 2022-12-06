@@ -22,6 +22,7 @@ const NextHealthProfiler_1 = require("./health/NextHealthProfiler");
 const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
 const JWTController_1 = require("./security/JWT/JWTController");
 const NextClientBuilder_1 = require("./client/NextClientBuilder");
+const Logger_1 = require("./logs/Logger");
 class NextApplication extends events_1.default {
     constructor(options) {
         super();
@@ -126,14 +127,14 @@ class NextApplication extends events_1.default {
         if (this.jwtController && this.options.security.jwt.refreshTokenWhenExpired) {
             this.jwtController.RegisterRefresh();
         }
-        /* if (this.options.switchLoggerAsConsole) {
-             console.log = Logger.log;
-             console.error = Logger.error;
-             console.warn = Logger.warn;
-             console.info = Logger.info;
-             console.debug = Logger.debug;
-             console.trace = Logger.trace;
-         }*/
+        if (this.options.switchLoggerAsConsole) {
+            console.log = Logger_1.Logger.log;
+            console.error = Logger_1.Logger.error;
+            console.warn = Logger_1.Logger.warn;
+            console.info = Logger_1.Logger.info;
+            console.debug = Logger_1.Logger.debug;
+            console.trace = Logger_1.Logger.trace;
+        }
     }
     async stop() {
         this.emit('stop', this);
