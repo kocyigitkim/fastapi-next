@@ -11,6 +11,7 @@ const __1 = require("..");
 const NextFlag_1 = require("../NextFlag");
 const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
+const YupVisitor_1 = require("../reflection/YupVisitor");
 class NextRouteBuilder {
     constructor(app) {
         this.app = app;
@@ -105,11 +106,11 @@ class NextRouteBuilder {
         }
         var route = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
-        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod });
+        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod, requestSchema: YupVisitor_1.YupVisitor.parseYupSchema(route.validate) });
         if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
             const modifiedPath = expressRoutePath.substring(0, expressRoutePath.length - "index".length);
             app.express[httpMethod](modifiedPath, (this.routeMiddleware(app)).bind(null, route));
-            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod });
+            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod, requestSchema: YupVisitor_1.YupVisitor.parseYupSchema(route.validate) });
         }
     }
     register(subPath, method, definition) {

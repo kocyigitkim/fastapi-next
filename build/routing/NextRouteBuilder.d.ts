@@ -1,5 +1,6 @@
 import { NextApplication, NextContextBase } from '..';
 import { NextRouteAction } from './NextRouteAction';
+import { YupSchemaParsed } from '../reflection/YupVisitor';
 export declare class NextRouteBuilder {
     app: NextApplication;
     private paths;
@@ -7,6 +8,7 @@ export declare class NextRouteBuilder {
         path: string;
         method: string;
         action: NextRouteAction;
+        requestSchema?: YupSchemaParsed;
     }[];
     constructor(app: NextApplication);
     private handleHealthCheckEndpoints;

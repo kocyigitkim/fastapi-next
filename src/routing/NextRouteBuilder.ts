@@ -8,9 +8,10 @@ import { ValidationResult } from '../validation/ValidationResult';
 import { NextRouteAction } from './NextRouteAction';
 import { NextRouteResponse, NextRouteResponseStatus } from './NextRouteResponse';
 import { AnyObjectSchema, ValidationError } from 'yup'
+import { YupSchemaParsed, YupVisitor } from '../reflection/YupVisitor';
 export class NextRouteBuilder {
     private paths: string[] = [];
-    public registeredRoutes: { path: string, method: string, action: NextRouteAction }[] = [];
+    public registeredRoutes: { path: string, method: string, action: NextRouteAction, requestSchema?: YupSchemaParsed }[] = [];
     constructor(public app: NextApplication) {
         const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
@@ -102,11 +103,11 @@ export class NextRouteBuilder {
         }
         var route: NextRouteAction = typeof (realpath) === 'string' ? require(realpath) : realpath;
         app.express[httpMethod](expressRoutePath, (this.routeMiddleware(app)).bind(null, route));
-        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod });
+        this.registeredRoutes.push({ path: expressRoutePath, action: route, method: httpMethod, requestSchema: YupVisitor.parseYupSchema(route.validate as any) as any });
         if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
             const modifiedPath = expressRoutePath.substring(0, expressRoutePath.length - "index".length);
             app.express[httpMethod](modifiedPath, (this.routeMiddleware(app)).bind(null, route));
-            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod });
+            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod, requestSchema: YupVisitor.parseYupSchema(route.validate as any) as any });
         }
     }
 
