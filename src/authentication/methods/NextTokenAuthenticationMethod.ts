@@ -68,3 +68,4 @@ export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
         return result;
     }
 }
+

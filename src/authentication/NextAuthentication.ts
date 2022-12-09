@@ -110,4 +110,17 @@ function registerAuthenticationMethodToApplication(method: NextAuthenticationMet
             return response;
         });
     }
+    if (method.refreshPath){
+        app.routeBuilder.register(method.basePath + method.refreshPath, "post", async (ctx) => {
+            var result = await method.refresh(ctx).catch(console.error);
+            var response = new ApiResponse();
+            if (result) {
+                response = cleanResult(result) as any;
+            }
+            else {
+                response.setError("refresh failed. may be the method is not implemented");
+            }
+            return response;
+        });
+    }
 }

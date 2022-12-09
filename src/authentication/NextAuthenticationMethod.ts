@@ -9,6 +9,13 @@ export class NextAuthenticationMethod {
     public logoutPath?: string = "/logout";
     public infoPath?: string = "/me";
     public validatePath?: string = "/validate";
+    public refreshPath?: string;
+    public async refresh(context: NextContextBase) {
+        var r = new NextAuthenticationResult();
+        r.success = false;
+        r.error = "Not implemented";
+        return r;
+    }
     public async login(context: NextContextBase) {
         var r = new NextAuthenticationResult();
         r.success = false;
@@ -33,7 +40,7 @@ export class NextAuthenticationMethod {
         r.error = "Not implemented";
         return r;
     }
-    protected generateSecureCode(length: number = 6): string{
+    protected generateSecureCode(length: number = 6): string {
         var code = "";
         for (var i = 0; i < length; i++) {
             code += Math.floor(Math.random() * 10);
