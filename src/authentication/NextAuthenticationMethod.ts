@@ -10,6 +10,11 @@ export class NextAuthenticationMethod {
     public infoPath?: string = "/me";
     public validatePath?: string = "/validate";
     public refreshPath?: string;
+    public loginMethod: string = "POST";
+    public logoutMethod: string = "POST";
+    public infoMethod: string = "POST";
+    public validateMethod: string = "POST";
+    public refreshMethod: string = "POST";
     public async refresh(context: NextContextBase) {
         var r = new NextAuthenticationResult();
         r.success = false;

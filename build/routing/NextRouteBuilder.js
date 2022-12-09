@@ -228,6 +228,13 @@ class NextRouteBuilder {
                     return;
                 }
             }
+            else if (result == NextFlag_1.NextFlag.Exit) {
+                return;
+            }
+            else if (result == NextFlag_1.NextFlag.Next) {
+                next();
+                return;
+            }
             else {
                 if (isError) {
                     if (typeof result === 'string') {
