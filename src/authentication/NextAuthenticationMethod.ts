@@ -9,6 +9,10 @@ export class NextAuthenticationMethod {
     public logoutPath?: string = "/logout";
     public infoPath?: string = "/me";
     public validatePath?: string = "/validate";
+    public loginMethod: string = "POST";
+    public logoutMethod: string = "POST";
+    public infoMethod: string = "POST";
+    public validateMethod: string = "POST";
     public async login(context: NextContextBase) {
         var r = new NextAuthenticationResult();
         r.success = false;

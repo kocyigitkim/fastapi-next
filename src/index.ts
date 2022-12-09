@@ -37,3 +37,4 @@ export { NextAuthenticationMethod } from './authentication/NextAuthenticationMet
 export { NextBasicAuthenticationMethod } from './authentication/methods/NextBasicAuthenticationMethod'
 export { NextClientBuilder } from './client/NextClientBuilder'
 export { NextTwoFactorAuthenticationMethod } from './authentication/methods/NextTwoFactorAuthenticationMethod'
+export { NextPassportAuthenticationMethod } from './authentication/methods/NextPassportAuthenticationMethod'

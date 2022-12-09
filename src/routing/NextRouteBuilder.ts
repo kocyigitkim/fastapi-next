@@ -229,6 +229,13 @@ export class NextRouteBuilder {
                     return;
                 }
             }
+            else if(result == NextFlag.Exit){
+                return;
+            }
+            else if(result == NextFlag.Next){
+                next();
+                return;
+            }
             else {
                 if (isError) {
                     if (typeof result === 'string') {

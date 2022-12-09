@@ -18,9 +18,9 @@ export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
         const token = (context.body as any).token;
 
         if (token) {
-            var user = await this.RetrieveToken(context, token).catch(console.error);
-            if (user) {
-                (context.session as any).user = user;
+            var tokenDefinition = await this.RetrieveToken(context, token).catch(console.error);
+            if (token) {
+                (context.session as any).token = tokenDefinition;
                 (context.session as any).authenticationMethod = this;
                 result.success = true;
             }
@@ -39,7 +39,7 @@ export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
     public async logout(context: NextContextBase): Promise<NextAuthenticationResult> {
         var result = new NextAuthenticationResult();
         if (context.session) {
-            delete (context.session as any).user;
+            delete (context.session as any).token;
             delete (context.session as any).authenticationMethod;
             result.success = true;
         }
@@ -52,9 +52,9 @@ export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
     public async info(context: NextContextBase): Promise<NextAuthenticationResult> {
         var result = new NextAuthenticationResult();
         if (context.session) {
-            if ((context.session as any).user) {
+            if ((context.session as any).token) {
                 result.success = true;
-                result.user = (context.session as any).user;
+                result.token = (context.session as any).token;
             }
             else {
                 result.success = false;
