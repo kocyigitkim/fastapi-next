@@ -4,6 +4,7 @@ import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
 import { NextSocketOptions } from "../sockets/NextSocketOptions";
 import { Algorithm as JWTAlgorithm, VerifyOptions as JWTVerifyOptions, SignOptions as JWTSignOptions, JwtPayload } from 'jsonwebtoken';
 import { NextApplication } from "../NextApplication";
+import { NextAuthenticationMethod } from "..";
 export declare class NextOptions {
     debug: boolean;
     port: number;
@@ -22,6 +23,7 @@ export declare class NextOptions {
     rendering?: NextRenderingOptions;
     security: NextSecurityOptions;
     switchLoggerAsConsole?: boolean;
+    addAuthMethod(method: NextAuthenticationMethod): void;
 }
 export declare class NextSecurityOptions {
     jwt?: NextJwtOptions;

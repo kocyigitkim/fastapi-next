@@ -4,6 +4,7 @@ import { NextAuthorizationBase } from "../authorization/NextAuthorizationBase";
 import { NextSocketOptions } from "../sockets/NextSocketOptions";
 import jwt, { Algorithm as JWTAlgorithm, VerifyOptions as JWTVerifyOptions, SignOptions as JWTSignOptions, JwtPayload } from 'jsonwebtoken';
 import { NextApplication } from "../NextApplication";
+import { NextAuthenticationMethod } from "..";
 
 
 export class NextOptions {
@@ -24,6 +25,10 @@ export class NextOptions {
     public rendering?: NextRenderingOptions;
     public security: NextSecurityOptions = new NextSecurityOptions();
     public switchLoggerAsConsole?: boolean = false;
+    public addAuthMethod(method: NextAuthenticationMethod) {
+        if (!this.authentication) this.authentication = new NextAuthentication();
+        this.authentication.add(method);
+    }
 }
 
 export class NextSecurityOptions {

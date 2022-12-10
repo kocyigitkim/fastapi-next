@@ -38,3 +38,4 @@ export { NextBasicAuthenticationMethod } from './authentication/methods/NextBasi
 export { NextClientBuilder } from './client/NextClientBuilder'
 export { NextTwoFactorAuthenticationMethod } from './authentication/methods/NextTwoFactorAuthenticationMethod'
 export { NextPassportAuthenticationMethod } from './authentication/methods/NextPassportAuthenticationMethod'
+export { RetrieveUserBuilder } from './authentication/helpers/RetrieveUserBuilder'

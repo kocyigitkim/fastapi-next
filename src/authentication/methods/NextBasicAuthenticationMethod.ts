@@ -1,9 +1,7 @@
 import { NextContextBase } from "../../NextContext";
-import { NextUser } from "../../structure/NextUser";
 import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
-
-type RetrieveUserDelegate = (ctx: NextContextBase, username: string, password: string) => Promise<NextUser>;
+import { RetrieveUserDelegate } from "../RetrieveUserDelegate";
 
 export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
     public static methodName = "Basic";

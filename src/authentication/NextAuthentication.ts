@@ -68,7 +68,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         return result;
     }
     if (method.loginPath) {
-        app.routeBuilder.register(method.basePath + method.loginPath, method.loginMethod.toLowerCase(), async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.loginPath, method.loginMethod?.toLowerCase(), async (ctx) => {
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -93,7 +93,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         });
     }
     if (method.logoutPath) {
-        app.routeBuilder.register(method.basePath + method.logoutPath, method.logoutMethod.toLowerCase(), async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.logoutPath, method.logoutMethod?.toLowerCase(), async (ctx) => {
             var result = await method.logout(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -118,7 +118,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         });
     }
     if (method.infoPath) {
-        app.routeBuilder.register(method.basePath + method.infoPath, method.infoMethod.toLowerCase(), async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.infoPath, method.infoMethod?.toLowerCase(), async (ctx) => {
             var result = await method.info(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -134,7 +134,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         });
     }
     if (method.validatePath) {
-        app.routeBuilder.register(method.basePath + method.validatePath, method.validateMethod.toLowerCase(), async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.validatePath, method.validateMethod?.toLowerCase(), async (ctx) => {
             var result = await method.validate(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -156,7 +156,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         });
     }
     if (method.refreshPath){
-        app.routeBuilder.register(method.basePath + method.refreshPath, "post", async (ctx) => {
+        app.routeBuilder.register(method.basePath + method.refreshPath, method.refreshMethod?.toLowerCase(), async (ctx) => {
             var result = await method.refresh(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {

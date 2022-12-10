@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
+const NextAuthentication_1 = require("../authentication/NextAuthentication");
 class NextOptions {
     constructor() {
         this.debug = false;
@@ -15,6 +16,11 @@ class NextOptions {
         this.enableServices = false;
         this.security = new NextSecurityOptions();
         this.switchLoggerAsConsole = false;
+    }
+    addAuthMethod(method) {
+        if (!this.authentication)
+            this.authentication = new NextAuthentication_1.NextAuthentication();
+        this.authentication.add(method);
     }
 }
 exports.NextOptions = NextOptions;
