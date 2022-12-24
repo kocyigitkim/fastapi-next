@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.2
+- Set cookie enabled default value as false
 ### v1.3.1
 - Added /fastapi/types endpoint to provide typescript definitions of api services for access to api service on client side.
     - Added cli feature:
