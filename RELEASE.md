@@ -1,4 +1,8 @@
 # Fast Api Release History
+### v1.3.1
+- Added /fastapi/types endpoint to provide typescript definitions of api services for access to api service on client side.
+    - Added cli feature:
+        - "**fastapi client update**": Fetch current api client & types for improve client side development
 ### v1.3.0
 - Notification Services added
 - SMTP Mail Notification Service added
