@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.3
+- Basic Authentication user retrieve bug fixed
 ### v1.3.2
 - Set cookie enabled default value as false
 ### v1.3.1

@@ -196,7 +196,7 @@ export class RetrieveUserBuilder {
                     return user;
                 }
                 else {
-                    return undefined;
+                    return user;
                 }
             }
         }
