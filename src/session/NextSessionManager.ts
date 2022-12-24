@@ -16,7 +16,7 @@ export class NextSessionOptions {
     public enableIPCheck?: boolean = true;
     public resolveSessionId?: NextSessionIdResolver = null;
     public ttl?: number;
-    public enableCookie?: boolean = true;
+    public enableCookie?: boolean = false;
 }
 
 export class NextSessionBudget {

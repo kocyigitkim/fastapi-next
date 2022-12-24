@@ -10,7 +10,7 @@ class NextSessionOptions {
         this.enableForwardedHeader = true;
         this.enableIPCheck = true;
         this.resolveSessionId = null;
-        this.enableCookie = true;
+        this.enableCookie = false;
     }
 }
 exports.NextSessionOptions = NextSessionOptions;
