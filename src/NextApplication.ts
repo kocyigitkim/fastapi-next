@@ -21,7 +21,7 @@ import { NextRealtimeFunctions } from './sockets/NextRealtimeFunctions';
 import { JWTController } from './security/JWT/JWTController';
 import { NextClientBuilder } from './client/NextClientBuilder';
 import { Logger } from './logs/Logger';
-
+import CookieParser from 'cookie-parser';
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
@@ -63,6 +63,9 @@ export class NextApplication extends EventEmitter {
                 preflightContinue: true
             }));
         }
+        if (options.enableCookiesForSession) {
+            this.express.use(CookieParser());
+        }
         this.express.use(express.json({ type: 'application/json', ...((options.bodyParser && options.bodyParser.json) || {}) }));
         this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((options.bodyParser && options.bodyParser.urlencoded) || {}) }));
         this.registry = new NextRegistry(this);
@@ -71,17 +74,50 @@ export class NextApplication extends EventEmitter {
         this.on('error', console.error);
     }
     public async registerFileSystemSession(rootPath: string, options?: NextSessionOptions) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         this.express.use((this.sessionManager = new NextSessionManager(new FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
 
     }
     public async registerInMemorySession(options?: NextSessionOptions) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         this.express.use((this.sessionManager = new NextSessionManager(null, options)).use);
     }
     public async registerRedisSession(config: RedisClientOptions<any, any>, ttl: number = 30 * 60, options?: NextSessionOptions) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         var session = new RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new NextSessionManager(session, options)).use);
         if (this.options.healthCheck) this.registerHealthCheck("sessionManager", this.sessionManager);
+    }
+    public async registerSession(options?: NextSessionOptions, override?: any) {
+        var env: any = process.env;
+        if (override) env = override;
+        const sessionType = (env.SESSION_TYPE || 'inmemory').toLowerCase();
+        if (sessionType === 'filesystem') {
+            await this.registerFileSystemSession(env.SESSION_PATH || './sessions', options);
+        }
+        else if (sessionType === 'redis') {
+            await this.registerRedisSession({
+                url: `redis://${env.REDIS_HOST}:${env.REDIS_PORT}`,
+                password: env.REDIS_PASSWORD
+            }, parseInt(env.REDIS_TTL || 3600), options);
+        }
+        else if (sessionType === 'inmemory') {
+            await this.registerInMemorySession(options);
+        }
+        else {
+            throw new Error(`Invalid session type ${sessionType}`);
+        }
+
     }
     public registerJWT(jwt?: NextJwtOptions) {
         this.options.security.jwt = jwt || new NextJwtOptions();

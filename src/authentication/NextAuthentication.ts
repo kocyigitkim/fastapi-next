@@ -20,6 +20,9 @@ type AuthenticationEventNames = 'authenticated' | 'authentication-failure' | 'lo
 export class NextAuthentication extends EventEmitter {
     public retrieveUser: (id: string) => Promise<NextUser>;
     private methods: NextAuthenticationMethod[] = [];
+    constructor() {
+        super();
+    }
     public get Methods() {
         return this.methods;
     }
@@ -71,6 +74,12 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         app.routeBuilder.register(method.basePath + method.loginPath, method.loginMethod?.toLowerCase(), async (ctx) => {
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
+
+            // reset session
+            if (ctx.session) {
+                (ctx.session as any).nextAuthentication = null;
+                (ctx.session as any).user = null;
+            }
             if (result) {
                 if (result.success) {
                     _this.emit('authenticated', ctx, result);
@@ -155,7 +164,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
             return response;
         });
     }
-    if (method.refreshPath){
+    if (method.refreshPath) {
         app.routeBuilder.register(method.basePath + method.refreshPath, method.refreshMethod?.toLowerCase(), async (ctx) => {
             var result = await method.refresh(ctx).catch(console.error);
             var response = new ApiResponse();

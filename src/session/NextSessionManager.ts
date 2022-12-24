@@ -16,6 +16,7 @@ export class NextSessionOptions {
     public enableIPCheck?: boolean = true;
     public resolveSessionId?: NextSessionIdResolver = null;
     public ttl?: number;
+    public enableCookie?: boolean = true;
 }
 
 export class NextSessionBudget {
@@ -84,12 +85,17 @@ export class NextSessionManager implements IHealth {
 
     async use(req: Request & { session: any, sessionId: any, userAgent: any, sessionManager: any }, res: Response, next: NextFunction) {
         const _self = this;
+        const isCookieEnabled = this.options.enableCookie;
         var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
+        if (!sessionId && isCookieEnabled) {
+            sessionId = req.cookies["sessionid"];
+        }
         var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = formatIP(req.socket.remoteAddress);
         if (forwardedIP) ip = formatIP(forwardedIP);
         var isV6 = checkIfValidIPV6(ip);
         var userAgent = req.headers['user-agent'];
+        var isSessionIdExists = sessionId ? true : false;
         (req as any).clientIp = ip;
         if (sessionId) {
             try {
@@ -129,6 +135,9 @@ export class NextSessionManager implements IHealth {
                 waitCallback(_self.store, _self.store.set, sessionId, result);
             }
         });
+        if (isCookieEnabled && !isSessionIdExists) {
+            res.cookie("sessionid", sessionId, { httpOnly: true, secure: true, sameSite: "strict" });
+        }
         (req as any).sessionManager = _self;
         req.sessionId = sessionId;
         req.sessionManager = _self;

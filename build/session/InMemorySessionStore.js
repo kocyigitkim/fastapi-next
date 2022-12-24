@@ -4,6 +4,7 @@ exports.InMemorySessionStore = void 0;
 const NextOptions_1 = require("../config/NextOptions");
 const ISessionStore_1 = require("./ISessionStore");
 class InMemorySessionStore extends ISessionStore_1.ISessionStore {
+    ;
     constructor(config) {
         super();
         this.config = Object.assign({ ttl: 1000 * 30 * 60 }, config);
@@ -14,7 +15,6 @@ class InMemorySessionStore extends ISessionStore_1.ISessionStore {
         this.worker = this.worker.call(this);
         this.targetTTL = this.config.ttl;
     }
-    ;
     async healthCheck() {
         return NextOptions_1.NextHealthCheckStatus.Alive();
     }

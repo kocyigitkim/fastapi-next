@@ -1,9 +1,7 @@
 import { NextContextBase } from "../../NextContext";
-import { NextToken } from "../../structure/NextToken";
 import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
-
-export type RetrieveTokenDelegate = (ctx: NextContextBase, token: string) => Promise<NextToken>;
+import { RetrieveTokenDelegate } from "../RetrieveTokenDelegate";
 
 export class NextTokenAuthenticationMethod extends NextAuthenticationMethod {
     public static methodName = "Token";

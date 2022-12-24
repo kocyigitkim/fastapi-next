@@ -25,8 +25,9 @@ export class NextOptions {
     public rendering?: NextRenderingOptions;
     public security: NextSecurityOptions = new NextSecurityOptions();
     public switchLoggerAsConsole?: boolean = false;
+    public enableCookiesForSession?: boolean = false;
     public addAuthMethod(method: NextAuthenticationMethod) {
-        if (!this.authentication) this.authentication = new NextAuthentication();
+        if (!this.authentication) this.authentication = new (require('../authentication/NextAuthentication').NextAuthentication)();
         this.authentication.add(method);
     }
 }

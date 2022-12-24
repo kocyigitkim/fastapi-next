@@ -23,6 +23,7 @@ interface RetrieveUserOptions {
     firstNameField?: string
     lastNameField?: string
     additionalFields?: string[]
+    conditions?: (ctx: NextContextBase, username: string, password: string) => Promise<boolean>
     role?: {
         strategy?: UserRoleStrategy
         roleId?: {
@@ -48,8 +49,28 @@ interface RetrieveUserOptions {
             isDeletedField?: string
             /**  the value that defines if the role is deleted or not */
             isDeletedValue?: any
-        }
-        custom?: (ctx: NextContextBase, user: NextUser) => Promise<NextRole>
+        },
+        permission?: {
+            /**  permission table name */
+            permissionTable: string
+            /**  the field in the permission table that contains the permission id */
+            permissionIdField: string
+            /**  the field in the permission table that contains the permission name */
+            permissionNameField: string
+        },
+        rolePermission?: {
+            /**  role permission table name */
+            rolePermissionTable: string
+            /**  the field in the role permission table that contains the role id */
+            rolePermissionRoleIdField: string
+            /**  the field in the role permission table that contains the permission id */
+            rolePermissionPermissionIdField: string
+            /**  the field in the role permission table that defines if the permission is deleted or not */
+            isDeletedField?: string
+            /**  the value that defines if the permission is deleted or not */
+            isDeletedValue?: any
+        },
+        custom?: (ctx: NextContextBase, user: NextUser) => Promise<NextRole[]>,
     }
 }
 
@@ -81,7 +102,7 @@ export class RetrieveUserBuilder {
                 db = db(ctx);
             if (db instanceof Promise)
                 db = await db.catch(console.error);
-            var query = db(options.userTable).select(options.idField || "id").where(options.userNameField, username).where(options.passwordField, passwordToCheck);
+            var query = db(options.userTable).select("*").where(options.userNameField, username).where(options.passwordField, passwordToCheck);
             if (options.statusField) {
                 query = query.where(options.statusField, options.desiredStatus);
             }
@@ -100,14 +121,83 @@ export class RetrieveUserBuilder {
                 if (options.userNameField)
                     user.userName = result[options.userNameField];
                 if (Array.isArray(options.additionalFields)) {
+                    user.additionalInfo = {};
                     options.additionalFields.forEach(field => {
                         user.additionalInfo[field] = result[field];
                     });
                 }
-                return user;
-            }
-            else {
-                return undefined;
+                if (options.role) {
+                    if (options.role.strategy == UserRoleStrategy.RoleId) {
+                        var roles = await db(options.role.roleId.roleTable).select("*").where(options.role.roleId.roleIdField, result[options.role.roleId.relationField]).select().catch(console.error);
+                        if (Array.isArray(roles)) {
+                            var roleIds = roles.map(role => role[options.role.roleId.roleIdField]);
+                            var permissions = await db(options.role.rolePermission.rolePermissionTable).select("*").whereIn(options.role.rolePermission.rolePermissionRoleIdField, roleIds).catch(console.error);
+                            if (Array.isArray(permissions)) {
+                                var permissionIds = permissions.map(permission => permission[options.role.rolePermission.rolePermissionPermissionIdField]);
+                                var permissionNames = await db(options.role.permission.permissionTable).select("*").whereIn(options.role.permission.permissionIdField, permissionIds).catch(console.error);
+                                if (Array.isArray(permissionNames)) {
+                                    roles.forEach(role => {
+                                        role.permissions = permissions.filter(permission => permission[options.role.rolePermission.rolePermissionRoleIdField] == role[options.role.roleId.roleIdField]).map(permission => {
+                                            return permissionNames.find(permissionName => permissionName[options.role.permission.permissionIdField] == permission[options.role.rolePermission.rolePermissionPermissionIdField])[options.role.permission.permissionNameField];
+                                        });
+                                    });
+                                }
+                            }
+
+                            user.roles = roles.map(role => {
+                                var r = new NextRole();
+                                r.id = role[options.role.roleId.roleIdField];
+                                r.name = role.name;
+                                r.description = role.description;
+                                r.permissions = role.permissions;
+                                return r;
+                            });
+                        }
+                        else{
+                            user.roles = [];
+                        }
+                    }
+                    else if (options.role.strategy == UserRoleStrategy.RoleJoin){
+                        var roles = await db(options.role.roleJoin.joinTable).select("*").where(options.role.roleJoin.joinUserIdField, result[options.idField]).select().catch(console.error);
+                        if (Array.isArray(roles)) {
+                            var roleIds = roles.map(role => role[options.role.roleJoin.joinRoleIdField]);
+                            var permissions = await db(options.role.rolePermission.rolePermissionTable).select("*").whereIn(options.role.rolePermission.rolePermissionRoleIdField, roleIds).catch(console.error);
+                            if (Array.isArray(permissions)) {
+                                var permissionIds = permissions.map(permission => permission[options.role.rolePermission.rolePermissionPermissionIdField]);
+                                var permissionNames = await db(options.role.permission.permissionTable).select("*").whereIn(options.role.permission.permissionIdField, permissionIds).catch(console.error);
+                                if (Array.isArray(permissionNames)) {
+                                    roles.forEach(role => {
+                                        role.permissions = permissions.filter(permission => permission[options.role.rolePermission.rolePermissionRoleIdField] == role[options.role.roleJoin.joinRoleIdField]).map(permission => {
+                                            return permissionNames.find(permissionName => permissionName[options.role.permission.permissionIdField] == permission[options.role.rolePermission.rolePermissionPermissionIdField])[options.role.permission.permissionNameField];
+                                        });
+                                    });
+                                }
+                            }
+
+                            user.roles = roles.map(role => {
+                                var r = new NextRole();
+                                r.id = role[options.role.roleJoin.joinRoleIdField];
+                                r.name = role.name;
+                                r.description = role.description;
+                                r.permissions = role.permissions;
+                                return r;
+                            });
+                        }
+                        else{
+                            user.roles = [];
+                        }
+                    }
+                    else if (options.role.strategy == UserRoleStrategy.Custom){
+                        user.roles = await options.role.custom(ctx, result);
+                    }
+                    else{
+                        user.roles = [];
+                    }
+                    return user;
+                }
+                else {
+                    return undefined;
+                }
             }
         }
     }

@@ -17,14 +17,19 @@ export class ValidationResult {
         });
         this.success = false;
     }
-    public async validateYup(schema: AnySchema | StringSchema | ObjectSchema<any>, data: any){
+    public merge(a: ValidationResult): ValidationResult {
+        this.errors = this.errors.concat(a.errors);
+        this.success = this.success && a.success;
+        return this;
+    }
+    public async validateYup(schema: AnySchema | StringSchema | ObjectSchema<any>, data: any) {
         var isError = false;
-        var result = await schema.validate(data).catch(err=>{
+        var result = await schema.validate(data).catch(err => {
             isError = true;
             return err;
         })
-        if(isError){
-            var err : YupValidationError  = result as YupValidationError;
+        if (isError) {
+            var err: YupValidationError = result as YupValidationError;
             this.error(err.path, err.message);
         }
     }

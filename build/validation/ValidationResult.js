@@ -20,6 +20,11 @@ class ValidationResult {
         });
         this.success = false;
     }
+    merge(a) {
+        this.errors = this.errors.concat(a.errors);
+        this.success = this.success && a.success;
+        return this;
+    }
     async validateYup(schema, data) {
         var isError = false;
         var result = await schema.validate(data).catch(err => {

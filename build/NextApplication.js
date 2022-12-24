@@ -15,6 +15,7 @@ const NextRouteBuilder_1 = require("./routing/NextRouteBuilder");
 const cors_1 = __importDefault(require("cors"));
 const _1 = require(".");
 const RedisSessionStore_1 = require("./session/RedisSessionStore");
+const NextSessionManager_1 = require("./session/NextSessionManager");
 const FileSystemSessionStore_1 = require("./session/FileSystemSessionStore");
 const NextSocket_1 = require("./sockets/NextSocket");
 const NextSocketRouter_1 = require("./sockets/NextSocketRouter");
@@ -23,7 +24,19 @@ const NextRealtimeFunctions_1 = require("./sockets/NextRealtimeFunctions");
 const JWTController_1 = require("./security/JWT/JWTController");
 const NextClientBuilder_1 = require("./client/NextClientBuilder");
 const Logger_1 = require("./logs/Logger");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 class NextApplication extends events_1.default {
+    on(eventName, listener) {
+        super.on(eventName, listener);
+        return this;
+    }
+    enableHealthCheck() {
+        this.healthProfiler = new NextHealthProfiler_1.NextHealthProfiler();
+        this.options.healthCheck = new NextOptions_1.NextHealthCheckOptions();
+    }
+    registerHealthCheck(name, obj) {
+        this.healthProfiler.register(name, obj);
+    }
     constructor(options) {
         super();
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
@@ -41,6 +54,9 @@ class NextApplication extends events_1.default {
                     preflightContinue: true
                 }));
         }
+        if (options.enableCookiesForSession) {
+            this.express.use((0, cookie_parser_1.default)());
+        }
         this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((options.bodyParser && options.bodyParser.json) || {}))));
         this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((options.bodyParser && options.bodyParser.urlencoded) || {}))));
         this.registry = new NextRegistry_1.NextRegistry(this);
@@ -48,29 +64,51 @@ class NextApplication extends events_1.default {
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
         this.on('error', console.error);
     }
-    on(eventName, listener) {
-        super.on(eventName, listener);
-        return this;
-    }
-    enableHealthCheck() {
-        this.healthProfiler = new NextHealthProfiler_1.NextHealthProfiler();
-        this.options.healthCheck = new NextOptions_1.NextHealthCheckOptions();
-    }
-    registerHealthCheck(name, obj) {
-        this.healthProfiler.register(name, obj);
-    }
     async registerFileSystemSession(rootPath, options) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionManager_1.NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         this.express.use((this.sessionManager = new _1.NextSessionManager(new FileSystemSessionStore_1.FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
     }
     async registerInMemorySession(options) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionManager_1.NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         this.express.use((this.sessionManager = new _1.NextSessionManager(null, options)).use);
     }
     async registerRedisSession(config, ttl = 30 * 60, options) {
+        if (this.options.enableCookiesForSession) {
+            options = new NextSessionManager_1.NextSessionOptions();
+            options.enableCookie = this.options.enableCookiesForSession;
+        }
         var session = new RedisSessionStore_1.RedisSessionStore(config, ttl || options.ttl);
         await session.client.connect();
         this.express.use((this.sessionManager = new _1.NextSessionManager(session, options)).use);
         if (this.options.healthCheck)
             this.registerHealthCheck("sessionManager", this.sessionManager);
+    }
+    async registerSession(options, override) {
+        var env = process.env;
+        if (override)
+            env = override;
+        const sessionType = (env.SESSION_TYPE || 'inmemory').toLowerCase();
+        if (sessionType === 'filesystem') {
+            await this.registerFileSystemSession(env.SESSION_PATH || './sessions', options);
+        }
+        else if (sessionType === 'redis') {
+            await this.registerRedisSession({
+                url: `redis://${env.REDIS_HOST}:${env.REDIS_PORT}`,
+                password: env.REDIS_PASSWORD
+            }, parseInt(env.REDIS_TTL || 3600), options);
+        }
+        else if (sessionType === 'inmemory') {
+            await this.registerInMemorySession(options);
+        }
+        else {
+            throw new Error(`Invalid session type ${sessionType}`);
+        }
     }
     registerJWT(jwt) {
         this.options.security.jwt = jwt || new NextOptions_1.NextJwtOptions();

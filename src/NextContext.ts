@@ -99,6 +99,9 @@ export class NextContextBase implements INextContextBase {
 
         this.session = (req as any).session;
         this.sessionId = (this.session && (this.session as any).id) || (req as any).sessionId;
+        if (req.query && req.query["callback_sid"]) {
+            this.sessionId = req.query["callback_sid"] as any;
+        }
         this.items = {};
     }
 }

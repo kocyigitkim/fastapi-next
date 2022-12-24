@@ -1,5 +1,13 @@
 # Fast Api Release History
-
+### v1.3.0
+- Notification Services added
+- SMTP Mail Notification Service added
+- FireBase Push Notification Service added
+- Twilio SMS Notification Service added
+- Authentication Method support added. We are providing google, microsoft, github and more authentication methods by passport library. Also you can define database based user authentication via enabling basic/2fa authentication method. Also we are created a helper method for retrieving user info, roles and permissions from database easily. This feature still in progress.
+- Added cookie based session management. (Still testing)
+- Added "callback_sid" search query parameter for catching session id from query string for callback functions
+- Added dynamically session provider registration. You can use this feature via defining registerSession
 ### v1.2.9
 - Level based logging system added to Fast Api. You can use this feature via enabling ***options.switchLoggerAsConsole=true***
 - Added "NEXT" flag to middleware plugins. You can skip current function execution once with this flag. Works based on express-next function.

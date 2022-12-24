@@ -10,6 +10,7 @@ class NextSessionOptions {
         this.enableForwardedHeader = true;
         this.enableIPCheck = true;
         this.resolveSessionId = null;
+        this.enableCookie = true;
     }
 }
 exports.NextSessionOptions = NextSessionOptions;
@@ -73,13 +74,18 @@ class NextSessionManager {
     }
     async use(req, res, next) {
         const _self = this;
+        const isCookieEnabled = this.options.enableCookie;
         var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
+        if (!sessionId && isCookieEnabled) {
+            sessionId = req.cookies["sessionid"];
+        }
         var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
         var ip = (0, utils_1.formatIP)(req.socket.remoteAddress);
         if (forwardedIP)
             ip = (0, utils_1.formatIP)(forwardedIP);
         var isV6 = (0, utils_1.checkIfValidIPV6)(ip);
         var userAgent = req.headers['user-agent'];
+        var isSessionIdExists = sessionId ? true : false;
         req.clientIp = ip;
         if (sessionId) {
             try {
@@ -121,6 +127,9 @@ class NextSessionManager {
                 (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, result);
             }
         });
+        if (isCookieEnabled && !isSessionIdExists) {
+            res.cookie("sessionid", sessionId, { httpOnly: true, secure: true, sameSite: "strict" });
+        }
         req.sessionManager = _self;
         req.sessionId = sessionId;
         req.sessionManager = _self;
