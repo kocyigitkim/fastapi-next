@@ -49,7 +49,6 @@ export class NextSessionManager implements IHealth {
             if (result) {
                 return { id: sessionId, data: result && result.session };
             }
-
         }
 
         var newSession = {

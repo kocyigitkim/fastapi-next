@@ -75,11 +75,6 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
 
-            // reset session
-            if (ctx.session) {
-                (ctx.session as any).nextAuthentication = null;
-                (ctx.session as any).user = null;
-            }
             if (result) {
                 if (result.success) {
                     _this.emit('authenticated', ctx, result);

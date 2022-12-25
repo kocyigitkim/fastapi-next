@@ -89,7 +89,6 @@ export class YupVisitor {
         result.recursive = yupObj.spec.recursive;
         result.matches = yupObj.tests?.find(x => x.OPTIONS.name === 'matches' || x.OPTIONS.name == 'email')?.OPTIONS;
         result.raw = yupObj;
-        if (result.type == "object") console.log(result);
         return result;
     }
 }

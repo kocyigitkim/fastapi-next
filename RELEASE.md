@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.4
+- Removed clean session line when login auth method executed.
 ### v1.3.3
 - Basic Authentication user retrieve bug fixed
 ### v1.3.2

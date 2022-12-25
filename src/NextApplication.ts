@@ -79,7 +79,6 @@ export class NextApplication extends EventEmitter {
             options.enableCookie = this.options.enableCookiesForSession;
         }
         this.express.use((this.sessionManager = new NextSessionManager(new FileSystemSessionStore(rootPath, options && options.ttl), options)).use);
-
     }
     public async registerInMemorySession(options?: NextSessionOptions) {
         if (this.options.enableCookiesForSession) {
