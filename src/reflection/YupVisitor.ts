@@ -39,6 +39,7 @@ export class YupVisitor {
     }
 
     public static parseYupSchema(yupObj): YupSchemaParsed {
+        try{
         var result: YupSchemaParsed;
         switch (yupObj.type) {
             case 'object':
@@ -90,5 +91,9 @@ export class YupVisitor {
         result.matches = yupObj.tests?.find(x => x.OPTIONS.name === 'matches' || x.OPTIONS.name == 'email')?.OPTIONS;
         result.raw = yupObj;
         return result;
+        }catch(e){
+            return {} as any;
+        }
+
     }
 }

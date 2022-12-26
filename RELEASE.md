@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.5
+- Bug fix applied to yupvisitor when detecting undefined yup schema
 ### v1.3.4
 - Removed clean session line when login auth method executed.
 ### v1.3.3
