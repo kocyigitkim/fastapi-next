@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { NextContext } from ".";
+import { NextContext} from "./NextContext";
+import { NextObjectPlugin } from "./plugins/NextObjectPlugin";
 import { NextApplication } from "./NextApplication";
 import { NextPlugin } from "./plugins/NextPlugin";
 import { NextFlag } from './NextFlag'
+import { NextMiddlewarePlugin } from "./plugins/NextMiddlewarePlugin";
 
 export class NextRegistry {
     private _plugins: NextPlugin<any>[];
@@ -16,15 +18,10 @@ export class NextRegistry {
         this._plugins.push(plugin);
     }
     public registerMiddleware(func: () => boolean | NextFlag | Promise<boolean | NextFlag>) {
-        this._plugins.push({
-            middleware: func.bind({}) as any
-        } as any);
+        this.register(new NextMiddlewarePlugin(func));
     }
     public registerObject(name: string, obj: any) {
-        this._plugins.push({
-            name: name,
-            retrieve: () => obj
-        } as any);
+        this.register(new NextObjectPlugin(obj,name));
     }
     public getPlugins(): NextPlugin<any>[] {
         return this._plugins;

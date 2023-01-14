@@ -25,6 +25,9 @@ const JWTController_1 = require("./security/JWT/JWTController");
 const NextClientBuilder_1 = require("./client/NextClientBuilder");
 const Logger_1 = require("./logs/Logger");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const NextUrlBuilder_1 = require("./structure/NextUrlBuilder");
+const NextOpenApiBuilder_1 = require("./client/NextOpenApiBuilder");
+const ConfigurationReader_1 = require("./config/ConfigurationReader");
 class NextApplication extends events_1.default {
     on(eventName, listener) {
         super.on(eventName, listener);
@@ -57,12 +60,19 @@ class NextApplication extends events_1.default {
         if (options.enableCookiesForSession) {
             this.express.use((0, cookie_parser_1.default)());
         }
+        if (!this.options.port)
+            this.options.port = 5000;
+        if (process.env["NEXT_BASE_URL"]) {
+            this.options.baseUrl = process.env["NEXT_BASE_URL"];
+        }
+        this.url = new NextUrlBuilder_1.NextUrlBuilder(this);
         this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((options.bodyParser && options.bodyParser.json) || {}))));
         this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((options.bodyParser && options.bodyParser.urlencoded) || {}))));
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
         this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
         this.on('error', console.error);
+        this.openapi = new NextOpenApiBuilder_1.NextOpenApiBuilder(this);
     }
     async registerFileSystemSession(rootPath, options) {
         if (this.options.enableCookiesForSession) {
@@ -142,6 +152,10 @@ class NextApplication extends events_1.default {
         }
         // ? Build Client Script
         new NextClientBuilder_1.NextClientBuilder(this).build();
+        // ? Use OpenApi
+        if (this.options.openApi && this.options.openApi.enabled) {
+            this.openapi.use();
+        }
         // ? Route not found
         this.express.use("*", (req, res, next) => {
             var _a, _b;
@@ -155,6 +169,10 @@ class NextApplication extends events_1.default {
             }
             next();
         });
+        // ? Realtime Configuration
+        if (this.options.enableRealtimeConfig) {
+            await ConfigurationReader_1.ConfigurationReader.init();
+        }
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();

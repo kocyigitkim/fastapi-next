@@ -1,4 +1,7 @@
 # Fast Api Release History
+### v1.3.6
+- Added jwt access token generation for authentication methods
+- Bearer token & Session Id required when enabling jwt & session in same time
 ### v1.3.5
 - Bug fix applied to yupvisitor when detecting undefined yup schema
 ### v1.3.4

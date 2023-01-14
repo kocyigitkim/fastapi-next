@@ -22,6 +22,9 @@ import { JWTController } from './security/JWT/JWTController';
 import { NextClientBuilder } from './client/NextClientBuilder';
 import { Logger } from './logs/Logger';
 import CookieParser from 'cookie-parser';
+import { NextUrlBuilder } from './structure/NextUrlBuilder';
+import { NextOpenApiBuilder } from './client/NextOpenApiBuilder';
+import { ConfigurationReader } from './config/ConfigurationReader';
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 export class NextApplication extends EventEmitter {
     public express: express.Application;
@@ -37,6 +40,8 @@ export class NextApplication extends EventEmitter {
     public healthProfiler?: NextHealthProfiler;
     public realtime?: NextRealtimeFunctions;
     public jwtController?: JWTController;
+    public url: NextUrlBuilder;
+    public openapi : NextOpenApiBuilder;
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -66,12 +71,18 @@ export class NextApplication extends EventEmitter {
         if (options.enableCookiesForSession) {
             this.express.use(CookieParser());
         }
+        if(!this.options.port) this.options.port = 5000;
+        if(process.env["NEXT_BASE_URL"]){
+            this.options.baseUrl = process.env["NEXT_BASE_URL"];
+        }
+        this.url = new NextUrlBuilder(this);
         this.express.use(express.json({ type: 'application/json', ...((options.bodyParser && options.bodyParser.json) || {}) }));
         this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((options.bodyParser && options.bodyParser.urlencoded) || {}) }));
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
         this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
         this.on('error', console.error);
+        this.openapi = new NextOpenApiBuilder(this);
     }
     public async registerFileSystemSession(rootPath: string, options?: NextSessionOptions) {
         if (this.options.enableCookiesForSession) {
@@ -116,7 +127,6 @@ export class NextApplication extends EventEmitter {
         else {
             throw new Error(`Invalid session type ${sessionType}`);
         }
-
     }
     public registerJWT(jwt?: NextJwtOptions) {
         this.options.security.jwt = jwt || new NextJwtOptions();
@@ -157,6 +167,11 @@ export class NextApplication extends EventEmitter {
         // ? Build Client Script
         new NextClientBuilder(this).build();
 
+        // ? Use OpenApi
+        if(this.options.openApi && this.options.openApi.enabled){
+            this.openapi.use();
+        }
+
         // ? Route not found
         this.express.use("*", (req, res, next) => {
             if (req.method?.toLowerCase() === "get") {
@@ -169,6 +184,11 @@ export class NextApplication extends EventEmitter {
             }
             next();
         });
+
+        // ? Realtime Configuration
+        if (this.options.enableRealtimeConfig) {
+            await ConfigurationReader.init();
+        }
 
     }
     public async start(): Promise<void> {

@@ -10,9 +10,18 @@ import { NextRouteResponse, NextRouteResponseStatus } from './NextRouteResponse'
 import { AnyObjectSchema, ValidationError } from 'yup'
 import { YupSchemaParsed, YupVisitor } from '../reflection/YupVisitor';
 import { randomUUID } from 'crypto';
+import { ConfigurationReader } from '../config/ConfigurationReader';
+export interface NextRouteDefinition {
+    description?: string;
+    path: string;
+    method: string;
+    action: NextRouteAction;
+    requestSchema?: YupSchemaParsed;
+}
+
 export class NextRouteBuilder {
     private paths: string[] = [];
-    public registeredRoutes: { path: string, method: string, action: NextRouteAction, requestSchema?: YupSchemaParsed }[] = [];
+    public registeredRoutes: NextRouteDefinition[] = [];
     constructor(public app: NextApplication) {
         const isScanDirectoryDisabled = Boolean(process.env.DISABLE_SCAN_ROUTERS);
         this.handleHealthCheckEndpoints = this.handleHealthCheckEndpoints.bind(this);
@@ -132,7 +141,7 @@ export class NextRouteBuilder {
                     if (mwResult === NextFlag.Exit) {
                         return;
                     }
-                    else if (mwResult === NextFlag.Next){
+                    else if (mwResult === NextFlag.Next) {
                         next();
                         return;
                     }
@@ -145,6 +154,11 @@ export class NextRouteBuilder {
                     }
                     (ctx as any)[plugin.name] = retrieveResult;
                 }
+            }
+
+            // ? Realtime Configuration
+            if(app.options.enableRealtimeConfig){
+                ctx.config = ConfigurationReader.current;
             }
 
             // ? Validation
@@ -229,10 +243,10 @@ export class NextRouteBuilder {
                     return;
                 }
             }
-            else if(result == NextFlag.Exit){
+            else if (result == NextFlag.Exit) {
                 return;
             }
-            else if(result == NextFlag.Next){
+            else if (result == NextFlag.Next) {
                 next();
                 return;
             }

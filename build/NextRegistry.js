@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextRegistry = void 0;
+const NextObjectPlugin_1 = require("./plugins/NextObjectPlugin");
+const NextMiddlewarePlugin_1 = require("./plugins/NextMiddlewarePlugin");
 class NextRegistry {
     constructor(app) {
         this.app = app;
@@ -10,15 +12,10 @@ class NextRegistry {
         this._plugins.push(plugin);
     }
     registerMiddleware(func) {
-        this._plugins.push({
-            middleware: func.bind({})
-        });
+        this.register(new NextMiddlewarePlugin_1.NextMiddlewarePlugin(func));
     }
     registerObject(name, obj) {
-        this._plugins.push({
-            name: name,
-            retrieve: () => obj
-        });
+        this.register(new NextObjectPlugin_1.NextObjectPlugin(obj, name));
     }
     getPlugins() {
         return this._plugins;

@@ -8,6 +8,7 @@ import { NextAuthenticationMethod } from "..";
 
 
 export class NextOptions {
+    public baseUrl?: string;
     public debug: boolean = false;
     public port: number = 5000;
     public routerDirs: string[] = [];
@@ -26,6 +27,8 @@ export class NextOptions {
     public security: NextSecurityOptions = new NextSecurityOptions();
     public switchLoggerAsConsole?: boolean = false;
     public enableCookiesForSession?: boolean = false;
+    public openApi?: NextOpenApiOptions = new NextOpenApiOptions();
+    public enableRealtimeConfig?: boolean = false;
     public addAuthMethod(method: NextAuthenticationMethod) {
         if (!this.authentication) this.authentication = new (require('../authentication/NextAuthentication').NextAuthentication)();
         this.authentication.add(method);
@@ -90,4 +93,14 @@ export class NextHealthCheckStatus {
     public static Alive() {
         return new NextHealthCheckStatus(true, "Alive");
     }
+}
+
+export class NextOpenApiOptions {
+    public path: string = "/openapi.json";
+    public enabled?: boolean = true;
+    public title: string = "Fast Api";
+    public version: string = "1.0.0";
+    public description: string = "Fast Api - OpenApi Gateway";
+    public https: boolean = true;
+    public http: boolean = true;
 }

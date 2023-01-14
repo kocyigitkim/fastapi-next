@@ -89,6 +89,18 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                     (ctx.session as any).nextAuthentication = result;
                 }
                 response = cleanResult(result) as any;
+                if (!response.data) response.data = {};
+
+                var additionalParameters = {};
+
+                if (app.jwtController) {
+                    const jwtToken = await app.jwtController.CreateToken(ctx.req);
+                    additionalParameters["accessToken"] = jwtToken;
+                }
+
+                for (var parameterName in additionalParameters) {
+                    response.data[parameterName] = additionalParameters[parameterName];
+                }
             }
             else {
                 response.setError("authentication failed. may be the method is not implemented");

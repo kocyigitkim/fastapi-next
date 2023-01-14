@@ -13,6 +13,7 @@ const ValidationResult_1 = require("../validation/ValidationResult");
 const NextRouteResponse_1 = require("./NextRouteResponse");
 const YupVisitor_1 = require("../reflection/YupVisitor");
 const crypto_1 = require("crypto");
+const ConfigurationReader_1 = require("../config/ConfigurationReader");
 class NextRouteBuilder {
     constructor(app) {
         this.app = app;
@@ -145,6 +146,10 @@ class NextRouteBuilder {
                     }
                     ctx[plugin.name] = retrieveResult;
                 }
+            }
+            // ? Realtime Configuration
+            if (app.options.enableRealtimeConfig) {
+                ctx.config = ConfigurationReader_1.ConfigurationReader.current;
             }
             // ? Validation
             if (route.validate) {

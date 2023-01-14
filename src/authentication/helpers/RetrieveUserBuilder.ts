@@ -143,7 +143,6 @@ export class RetrieveUserBuilder {
                                     });
                                 }
                             }
-
                             user.roles = roles.map(role => {
                                 var r = new NextRole();
                                 r.id = role[options.role.roleId.roleIdField];

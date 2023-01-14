@@ -5,6 +5,7 @@ export function precisionRound(number: number, precision: number) {
     var factor = Math.pow(10, precision);
     return Math.round(number * factor) / factor;
 }
+
 // ? Threads
 export async function waitCallback<T>(_this: T, action, ...args): Promise<T> {
     return (new Promise((resolve, reject) => {
@@ -58,14 +59,17 @@ export function getTokenFromHeader(header: string) {
     }
     return null;
 }
+
 export function normalizeUrlPath(path: string) {
     return path.replace(/\/+/g, "/").replace(/(^\/)|(\/$)/g, "");
 }
+
 export function checkPathsByNormalization(path1: string, path2: string) {
     path1 = path.normalize(path1);
     path2 = path.normalize(path2);
     return path1 === path2;
 }
+
 export function makeType(type: any, args){
     var t = new type();
     for (var key in args) {

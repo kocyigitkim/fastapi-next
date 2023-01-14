@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
+exports.NextOpenApiOptions = exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
 class NextOptions {
     constructor() {
         this.debug = false;
@@ -16,6 +16,8 @@ class NextOptions {
         this.security = new NextSecurityOptions();
         this.switchLoggerAsConsole = false;
         this.enableCookiesForSession = false;
+        this.openApi = new NextOpenApiOptions();
+        this.enableRealtimeConfig = false;
     }
     addAuthMethod(method) {
         if (!this.authentication)
@@ -79,3 +81,15 @@ class NextHealthCheckStatus {
     }
 }
 exports.NextHealthCheckStatus = NextHealthCheckStatus;
+class NextOpenApiOptions {
+    constructor() {
+        this.path = "/openapi.json";
+        this.enabled = true;
+        this.title = "Fast Api";
+        this.version = "1.0.0";
+        this.description = "Fast Api - OpenApi Gateway";
+        this.https = true;
+        this.http = true;
+    }
+}
+exports.NextOpenApiOptions = NextOpenApiOptions;

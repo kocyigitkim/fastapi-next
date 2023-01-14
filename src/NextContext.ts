@@ -33,6 +33,10 @@ export interface INextContextBase {
     sessionManager: NextSessionManager;
     //#endregion
 
+    //#region Realtime Configuration
+    config: any;
+    //#endregion
+
     get token(): string | null;
 }
 export class NextContextBase implements INextContextBase {
@@ -66,10 +70,12 @@ export class NextContextBase implements INextContextBase {
     public session: Object;
     public sessionId: string;
     public sessionManager: NextSessionManager;
+
+    public items: Object;
     //#endregion
 
-    //#region Session Parameters
-    public items: Object;
+    //#region Realtime Configuration
+    public config: any;
     //#endregion
 
     public get token(): string | null {

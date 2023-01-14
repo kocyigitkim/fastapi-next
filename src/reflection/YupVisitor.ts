@@ -39,61 +39,60 @@ export class YupVisitor {
     }
 
     public static parseYupSchema(yupObj): YupSchemaParsed {
-        try{
-        var result: YupSchemaParsed;
-        switch (yupObj.type) {
-            case 'object':
-                {
-                    var properties = {};
-                    for (var key in yupObj.fields) {
-                        properties[key] = YupVisitor.parseYupSchema(yupObj.fields[key]);
+        try {
+            var result: YupSchemaParsed;
+            switch (yupObj.type) {
+                case 'object':
+                    {
+                        var properties = {};
+                        for (var key in yupObj.fields) {
+                            properties[key] = YupVisitor.parseYupSchema(yupObj.fields[key]);
+                        }
+                        result = {
+                            type: 'object',
+                            properties: properties,
+                        };
                     }
+                    break;
+                case 'array':
+                    {
+                        result = {
+                            type: 'array',
+                            elementType: YupVisitor.parseYupSchema(yupObj.innerType),
+                        };
+                    }
+                    break;
+                case 'string':
+                case 'number':
+                case 'boolean':
+                    {
+                        result = {
+                            type: YupVisitor.convertYupTypeToOpenApiType(yupObj.type),
+                        };
+                    }
+                    break;
+                case 'date':
+                    {
+                        result = {
+                            type: YupVisitor.convertYupTypeToOpenApiType(yupObj.type),
+                        };
+                    }
+                default:
                     result = {
-                        type: 'object',
-                        properties: properties,
+                        type: 'string',
                     };
-                }
-                break;
-            case 'array':
-                {
-                    result = {
-                        type: 'array',
-                        elementType: YupVisitor.parseYupSchema(yupObj.innerType),
-                    };
-                }
-                break;
-            case 'string':
-            case 'number':
-            case 'boolean':
-                {
-                    result = {
-                        type: YupVisitor.convertYupTypeToOpenApiType(yupObj.type),
-                    };
-                }
-                break;
-            case 'date':
-                {
-                    result = {
-                        type: YupVisitor.convertYupTypeToOpenApiType(yupObj.type),
-                    };
-                }
-            default:
-                result = {
-                    type: 'string',
-                };
-        }
-        result.abortEarly = yupObj.spec.abortEarly;
-        result.nullable = yupObj.spec.nullable;
-        result.required = yupObj.spec.presence === 'required';
-        result.strip = yupObj.spec.strip;
-        result.strict = yupObj.spec.strict;
-        result.recursive = yupObj.spec.recursive;
-        result.matches = yupObj.tests?.find(x => x.OPTIONS.name === 'matches' || x.OPTIONS.name == 'email')?.OPTIONS;
-        result.raw = yupObj;
-        return result;
-        }catch(e){
+            }
+            result.abortEarly = yupObj.spec.abortEarly;
+            result.nullable = yupObj.spec.nullable;
+            result.required = yupObj.spec.presence === 'required';
+            result.strip = yupObj.spec.strip;
+            result.strict = yupObj.spec.strict;
+            result.recursive = yupObj.spec.recursive;
+            result.matches = yupObj.tests?.find(x => x.OPTIONS.name === 'matches' || x.OPTIONS.name == 'email')?.OPTIONS;
+            result.raw = yupObj;
+            return result;
+        } catch (e) {
             return {} as any;
         }
-
     }
 }
