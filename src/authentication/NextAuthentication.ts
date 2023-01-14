@@ -93,7 +93,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
 
                 var additionalParameters = {};
 
-                if (app.jwtController) {
+                if (app.jwtController && response.success) {
                     const jwtToken = await app.jwtController.CreateToken(ctx.req);
                     additionalParameters["accessToken"] = jwtToken;
                 }

@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.8
+- Jwt token generation bug fixed when unauthorized user signing in.
 ### v1.3.7
 - Authentication plugin verify bug fixed
 ### v1.3.6
