@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.7
+- Authentication plugin verify bug fixed
 ### v1.3.6
 - Added jwt access token generation for authentication methods
 - Bearer token & Session Id required when enabling jwt & session in same time

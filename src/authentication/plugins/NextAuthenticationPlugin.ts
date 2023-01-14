@@ -30,7 +30,7 @@ export class NextAuthenticationPlugin extends NextPlugin<any> {
             }
         }
         else {
-            if (authenticationResult && authenticationResult.user) {
+            if (authenticationResult && authenticationResult.success && (ctx.session as any).user) {
                 isGranted = true;
             }
         }

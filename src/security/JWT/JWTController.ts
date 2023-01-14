@@ -139,7 +139,6 @@ export class JWTController {
         // Register session id resolver for JWT
         this.app.express.use(async (req, res, next) => {
             try {
-                console.log("JWT session id resolver");
                 var resolvedToken = req.headers && req.headers["authorization"];
                 if (resolvedToken) {
                     if (resolvedToken.startsWith("bearer ")) {
@@ -155,11 +154,8 @@ export class JWTController {
             } catch (e) {
                 this.app.log.error(e);
             }
-            console.log("JWT session id resolver end");
             next();
         });
-
-
         this.RegisterVerify();
     }
     public async CreateToken(req: Request): Promise<string> {
