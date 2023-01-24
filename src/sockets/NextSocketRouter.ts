@@ -19,7 +19,7 @@ export class NextSocketRouter {
     }
     public async handleMessage(ctx: NextContextBase, message: NextSocketMessageBase, socket: WebSocket) {
         var route = this.routes.find(r => checkPathsByNormalization(r.path, message.path));
-        var sctx = new NextSocketContext(message, socket);
+        var sctx = new NextSocketContext(ctx.app, message, socket);
         if (route) {
             if (ctx.sessionId) {
                 (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).catch(ctx.app.log.error);

@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.9
+- Parameter assign support added to Socket Client.
 ### v1.3.8
 - Jwt token generation bug fixed when unauthorized user signing in.
 ### v1.3.7

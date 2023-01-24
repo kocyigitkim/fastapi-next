@@ -4,12 +4,13 @@ import { NextContextBase } from "../NextContext";
 import { NextSocketRouter } from "./NextSocketRouter";
 import { NextSocketOptions } from "./NextSocketOptions";
 import { NextSocketContext } from "./NextSocketContext";
+import { NextSocketClient } from "./NextSocketClient";
 
 export class NextSocket {
     public server: WebSocketServer;
     public router: NextSocketRouter;
-    private connections: WebSocket[];
-    public getConnections(){
+    private connections: NextSocketClient[];
+    public getConnections() {
         return this.connections;
     }
     constructor(public options: NextSocketOptions, public app: NextApplication) {
@@ -40,7 +41,8 @@ export class NextSocket {
                     (ctx as any)[plugin.name] = await plugin.retrieve.call(plugin, ctx);
                 }
             }
-            this.connections.push(socket);
+            let client = new NextSocketClient(socket, ctx);
+            this.connections.push(client);
             socket.on('message', (data: any) => {
                 try {
                     var message = JSON.parse(data);
@@ -53,7 +55,7 @@ export class NextSocket {
                 this.app.emit('error', err);
             });
             socket.on('close', () => {
-                this.connections = this.connections.filter(c => c !== socket);
+                this.connections = this.connections.filter(c => c !== client);
             });
         })
     }
