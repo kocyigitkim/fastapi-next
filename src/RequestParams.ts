@@ -1,26 +1,47 @@
+/**
+ * @deprecated
+ */
 export interface IdRequest {
     id: string;
 }
-export interface SetNameRequest{
+/**
+ * @deprecated
+ */
+export interface SetNameRequest {
     id: string;
     name: string;
 }
-export interface SetStatusRequest{
+/**
+ * @deprecated
+ */
+export interface SetStatusRequest {
     id: string;
     status: string;
 }
-export interface SetDescriptionRequest{
+/**
+ * @deprecated
+ */
+export interface SetDescriptionRequest {
     id: string;
     description: string;
 }
-export interface SetDateRequest{
+/**
+ * @deprecated
+ */
+export interface SetDateRequest {
     id: string;
     date: string;
 }
-export interface SetTimeRequest{
+/**
+ * @deprecated
+ */
+export interface SetTimeRequest {
     id: string;
     time: string;
 }
+/**
+ * @deprecated
+ */
 export interface SetParameterRequest {
     id: string,
     key: string;

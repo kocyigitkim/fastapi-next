@@ -1,4 +1,7 @@
 # Fast Api Release History
+### v1.3.10
+- Swagger ui support added. Currently working on response models & authentication methods.
+- Client parameters added to web sockets.
 ### v1.3.9
 - Parameter assign support added to Socket Client.
 ### v1.3.8

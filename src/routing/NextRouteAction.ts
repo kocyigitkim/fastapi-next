@@ -9,5 +9,8 @@ export interface NextRouteAction {
     default(ctx: NextContextBase): Promise<ApiResponse<any> | NextRouteResponse | any> | (ApiResponse<any> | NextRouteResponse);
     validate: ((ctx: NextContextBase) => ValidationResult) | AnyObjectSchema | BaseSchema | null;
     permission: NextPermissionDefinition | undefined;
-
+    description?: string;
+    summary?: string;
+    tags?: string[];
+    deprecated?: boolean;
 }

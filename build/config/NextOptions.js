@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextOpenApiOptions = exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
+exports.NextSwaggerOptions = exports.NextOpenApiOptions = exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
 class NextOptions {
     constructor() {
         this.debug = false;
@@ -17,6 +17,7 @@ class NextOptions {
         this.switchLoggerAsConsole = false;
         this.enableCookiesForSession = false;
         this.openApi = new NextOpenApiOptions();
+        this.swagger = new NextSwaggerOptions();
         this.enableRealtimeConfig = false;
     }
     addAuthMethod(method) {
@@ -93,3 +94,15 @@ class NextOpenApiOptions {
     }
 }
 exports.NextOpenApiOptions = NextOpenApiOptions;
+class NextSwaggerOptions {
+    constructor() {
+        this.path = "/swagger";
+        this.enabled = true;
+        this.customScript = null;
+        this.customCss = null;
+        this.customFavicon = null;
+        this.customSiteTitle = null;
+        this.customHeadContent = null;
+    }
+}
+exports.NextSwaggerOptions = NextSwaggerOptions;

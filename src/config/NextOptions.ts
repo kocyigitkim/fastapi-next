@@ -28,6 +28,7 @@ export class NextOptions {
     public switchLoggerAsConsole?: boolean = false;
     public enableCookiesForSession?: boolean = false;
     public openApi?: NextOpenApiOptions = new NextOpenApiOptions();
+    public swagger?: NextSwaggerOptions = new NextSwaggerOptions();
     public enableRealtimeConfig?: boolean = false;
     public addAuthMethod(method: NextAuthenticationMethod) {
         if (!this.authentication) this.authentication = new (require('../authentication/NextAuthentication').NextAuthentication)();
@@ -103,4 +104,13 @@ export class NextOpenApiOptions {
     public description: string = "Fast Api - OpenApi Gateway";
     public https: boolean = true;
     public http: boolean = true;
+}
+export class NextSwaggerOptions {
+    public path: string = "/swagger";
+    public enabled?: boolean = true;
+    public customScript?: string = null;
+    public customCss?: string = null;
+    public customFavicon?: string = null;
+    public customSiteTitle?: string = null;
+    public customHeadContent?: string = null;
 }

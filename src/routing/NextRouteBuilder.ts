@@ -12,7 +12,6 @@ import { YupSchemaParsed, YupVisitor } from '../reflection/YupVisitor';
 import { randomUUID } from 'crypto';
 import { ConfigurationReader } from '../config/ConfigurationReader';
 export interface NextRouteDefinition {
-    description?: string;
     path: string;
     method: string;
     action: NextRouteAction;
