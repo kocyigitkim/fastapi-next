@@ -8,6 +8,9 @@ export class NextSocketClient {
     public context: NextContextBase;
     public id: string;
     private props: any = {};
+    public getProps(){
+        return this.props;
+    }
     public get(key: string) {
         return this.props[key];
     }

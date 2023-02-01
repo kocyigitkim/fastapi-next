@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.11
+- Socket communication bugs fixed
 ### v1.3.10
 - Swagger ui support added. Currently working on response models & authentication methods.
 - Client parameters added to web sockets.

@@ -22,16 +22,22 @@ export class NextSocketRouter {
         var sctx = new NextSocketContext(ctx.app, message, socket);
         if (route) {
             if (ctx.sessionId) {
-                (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).catch(ctx.app.log.error);
+                (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).then(r => r.data).catch(ctx.app.log.error);
             }
             var response = await route.action.call(route, ctx, sctx).catch(console.error);
-            sctx.send(response);
+            if (response) {
+                sctx.send(response);
+            }
+            if (ctx.session && ctx.sessionId) {
+                await ctx.sessionManager.setSession(ctx.sessionId, ctx.session);
+            }
         }
         else {
             sctx.send({
                 type: 'error',
                 message: 'Route not found',
-                path: message.path
+                path: message.path,
+                sessionid: ctx.sessionId
             });
         }
     }

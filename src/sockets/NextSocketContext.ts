@@ -1,13 +1,16 @@
 import { randomUUID } from 'crypto';
 import WebSocket from 'ws';
 import { NextApplication } from '../NextApplication';
+import { NextSocketClient } from './NextSocketClient';
 import { NextSocketMessageBase } from "./NextSocketMessageBase";
 
 
 export class NextSocketContext {
-    public constructor(public app: NextApplication, public message: NextSocketMessageBase, public socket: WebSocket) {
+    public client: NextSocketClient;
+    public constructor(public app: NextApplication, public message: NextSocketMessageBase, private socket: WebSocket) {
         this.message = message;
         this.socket = socket;
+        this.client = app.realtime.getClient(socket);
     }
     public send(data: any) {
         this.socket.send(JSON.stringify({

@@ -5,6 +5,7 @@ import { NextSocketRouter } from "./NextSocketRouter";
 import { NextSocketOptions } from "./NextSocketOptions";
 import { NextSocketContext } from "./NextSocketContext";
 import { NextSocketClient } from "./NextSocketClient";
+import { randomUUID } from "crypto";
 
 export class NextSocket {
     public server: WebSocketServer;
@@ -36,6 +37,8 @@ export class NextSocket {
 
         this.server.on('connection', async (socket, req) => {
             var ctx = new NextContextBase(req as any, null, () => { });
+            ctx.app = this.app;
+            ctx.sessionManager = this.app.sessionManager;
             for (var plugin of this.app.registry.getPlugins()) {
                 if (plugin.showInContext) {
                     (ctx as any)[plugin.name] = await plugin.retrieve.call(plugin, ctx);
@@ -46,6 +49,8 @@ export class NextSocket {
             socket.on('message', (data: any) => {
                 try {
                     var message = JSON.parse(data);
+                    ctx.sessionId = message.sessionid;
+                    if (ctx.sessionId) delete message.sessionid;
                     this.router.handleMessage(ctx, message, socket);
                 } catch (err) {
                     this.app.emit('error', err);
@@ -60,5 +65,3 @@ export class NextSocket {
         })
     }
 }
-
-
