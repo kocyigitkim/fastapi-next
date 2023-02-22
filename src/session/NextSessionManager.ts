@@ -112,7 +112,7 @@ export class NextSessionManager implements IHealth {
             }
             result.userAgent = userAgent;
 
-            req.session = result.session || {};
+            req.session = result?.session || {};
             if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
                 req.session = {};
                 req.sessionId = uuid();
@@ -123,7 +123,7 @@ export class NextSessionManager implements IHealth {
         else {
             sessionId = uuid();
             res.setHeader("sessionid", sessionId);
-            result = await waitCallback(_self.store, _self.store.set, sessionId, {});
+            result = await waitCallback(_self.store, _self.store.set, sessionId, { session: {}, ip: !isV6 ? ip : null, ipv6: isV6 ? ip : null, userAgent: userAgent });
             req.session = {};
         }
         res.on('finish', () => {
@@ -131,7 +131,7 @@ export class NextSessionManager implements IHealth {
                 waitCallback(_self.store, _self.store.destroy, sessionId);
             }
             else {
-                waitCallback(_self.store, _self.store.set, sessionId, result);
+                waitCallback(_self.store, _self.store.set, sessionId, { ...result, session: req.session });
             }
         });
         if (isCookieEnabled && !isSessionIdExists) {

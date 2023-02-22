@@ -65,7 +65,7 @@ export class FileSystemSessionStore extends ISessionStore {
             fs.writeFile(filePath, data, resolve);
         });
         if (callback)
-            callback(null, this);
+            callback(null, value);
     }
     async destroy(id, callback) {
         var filePath = this.rootPath + "/" + id;

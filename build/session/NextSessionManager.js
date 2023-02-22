@@ -105,7 +105,7 @@ class NextSessionManager {
                 result.ip = ip;
             }
             result.userAgent = userAgent;
-            req.session = result.session || {};
+            req.session = (result === null || result === void 0 ? void 0 : result.session) || {};
             if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
                 req.session = {};
                 req.sessionId = (0, uuid_1.v4)();
@@ -116,7 +116,7 @@ class NextSessionManager {
         else {
             sessionId = (0, uuid_1.v4)();
             res.setHeader("sessionid", sessionId);
-            result = await (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, {});
+            result = await (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, { session: {}, ip: !isV6 ? ip : null, ipv6: isV6 ? ip : null, userAgent: userAgent });
             req.session = {};
         }
         res.on('finish', () => {
@@ -124,7 +124,7 @@ class NextSessionManager {
                 (0, utils_1.waitCallback)(_self.store, _self.store.destroy, sessionId);
             }
             else {
-                (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, result);
+                (0, utils_1.waitCallback)(_self.store, _self.store.set, sessionId, Object.assign(Object.assign({}, result), { session: req.session }));
             }
         });
         if (isCookieEnabled && !isSessionIdExists) {

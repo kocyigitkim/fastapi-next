@@ -68,7 +68,7 @@ class RedisSessionStore extends ISessionStore_1.ISessionStore {
             EX: this.ttl
         }).then((result) => {
             if (cb)
-                cb(null, this);
+                cb(null, sess);
             this.isAlive = true;
         }).catch((err) => {
             if (cb)

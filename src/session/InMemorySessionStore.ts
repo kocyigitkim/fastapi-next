@@ -52,7 +52,7 @@ export class InMemorySessionStore extends ISessionStore {
     }
     set(id, value, callback) {
         this.store[id] = { value: value, ttl: new Date(new Date().valueOf() + this.targetTTL + 1000) };
-        if (callback) callback(null, this);
+        if (callback) callback(null, value);
     }
     destroy(id, callback) {
         var v = this.store[id];

@@ -71,7 +71,7 @@ export class RedisSessionStore extends ISessionStore {
         this.client.set(sid, JSON.stringify(sess), {
             EX: this.ttl
         }).then((result) => {
-            if (cb) cb(null, this);
+            if (cb) cb(null, sess);
             this.isAlive = true;
         }).catch((err) => {
             if (cb) cb(err);
