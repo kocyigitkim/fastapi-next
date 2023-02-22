@@ -65,7 +65,7 @@ export class NextApplication extends EventEmitter {
                 origin: '*',
                 methods: '*',
                 allowedHeaders: '*',
-                preflightContinue: true
+                preflightContinue: false
             }));
         }
         if (options.enableCookiesForSession) {

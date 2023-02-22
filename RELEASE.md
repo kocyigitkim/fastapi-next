@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.13
+- CORS preflightContinue set as false when cors is disabled
 ### v1.3.12
 - Session bug fixed.
 ### v1.3.11

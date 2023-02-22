@@ -54,7 +54,7 @@ class NextApplication extends events_1.default {
                     origin: '*',
                     methods: '*',
                     allowedHeaders: '*',
-                    preflightContinue: true
+                    preflightContinue: false
                 }));
         }
         if (options.enableCookiesForSession) {
