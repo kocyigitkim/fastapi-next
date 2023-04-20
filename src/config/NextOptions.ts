@@ -10,7 +10,7 @@ import { NextAuthenticationMethod } from "..";
 export class NextOptions {
     public baseUrl?: string;
     public debug: boolean = false;
-    public port: number = 5000;
+    public port: number;
     public routerDirs: string[] = [];
     public cors?: CorsOptions = null;
     public disableCorsMiddleware: boolean = false;
@@ -30,6 +30,7 @@ export class NextOptions {
     public openApi?: NextOpenApiOptions = new NextOpenApiOptions();
     public swagger?: NextSwaggerOptions = new NextSwaggerOptions();
     public enableRealtimeConfig?: boolean = false;
+    public workingDataFormat?: NextWorkingDataFormat = NextWorkingDataFormat.JSON;
     public addAuthMethod(method: NextAuthenticationMethod) {
         if (!this.authentication) this.authentication = new (require('../authentication/NextAuthentication').NextAuthentication)();
         this.authentication.add(method);
@@ -113,4 +114,9 @@ export class NextSwaggerOptions {
     public customFavicon?: string = null;
     public customSiteTitle?: string = null;
     public customHeadContent?: string = null;
+}
+
+export enum NextWorkingDataFormat {
+    JSON = "json",
+    YAML = "yaml"
 }

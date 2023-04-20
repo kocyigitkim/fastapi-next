@@ -58,7 +58,7 @@ class NextProfiler {
         }
         catch (err) {
             var errorId = (0, crypto_1.randomUUID)();
-            debug.error(`${errorId} - ${err}`);
+            debug.error(`${errorId} - ${err.toString()}`);
             res.status(500);
             res.send("Internal Server Error - Error ID: " + errorId);
         }

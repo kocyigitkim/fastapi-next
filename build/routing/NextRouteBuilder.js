@@ -123,8 +123,10 @@ class NextRouteBuilder {
     }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
+            var _a, _b, _c;
             var ctx = new __1.NextContextBase(req, res, next);
             ctx.app = app;
+            const executeMiddleware = route.middlewares && ExecuteMiddleware(ctx, app);
             for (var plugin of app.registry.getPlugins()) {
                 var mwResult = await plugin.middleware.call(plugin, ctx).catch(app.log.error);
                 if (typeof mwResult === 'boolean' && !mwResult) {
@@ -145,6 +147,18 @@ class NextRouteBuilder {
                         retrieveResult = await retrieveResult.catch(app.log.error);
                     }
                     ctx[plugin.name] = retrieveResult;
+                }
+            }
+            // ? Middleware specific to route
+            if (Array.isArray((_a = route === null || route === void 0 ? void 0 : route.middlewares) === null || _a === void 0 ? void 0 : _a.beforeExecution)) {
+                var mwResult = await executeMiddleware(next, route.middlewares.beforeExecution);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag_1.NextFlag.Exit || mwResult === NextFlag_1.NextFlag.Next) {
+                        return;
+                    }
                 }
             }
             // ? Realtime Configuration
@@ -191,6 +205,18 @@ class NextRouteBuilder {
                     }
                 }
             }
+            // ? Middleware to execute after validation
+            if (Array.isArray((_b = route === null || route === void 0 ? void 0 : route.middlewares) === null || _b === void 0 ? void 0 : _b.afterValidation)) {
+                var mwResult = await executeMiddleware(next, route.middlewares.afterValidation);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag_1.NextFlag.Exit || mwResult === NextFlag_1.NextFlag.Next) {
+                        return;
+                    }
+                }
+            }
             // ? Permission
             if (app.options.authorization) {
                 if (!await app.options.authorization.check(ctx, route.permission)) {
@@ -208,6 +234,18 @@ class NextRouteBuilder {
                     app.log.error(`${errorId} - ${err}`);
                     return `Internal Server Error! Error Code: ${errorId}`;
                 });
+            }
+            // ? Middleware to execute after execution
+            if (Array.isArray((_c = route === null || route === void 0 ? void 0 : route.middlewares) === null || _c === void 0 ? void 0 : _c.afterExecution)) {
+                var mwResult = await executeMiddleware(next, route.middlewares.afterExecution);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag_1.NextFlag.Exit || mwResult === NextFlag_1.NextFlag.Next) {
+                        return;
+                    }
+                }
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
                 if (result.statusCode == NextRouteResponse_1.NextRouteResponseStatus.REDIRECT) {
@@ -284,3 +322,25 @@ class NextRouteBuilder {
     }
 }
 exports.NextRouteBuilder = NextRouteBuilder;
+function ExecuteMiddleware(ctx, app) {
+    return async (next, middlewares) => {
+        for (const middleware of middlewares) {
+            var result = middleware(ctx);
+            if (result && result instanceof Promise) {
+                result = await result.catch(app.log.error);
+            }
+            if (typeof result === 'boolean' && !result) {
+                break;
+            }
+            else if (typeof result === 'number') {
+                if (result === NextFlag_1.NextFlag.Exit) {
+                    return NextFlag_1.NextFlag.Exit;
+                }
+                else if (result === NextFlag_1.NextFlag.Next) {
+                    next();
+                    return NextFlag_1.NextFlag.Next;
+                }
+            }
+        }
+    };
+}

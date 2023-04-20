@@ -1,4 +1,7 @@
 # Fast Api Release History
+### v1.3.14
+- Depended middleware support added.
+- Added new response methods to NextRouteResponse
 ### v1.3.13
 - CORS preflightContinue set as false when cors is disabled
 ### v1.3.12

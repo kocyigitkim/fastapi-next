@@ -13,4 +13,9 @@ export interface NextRouteAction {
     summary?: string;
     tags?: string[];
     deprecated?: boolean;
+    middlewares?: {
+        beforeExecution?: Function[],
+        afterValidation?: Function[],
+        afterExecution?: Function[],
+    };
 }

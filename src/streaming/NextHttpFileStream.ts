@@ -2,16 +2,28 @@ import fs from 'fs';
 import path from 'path';
 import { NextContextBase } from '../NextContext';
 
+export interface NextHttpFileStreamOptions {
+    filePath: string,
+    contentType?: string,
+    downloadName?: string,
+    cacheControl?: string,
+    headers?: { [key: string]: string },
+    partial?: boolean,
+    maxPartialCount?: number
+}
+
+export interface NextHttpBufferStreamOptions {
+    buffer: Buffer,
+    contentType?: string,
+    downloadName?: string,
+    cacheControl?: string,
+    headers?: { [key: string]: string },
+    partial?: boolean,
+    maxPartialCount?: number
+}
+
 export class NextHttpFileStream {
-    public static async streamFile(context: NextContextBase, options: {
-        filePath: string,
-        contentType?: string,
-        downloadName?: string,
-        cacheControl?: string,
-        headers?: { [key: string]: string },
-        partial?: boolean,
-        maxPartialCount?: number
-    }) {
+    public static async streamFile(context: NextContextBase, options: NextHttpFileStreamOptions) {
         if (options.filePath) {
             if (fs.existsSync(options.filePath)) {
                 var stat = fs.statSync(options.filePath);
@@ -45,15 +57,7 @@ export class NextHttpFileStream {
         context.res.status(404);
         context.res.send("File not found");
     }
-    public static async streamBuffer(context: NextContextBase, options: {
-        buffer: Buffer,
-        contentType?: string,
-        downloadName?: string,
-        cacheControl?: string,
-        headers?: { [key: string]: string },
-        partial?: boolean,
-        maxPartialCount?: number
-    }) {
+    public static async streamBuffer(context: NextContextBase, options: NextHttpBufferStreamOptions) {
         var total = options.buffer.length;
         var range = context.req.headers.range;
         var positions = range ? range.replace(/bytes=/, "").split("-") : ["0", (total - 1).toString()];

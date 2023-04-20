@@ -131,6 +131,8 @@ export class NextRouteBuilder {
         return async (route: NextRouteAction, req: Request, res: Response, next: NextFunction) => {
             var ctx: NextContextBase = new NextContextBase(req, res, next);
             ctx.app = app;
+            const executeMiddleware = route.middlewares && ExecuteMiddleware(ctx, app);
+
             for (var plugin of app.registry.getPlugins()) {
                 var mwResult = await plugin.middleware.call(plugin, ctx).catch(app.log.error);
                 if (typeof mwResult === 'boolean' && !mwResult) {
@@ -155,8 +157,21 @@ export class NextRouteBuilder {
                 }
             }
 
+            // ? Middleware specific to route
+            if (Array.isArray(route?.middlewares?.beforeExecution)) {
+                var mwResult: any = await executeMiddleware(next, route.middlewares.beforeExecution);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag.Exit || mwResult === NextFlag.Next) {
+                        return;
+                    }
+                }
+            }
+
             // ? Realtime Configuration
-            if(app.options.enableRealtimeConfig){
+            if (app.options.enableRealtimeConfig) {
                 ctx.config = ConfigurationReader.current;
             }
 
@@ -200,6 +215,19 @@ export class NextRouteBuilder {
                 }
             }
 
+            // ? Middleware to execute after validation
+            if (Array.isArray(route?.middlewares?.afterValidation)) {
+                var mwResult: any = await executeMiddleware(next, route.middlewares.afterValidation);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag.Exit || mwResult === NextFlag.Next) {
+                        return;
+                    }
+                }
+            }
+
             // ? Permission
             if (app.options.authorization) {
                 if (!await app.options.authorization.check(ctx, route.permission)) {
@@ -219,6 +247,20 @@ export class NextRouteBuilder {
                     return `Internal Server Error! Error Code: ${errorId}`;
                 });
             }
+
+            // ? Middleware to execute after execution
+            if (Array.isArray(route?.middlewares?.afterExecution)) {
+                var mwResult: any = await executeMiddleware(next, route.middlewares.afterExecution);
+                if (typeof mwResult === 'boolean' && !mwResult) {
+                    return;
+                }
+                else if (typeof mwResult === 'number') {
+                    if (mwResult === NextFlag.Exit || mwResult === NextFlag.Next) {
+                        return;
+                    }
+                }
+            }
+
             if (result instanceof NextRouteResponse) {
                 if (result.statusCode == NextRouteResponseStatus.REDIRECT) {
                     res.redirect(result.statusCode, result.body);
@@ -291,4 +333,27 @@ export class NextRouteBuilder {
         });
         return files;
     }
+}
+
+function ExecuteMiddleware(ctx: NextContextBase, app: NextApplication) {
+    return async (next, middlewares) => {
+        for (const middleware of middlewares) {
+            var result = middleware(ctx);
+            if (result && result instanceof Promise) {
+                result = await result.catch(app.log.error);
+            }
+            if (typeof result === 'boolean' && !result) {
+                break;
+            }
+            else if (typeof result === 'number') {
+                if (result === NextFlag.Exit) {
+                    return NextFlag.Exit;
+                }
+                else if (result === NextFlag.Next) {
+                    next();
+                    return NextFlag.Next;
+                }
+            }
+        }
+    };
 }

@@ -52,7 +52,7 @@ export class NextProfiler {
             next();
         } catch (err) {
             var errorId = randomUUID();
-            debug.error(`${errorId} - ${err}` as any);
+            debug.error(`${errorId} - ${err.toString()}` as any);
             res.status(500);
             res.send("Internal Server Error - Error ID: " + errorId);
         }

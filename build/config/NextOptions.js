@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NextSwaggerOptions = exports.NextOpenApiOptions = exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
+exports.NextWorkingDataFormat = exports.NextSwaggerOptions = exports.NextOpenApiOptions = exports.NextHealthCheckStatus = exports.NextHealthCheckOptions = exports.NextBodyParserOptions = exports.NextRenderingOptions = exports.NextJwtOptions = exports.NextSecurityOptions = exports.NextOptions = void 0;
 class NextOptions {
     constructor() {
         this.debug = false;
-        this.port = 5000;
         this.routerDirs = [];
         this.cors = null;
         this.disableCorsMiddleware = false;
@@ -19,6 +18,7 @@ class NextOptions {
         this.openApi = new NextOpenApiOptions();
         this.swagger = new NextSwaggerOptions();
         this.enableRealtimeConfig = false;
+        this.workingDataFormat = NextWorkingDataFormat.JSON;
     }
     addAuthMethod(method) {
         if (!this.authentication)
@@ -106,3 +106,8 @@ class NextSwaggerOptions {
     }
 }
 exports.NextSwaggerOptions = NextSwaggerOptions;
+var NextWorkingDataFormat;
+(function (NextWorkingDataFormat) {
+    NextWorkingDataFormat["JSON"] = "json";
+    NextWorkingDataFormat["YAML"] = "yaml";
+})(NextWorkingDataFormat = exports.NextWorkingDataFormat || (exports.NextWorkingDataFormat = {}));

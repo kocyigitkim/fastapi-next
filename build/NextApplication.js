@@ -41,7 +41,9 @@ class NextApplication extends events_1.default {
         this.healthProfiler.register(name, obj);
     }
     constructor(options) {
+        var _a;
         super();
+        this.staticDirs = [];
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
         this.options = options || new NextOptions_1.NextOptions();
         this.express = (0, express_1.default)();
@@ -61,7 +63,7 @@ class NextApplication extends events_1.default {
             this.express.use((0, cookie_parser_1.default)());
         }
         if (!this.options.port)
-            this.options.port = 5000;
+            this.options.port = parseInt((_a = process.env.PORT) !== null && _a !== void 0 ? _a : "5000");
         if (process.env["NEXT_BASE_URL"]) {
             this.options.baseUrl = process.env["NEXT_BASE_URL"];
         }
@@ -128,6 +130,9 @@ class NextApplication extends events_1.default {
             this.jwtController.RegisterJWTController();
         }
     }
+    handleStaticDir(urlPath, dirPath) {
+        this.staticDirs.push({ urlPath, dirPath });
+    }
     async init() {
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
@@ -149,6 +154,10 @@ class NextApplication extends events_1.default {
         // ? Static file serving
         if (this.options.staticDir) {
             this.express.use(express_1.default.static(this.options.staticDir));
+        }
+        // ? Static file serving
+        for (var staticDir of this.staticDirs) {
+            this.express.use(staticDir.dirPath, express_1.default.static(staticDir.dirPath));
         }
         // ? Build Client Script
         new NextClientBuilder_1.NextClientBuilder(this).build();

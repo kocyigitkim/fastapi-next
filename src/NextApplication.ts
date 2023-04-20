@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import express from 'express';
+
 import { NextHealthCheckOptions, NextJwtOptions, NextOptions } from './config/NextOptions';
 import { NextInitializationHeader, NextRunning } from './NextInitializationHeader';
 import { NextConsoleLog, NextLog } from './NextLog';
@@ -26,6 +27,12 @@ import { NextUrlBuilder } from './structure/NextUrlBuilder';
 import { NextOpenApiBuilder } from './client/NextOpenApiBuilder';
 import { ConfigurationReader } from './config/ConfigurationReader';
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
+
+interface StaticDirDefinition {
+    urlPath: string;
+    dirPath: string;
+}
+
 export class NextApplication extends EventEmitter {
     public express: express.Application;
     public registry: NextRegistry;
@@ -41,7 +48,8 @@ export class NextApplication extends EventEmitter {
     public realtime?: NextRealtimeFunctions;
     public jwtController?: JWTController;
     public url: NextUrlBuilder;
-    public openapi : NextOpenApiBuilder;
+    public openapi: NextOpenApiBuilder;
+    private staticDirs: StaticDirDefinition[] = [];
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -71,8 +79,8 @@ export class NextApplication extends EventEmitter {
         if (options.enableCookiesForSession) {
             this.express.use(CookieParser());
         }
-        if(!this.options.port) this.options.port = 5000;
-        if(process.env["NEXT_BASE_URL"]){
+        if (!this.options.port) this.options.port = parseInt(process.env.PORT ?? "5000");
+        if (process.env["NEXT_BASE_URL"]) {
             this.options.baseUrl = process.env["NEXT_BASE_URL"];
         }
         this.url = new NextUrlBuilder(this);
@@ -136,6 +144,9 @@ export class NextApplication extends EventEmitter {
             (this.jwtController as any).RegisterJWTController();
         }
     }
+    public handleStaticDir(urlPath: string, dirPath: string) {
+        this.staticDirs.push({ urlPath, dirPath });
+    }
     public async init(): Promise<void> {
         NextInitializationHeader();
         this.emit('preinit', this);
@@ -164,11 +175,16 @@ export class NextApplication extends EventEmitter {
             this.express.use(express.static(this.options.staticDir));
         }
 
+        // ? Static file serving
+        for (var staticDir of this.staticDirs) {
+            this.express.use(staticDir.dirPath, express.static(staticDir.dirPath))
+        }
+
         // ? Build Client Script
         new NextClientBuilder(this).build();
 
         // ? Use OpenApi
-        if(this.options.openApi && this.options.openApi.enabled){
+        if (this.options.openApi && this.options.openApi.enabled) {
             this.openapi.use();
         }
 
