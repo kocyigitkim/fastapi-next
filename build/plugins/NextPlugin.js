@@ -17,6 +17,7 @@ class NextPlugin {
     async retrieve(next) {
         return null;
     }
+    async disposeInstance(next, instance) { }
     async healthCheck(next) {
         return NextOptions_1.NextHealthCheckStatus.Dead();
     }

@@ -1,4 +1,7 @@
 # Fast Api Release History
+### v1.3.15
+- Added disposeInstance method to NextPlugin
+- Response message changed for /health/ready function 
 ### v1.3.14
 - Depended middleware support added.
 - Added new response methods to NextRouteResponse

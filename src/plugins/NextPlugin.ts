@@ -12,10 +12,11 @@ export class NextPlugin<T> {
     }
     public async destroy(next: NextApplication) {
     }
-    public async retrieve(next: NextContextBase) : Promise<T>{
+    public async retrieve(next: NextContextBase): Promise<T> {
         return null;
     }
-    public async healthCheck(next: NextApplication) : Promise<NextHealthCheckStatus> {
+    public async disposeInstance(next: NextContextBase, instance: T): Promise<void> { }
+    public async healthCheck(next: NextApplication): Promise<NextHealthCheckStatus> {
         return NextHealthCheckStatus.Dead();
     }
 }

@@ -86,7 +86,15 @@ export class NextRouteBuilder {
                         console.log('Health Check', pluginHealths, objectHealths);
                     }
                     if (hasError) {
-                        return new NextRouteResponse(503, JSON.stringify(pluginHealths, null, 2), true);
+                        return new NextRouteResponse(503, JSON.stringify({
+                            plugins: pluginHealths.map((h, i) => {
+                                return {
+                                    plugin: plugins[i].name,
+                                    success: h.success,
+                                    message: h.message
+                                }
+                            })
+                        }, null, 2), true);
                     }
                     else {
                         return new NextRouteResponse(200, "OK", true);
@@ -225,6 +233,18 @@ export class NextRouteBuilder {
                     if (mwResult === NextFlag.Exit || mwResult === NextFlag.Next) {
                         return;
                     }
+                }
+            }
+
+            // ? Run disposeInstance for all registered plugins
+            for (var plugin of app.registry.getPlugins()) {
+                try {
+                    var disposeResult = plugin.disposeInstance.call(plugin, ctx);
+                    if (disposeResult instanceof Promise) {
+                        disposeResult = await disposeResult.catch(app.log.error);
+                    }
+                } catch (ex) {
+                    app.log.error(ex);
                 }
             }
 
