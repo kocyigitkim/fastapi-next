@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.17
+- added socket message parameter to sessionIdResolved
 ### v1.3.16
 - Added sessionIdResolver to Socket programming
 ### v1.3.15

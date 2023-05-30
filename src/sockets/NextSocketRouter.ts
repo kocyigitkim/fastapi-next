@@ -24,7 +24,7 @@ export class NextSocketRouter {
         if (route) {
             const sockets = ctx?.app?.options?.sockets;
             if (sockets.sessionResolver) {
-                ctx.sessionId = await sockets.sessionResolver(ctx.req, ctx.app).catch(ctx.app.log.error);
+                ctx.sessionId = await sockets.sessionResolver(message, ctx.req, ctx.app).catch(ctx.app.log.error);
             }
             if (ctx.sessionId) {
                 (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).then(r => r.data).catch(ctx.app.log.error);
