@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.16
+- Added sessionIdResolver to Socket programming
 ### v1.3.15
 - Added disposeInstance method to NextPlugin
 - Response message changed for /health/ready function 

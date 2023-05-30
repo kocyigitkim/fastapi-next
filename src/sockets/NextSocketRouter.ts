@@ -17,10 +17,15 @@ export class NextSocketRouter {
             path: path
         });
     }
+
     public async handleMessage(ctx: NextContextBase, message: NextSocketMessageBase, socket: WebSocket) {
         var route = this.routes.find(r => checkPathsByNormalization(r.path, message.path));
         var sctx = new NextSocketContext(ctx.app, message, socket);
         if (route) {
+            const sockets = ctx?.app?.options?.sockets;
+            if (sockets.sessionResolver) {
+                ctx.sessionId = await sockets.sessionResolver(ctx.req, ctx.app).catch(ctx.app.log.error);
+            }
             if (ctx.sessionId) {
                 (ctx as any).session = await ctx.sessionManager.retrieveSession(ctx.sessionId).then(r => r.data).catch(ctx.app.log.error);
             }

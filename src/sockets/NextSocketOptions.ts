@@ -1,5 +1,7 @@
 import { PerMessageDeflateOptions, ServerOptions, VerifyClientCallbackAsync, VerifyClientCallbackSync } from 'ws';
 import { IncomingMessage } from "http";
+import { Request } from 'express';
+import { NextApplication } from '..';
 
 export class NextSocketOptions implements ServerOptions {
     public debug: boolean = false;
@@ -15,4 +17,5 @@ export class NextSocketOptions implements ServerOptions {
     public perMessageDeflate?: boolean | PerMessageDeflateOptions | undefined;
     public maxPayload?: number | undefined;
     public skipUTF8Validation?: boolean | undefined;
+    public sessionResolver?: (req: Request, app: NextApplication) => Promise<any>;
 }
