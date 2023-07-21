@@ -79,12 +79,16 @@ function EncodePassword(password: string, options: EncodePasswordOptions, iterat
     switch (options.algorithm) {
         case "sha256":
             result = crypto.createHash("sha256").update(password).digest("hex");
+            break;
         case "sha512":
             result = crypto.createHash("sha512").update(password).digest("hex");
+            break;
         case "md5":
             result = crypto.createHash("md5").update(password).digest("hex");
+            break;
         default:
             result = password;
+            break;
     }
     if (options.iterations && options.iterations > iterations) {
         result = EncodePassword(result, options, iterations + 1);
@@ -152,11 +156,11 @@ export class RetrieveUserBuilder {
                                 return r;
                             });
                         }
-                        else{
+                        else {
                             user.roles = [];
                         }
                     }
-                    else if (options.role.strategy == UserRoleStrategy.RoleJoin){
+                    else if (options.role.strategy == UserRoleStrategy.RoleJoin) {
                         var roles = await db(options.role.roleJoin.joinTable).select("*").where(options.role.roleJoin.joinUserIdField, result[options.idField]).select().catch(console.error);
                         if (Array.isArray(roles)) {
                             var roleIds = roles.map(role => role[options.role.roleJoin.joinRoleIdField]);
@@ -182,14 +186,14 @@ export class RetrieveUserBuilder {
                                 return r;
                             });
                         }
-                        else{
+                        else {
                             user.roles = [];
                         }
                     }
-                    else if (options.role.strategy == UserRoleStrategy.Custom){
+                    else if (options.role.strategy == UserRoleStrategy.Custom) {
                         user.roles = await options.role.custom(ctx, result);
                     }
-                    else{
+                    else {
                         user.roles = [];
                     }
                     return user;
