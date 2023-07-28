@@ -135,6 +135,13 @@ export class NextRouteBuilder {
         return res;
     }
 
+    public registerAction(subPath: string, method: string, action: NextRouteAction) {
+        method = (method || "get").toLowerCase();
+        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, action));
+        this.registeredRoutes.push({ path: subPath, action: action, method: method });
+        return res;
+    }
+
     private routeMiddleware(app: NextApplication) {
         return async (route: NextRouteAction, req: Request, res: Response, next: NextFunction) => {
             var ctx: NextContextBase = new NextContextBase(req, res, next);

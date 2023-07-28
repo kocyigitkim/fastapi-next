@@ -129,6 +129,12 @@ class NextRouteBuilder {
         this.registeredRoutes.push({ path: subPath, action: { default: definition }, method: method });
         return res;
     }
+    registerAction(subPath, method, action) {
+        method = (method || "get").toLowerCase();
+        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, action));
+        this.registeredRoutes.push({ path: subPath, action: action, method: method });
+        return res;
+    }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
             var _a, _b, _c;

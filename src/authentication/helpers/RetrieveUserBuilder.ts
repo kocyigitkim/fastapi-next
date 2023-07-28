@@ -5,7 +5,7 @@ import { RetrieveUserDelegate } from "../RetrieveUserDelegate"
 import crypto from 'crypto'
 
 type EncodePasswordOptions = {
-    algorithm: string
+    algorithm: 'sha256' | 'sha512' | 'md5'
     iterations?: number
 }
 
@@ -74,7 +74,7 @@ interface RetrieveUserOptions {
     }
 }
 
-function EncodePassword(password: string, options: EncodePasswordOptions, iterations?: number) {
+export function EncodePassword(password: string, options: EncodePasswordOptions, iterations?: number) {
     var result = password;
     switch (options.algorithm) {
         case "sha256":

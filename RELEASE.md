@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.3.20
+- "registerAction" added to Route Manager
 ### v1.3.17
 - added socket message parameter to sessionIdResolved
 ### v1.3.16
