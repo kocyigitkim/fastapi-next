@@ -40,10 +40,14 @@ class NextApplication extends events_1.default {
     registerHealthCheck(name, obj) {
         this.healthProfiler.register(name, obj);
     }
+    registerObjectRouter(router) {
+        this.objectRouters.push(router);
+    }
     constructor(options) {
         var _a;
         super();
         this.staticDirs = [];
+        this.objectRouters = [];
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
         this.options = options || new NextOptions_1.NextOptions();
         this.express = (0, express_1.default)();
@@ -138,6 +142,11 @@ class NextApplication extends events_1.default {
         this.emit('preinit', this);
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
+        }
+        if (Array.isArray(this.objectRouters)) {
+            for (let router of this.objectRouters) {
+                router.mount(this);
+            }
         }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
         if (this.options.authentication) {

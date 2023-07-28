@@ -8,6 +8,7 @@ export { ApiResponse } from './ApiResponse';
 export { NextRouteResponse, NextRouteResponseStatus } from './routing/NextRouteResponse';
 export { ValidationResult, ValidationError } from './validation/ValidationResult';
 export { NextClientBuilder } from './client/NextClientBuilder'
+export { ObjectRouter } from './routing/ObjectRouter'
 
 /*
 STRUCTURES

@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.4.0
+- Object Router added
 ### v1.3.20
 - "registerAction" added to Route Manager
 ### v1.3.17

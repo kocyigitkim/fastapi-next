@@ -23,8 +23,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotificationServices = exports.NotificationService = exports.NotificationResponse = exports.NotificationPayLoad = exports.NotificationContact = exports.MailNotificationService = exports.ContactType = exports.NextHttpFileStream = exports.NextSocketOptions = exports.ParallelJobState = exports.ParallelJob = exports.NextFSLocalManager = exports.NextFSLocalDirectory = exports.NextFSLocalFile = exports.NextFSType = exports.NextFSObject = exports.NextFSManager = exports.NextFSFile = exports.NextFSDirectory = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.NextAuthorizationBase = exports.NextAuthorization = exports.RetrieveUserBuilder = exports.NextPassportAuthenticationMethod = exports.NextTwoFactorAuthenticationMethod = exports.NextBasicAuthenticationMethod = exports.NextAuthenticationMethod = exports.NextAuthentication = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.NextObjectPlugin = exports.NextFileResolverPlugin = exports.NextKnexPlugin = exports.NextPlugin = exports.NextRegistry = exports.RequestParams = exports.NextFlag = exports.NextClientBuilder = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.ApiResponse = exports.NextContextBase = exports.NextOptions = exports.NextApplication = void 0;
-exports.WebNotificationService = exports.SMSNotificationService = exports.PushNotificationService = exports.NotificationTypes = void 0;
+exports.NotificationService = exports.NotificationResponse = exports.NotificationPayLoad = exports.NotificationContact = exports.MailNotificationService = exports.ContactType = exports.NextHttpFileStream = exports.NextSocketOptions = exports.ParallelJobState = exports.ParallelJob = exports.NextFSLocalManager = exports.NextFSLocalDirectory = exports.NextFSLocalFile = exports.NextFSType = exports.NextFSObject = exports.NextFSManager = exports.NextFSFile = exports.NextFSDirectory = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.NextAuthorizationBase = exports.NextAuthorization = exports.RetrieveUserBuilder = exports.NextPassportAuthenticationMethod = exports.NextTwoFactorAuthenticationMethod = exports.NextBasicAuthenticationMethod = exports.NextAuthenticationMethod = exports.NextAuthentication = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.NextObjectPlugin = exports.NextFileResolverPlugin = exports.NextKnexPlugin = exports.NextPlugin = exports.NextRegistry = exports.RequestParams = exports.NextFlag = exports.ObjectRouter = exports.NextClientBuilder = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.ApiResponse = exports.NextContextBase = exports.NextOptions = exports.NextApplication = void 0;
+exports.WebNotificationService = exports.SMSNotificationService = exports.PushNotificationService = exports.NotificationTypes = exports.NotificationServices = void 0;
 /*
 BASE COMPONENTS
 */
@@ -44,6 +44,8 @@ Object.defineProperty(exports, "ValidationResult", { enumerable: true, get: func
 Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return ValidationResult_1.ValidationError; } });
 var NextClientBuilder_1 = require("./client/NextClientBuilder");
 Object.defineProperty(exports, "NextClientBuilder", { enumerable: true, get: function () { return NextClientBuilder_1.NextClientBuilder; } });
+var ObjectRouter_1 = require("./routing/ObjectRouter");
+Object.defineProperty(exports, "ObjectRouter", { enumerable: true, get: function () { return ObjectRouter_1.ObjectRouter; } });
 /*
 STRUCTURES
 */

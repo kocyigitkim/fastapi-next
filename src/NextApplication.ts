@@ -26,6 +26,7 @@ import CookieParser from 'cookie-parser';
 import { NextUrlBuilder } from './structure/NextUrlBuilder';
 import { NextOpenApiBuilder } from './client/NextOpenApiBuilder';
 import { ConfigurationReader } from './config/ConfigurationReader';
+import { ObjectRouter } from './routing/ObjectRouter';
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
 
 interface StaticDirDefinition {
@@ -50,6 +51,7 @@ export class NextApplication extends EventEmitter {
     public url: NextUrlBuilder;
     public openapi: NextOpenApiBuilder;
     private staticDirs: StaticDirDefinition[] = [];
+    private objectRouters: ObjectRouter[] = [];
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -60,6 +62,9 @@ export class NextApplication extends EventEmitter {
     }
     public registerHealthCheck(name: string, obj: IHealth) {
         this.healthProfiler.register(name, obj);
+    }
+    public registerObjectRouter(router: ObjectRouter) {
+        this.objectRouters.push(router);
     }
     public constructor(options?: NextOptions) {
         super();
@@ -153,6 +158,12 @@ export class NextApplication extends EventEmitter {
 
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
+        }
+
+        if(Array.isArray(this.objectRouters)){
+            for(let router of this.objectRouters){
+                router.mount(this);
+            }
         }
 
         this.routeBuilder = new NextRouteBuilder(this);
