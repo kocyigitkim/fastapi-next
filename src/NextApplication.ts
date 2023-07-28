@@ -66,6 +66,9 @@ export class NextApplication extends EventEmitter {
     public registerObjectRouter(router: ObjectRouter) {
         this.objectRouters.push(router);
     }
+    public registerObjectRouters(router: ObjectRouter[]){
+        this.objectRouters.push(...router);
+    }
     public constructor(options?: NextOptions) {
         super();
         this.realtime = new NextRealtimeFunctions(this);

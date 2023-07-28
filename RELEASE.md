@@ -1,4 +1,6 @@
 # Fast Api Release History
+### v1.4.1
+- Added multiple object router support
 ### v1.4.0
 - Object Router added
 ### v1.3.20

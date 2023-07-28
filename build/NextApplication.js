@@ -43,6 +43,9 @@ class NextApplication extends events_1.default {
     registerObjectRouter(router) {
         this.objectRouters.push(router);
     }
+    registerObjectRouters(router) {
+        this.objectRouters.push(...router);
+    }
     constructor(options) {
         var _a;
         super();
