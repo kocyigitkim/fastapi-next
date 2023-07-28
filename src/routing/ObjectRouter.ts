@@ -506,6 +506,7 @@ export class ObjectRouter {
                 }
             }
         }
+        return this;
     }
     public mount(app: NextApplication) {
         this.functions.forEach((f) => {
