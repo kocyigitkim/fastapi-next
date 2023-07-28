@@ -66,7 +66,7 @@ export class NextApplication extends EventEmitter {
     public registerObjectRouter(router: ObjectRouter) {
         this.objectRouters.push(router);
     }
-    public registerObjectRouters(router: ObjectRouter[]){
+    public registerObjectRouters(router: ObjectRouter[]) {
         this.objectRouters.push(...router);
     }
     public constructor(options?: NextOptions) {
@@ -163,13 +163,13 @@ export class NextApplication extends EventEmitter {
             await plugin.init(this);
         }
 
-        if(Array.isArray(this.objectRouters)){
-            for(let router of this.objectRouters){
+        this.routeBuilder = new NextRouteBuilder(this);
+
+        if (Array.isArray(this.objectRouters)) {
+            for (let router of this.objectRouters) {
                 router.mount(this);
             }
         }
-
-        this.routeBuilder = new NextRouteBuilder(this);
 
         if (this.options.authentication) {
             console.log("Registering Authentication");

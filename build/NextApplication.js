@@ -146,12 +146,12 @@ class NextApplication extends events_1.default {
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
         }
+        this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
         if (Array.isArray(this.objectRouters)) {
             for (let router of this.objectRouters) {
                 router.mount(this);
             }
         }
-        this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
         if (this.options.authentication) {
             console.log("Registering Authentication");
             this.options.authentication.register(this);
