@@ -80,7 +80,15 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         },
         "components": {
             "schemas": {},
-            "securitySchemes": {},
+            "securitySchemes": {
+                ...(app.jwtController && {
+                    "bearerAuth": {
+                        "type": "http",
+                        "scheme": "bearer",
+                        "bearerFormat": "JWT"
+                    }
+                })
+            },
             "responses": {},
             "parameters": {},
             "requestBodies": {},
@@ -88,13 +96,13 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         },
         "security": [
             {
-                "bearerAuth": [
-                    {
+                ...(app.jwtController && {
+                    "bearerAuth": [{
                         "type": "http",
                         "scheme": "bearer",
                         "bearerFormat": "JWT"
-                    }
-                ]
+                    }]
+                })
             }
         ],
 

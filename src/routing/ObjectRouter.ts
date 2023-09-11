@@ -258,7 +258,7 @@ export class ObjectRouter {
                 this.functions.push({
                     path: options.path + "/update",
                     method: options.pipeline.update.method || "post",
-                    validation: options.pipeline.create.validation,
+                    validation: options.pipeline.update.validation,
                     fun: async function (ctx: NextContext<any>) {
                         let rawQuery = (ctx as any)[options.db || 'db'](options.pipeline.update.collection || options.collection);
 
