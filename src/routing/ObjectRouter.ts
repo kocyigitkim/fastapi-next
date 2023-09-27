@@ -42,12 +42,13 @@ export type ObjectRouterCreatePipeline = {
     custom?: Function,
     enabled?: boolean,
     collection?: string,
+    returningFields?: string[],
     fields?: ({
         name: string,
         default?: any,
         value?: Function,
     } | string)[],
-    validation?: yup.AnySchema
+    validation?: any
 }
 
 export type ObjectRouterUpdatePipeline = {
@@ -91,9 +92,12 @@ export type ObjectRouterCustomPipeline = {
     method?: string,
     action?: Function,
     validation?: yup.AnySchema,
-    mode?: 'list' | 'detail' | 'default',
+    mode?: 'list' | 'detail' | 'delete' | 'update' | 'create' | 'default',
     list?: ObjectRouterListPipeline,
-    detail?: ObjectRouterDetailPipeline
+    detail?: ObjectRouterDetailPipeline,
+    create?: ObjectRouterCreatePipeline,
+    update?: ObjectRouterUpdatePipeline,
+    delete?: ObjectRouterDeletePipeline
 }
 
 export class ObjectRouter {
@@ -238,7 +242,11 @@ export class ObjectRouter {
                                 }
                             }
                         }
-                        let results = await (ctx as any)[options.db || 'db'](options.pipeline.create.collection || options.collection).insert(record).returning("Id").catch(console.error);
+                        let q = (ctx as any)[options.db || 'db'](options.pipeline.create.collection || options.collection).insert(record);
+                        if (options.pipeline.create.returningFields) {
+                            q = q.returning(...options.pipeline.create.returningFields);
+                        }
+                        let results = await q.catch(console.error);
                         let result = 0;
                         if (results && Array.isArray(results)) {
                             result = results[0];
@@ -304,16 +312,16 @@ export class ObjectRouter {
                         }
 
                         let results = await rawQuery.update(record).catch(console.error);
-                        let result = 0;
-                        if (results && Array.isArray(results)) {
-                            result = results[0];
+                        let result = false;
+                        if (results > 0) {
+                            result = true;
                         }
                         if (options.pipeline.update.after) {
                             rawQuery = await options.pipeline.update.after(ctx, result);
                         }
                         let response = new ApiResponse().setError("RECORD_NOT_UPDATED");
                         if (result) {
-                            response = new ApiResponse().setSuccess(result);
+                            response = new ApiResponse().setSuccess();
                         }
                         return response;
                     }
@@ -480,6 +488,183 @@ export class ObjectRouter {
                                     rawQuery = await detail.after(ctx, query, results);
                                 }
                                 return results;
+                            }
+                        });
+                    }
+                    else if (custom.mode == 'create') {
+                        this.functions.push({
+                            path: options.path + "/" + custom.name,
+                            method: custom.method || "post",
+                            validation: custom.validation,
+                            fun: async function (ctx: NextContext<any>) {
+                                let record = {};
+                                if (custom.create.before) {
+                                    await custom.create.before(ctx, record);
+                                }
+                                if (custom.create.fields) {
+                                    for (let field of custom.create.fields) {
+                                        if (typeof field === 'string') {
+                                            record[field] = ctx.all[field];
+                                        }
+                                        else {
+                                            if (field.default) {
+                                                record[field.name] = field.default;
+                                            }
+                                            if (field.value) {
+                                                let v = field.value(ctx);
+                                                if (v instanceof Promise) {
+                                                    v = await v.catch(console.error);
+                                                }
+                                                record[field.name] = v;
+                                            }
+                                        }
+                                    }
+                                }
+                                let q = (ctx as any)[options.db || 'db'](custom.create.collection || options.collection).insert(record);
+                                if (custom.create.returningFields) {
+                                    q = q.returning(...custom.create.returningFields);
+                                }
+                                let results = await q.catch(console.error);
+                                let result = 0;
+                                if (results && Array.isArray(results)) {
+                                    result = results[0];
+                                }
+                                if (custom.create.after) {
+                                    await custom.create.after(ctx, result);
+                                }
+                                let response = new ApiResponse().setError("RECORD_NOT_CREATED");
+                                if (result) {
+                                    response = new ApiResponse().setSuccess(result);
+                                }
+                                return response;
+                            }
+                        });
+                    }
+                    else if (custom.mode == 'update') {
+                        this.functions.push({
+                            path: options.path + "/" + custom.name,
+                            method: custom.method || "post",
+                            validation: custom.validation,
+                            fun: async function (ctx: NextContext<any>) {
+                                let rawQuery = (ctx as any)[options.db || 'db'](custom.update.collection || options.collection);
+
+                                if (custom.update.customWhere) {
+                                    rawQuery = custom.update.customWhere(ctx, rawQuery);
+                                }
+                                else {
+                                    if (custom.update.whereFields) {
+                                        if (typeof custom.update.whereFields === 'object') {
+                                            for (let key in custom.update.whereFields) {
+                                                rawQuery = rawQuery.where(key, ctx.all[custom.update.whereFields[key]]);
+                                            }
+                                        }
+                                        else {
+                                            rawQuery = rawQuery.where(custom.update.whereFields, ctx.body.id);
+                                        }
+                                    }
+                                }
+
+                                if (custom.update.before) {
+                                    rawQuery = custom.update.before(ctx, rawQuery);
+                                }
+
+                                let record = {};
+                                if (custom.update.fields) {
+                                    for (let field of custom.update.fields) {
+                                        if (typeof field === 'string') {
+                                            record[field] = ctx.all[field];
+                                        }
+                                        else {
+                                            if (field.default) {
+                                                record[field.name] = field.default;
+                                            }
+                                            if (field.value) {
+                                                let v = field.value(ctx);
+                                                if (v instanceof Promise) {
+                                                    v = await v.catch(console.error);
+                                                }
+                                                record[field.name] = v;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                let results = await rawQuery.update(record).catch(console.error);
+                                let result = false;
+                                if (results > 0) {
+                                    result = true;
+                                }
+                                if (custom.update.after) {
+                                    rawQuery = await custom.update.after(ctx, result);
+                                }
+                                let response = new ApiResponse().setError("RECORD_NOT_UPDATED");
+                                if (result) {
+                                    response = new ApiResponse().setSuccess();
+                                }
+                                return response;
+                            }
+                        });
+                    }
+                    else if (custom.mode == 'delete') {
+                        this.functions.push({
+                            path: options.path + "/" + custom.name,
+                            method: custom.method || "post",
+                            fun: async function (ctx: NextContext<any>) {
+                                let rawQuery = (ctx as any)[options.db || 'db'](custom.delete.collection || options.collection);
+
+                                if (custom.delete.customWhere) {
+                                    rawQuery = custom.delete.customWhere(ctx, rawQuery);
+                                }
+                                else {
+                                    if (custom.delete.whereFields) {
+                                        if (typeof custom.delete.whereFields === 'object') {
+                                            for (let key in custom.delete.whereFields) {
+                                                rawQuery = rawQuery.where(key, ctx.all[custom.delete.whereFields[key]]);
+                                            }
+                                        }
+                                        else {
+                                            rawQuery = rawQuery.where(custom.delete.whereFields, ctx.body.id);
+                                        }
+                                    }
+                                }
+
+                                if (custom.delete.before) {
+                                    rawQuery = custom.delete.before(ctx, rawQuery);
+                                }
+
+                                let record = {};
+                                let isDeletePermanent = false;
+                                if (custom.delete.deletedField) {
+                                    record[custom.delete.deletedField] = custom.delete.deletedValue;
+                                }
+                                else {
+                                    isDeletePermanent = true;
+                                }
+
+                                let results = null;
+                                let result = 0;
+                                if (isDeletePermanent) {
+                                    results = await rawQuery.delete().catch(console.error);
+                                    result = 0;
+                                    if (results && Array.isArray(results)) {
+                                        result = results[0];
+                                    }
+                                }
+                                else {
+                                    results = await rawQuery.update(record).catch(console.error);
+                                    result = 0;
+                                    if (results && Array.isArray(results)) {
+                                        result = results[0];
+                                    }
+                                }
+                                if (custom.delete.after) {
+                                    rawQuery = await custom.delete.after(ctx, result);
+                                }
+                                let response = new ApiResponse().setError("RECORD_NOT_DELETED");
+                                if (result) {
+                                    response = new ApiResponse().setSuccess(result);
+                                }
+                                return response;
                             }
                         });
                     }
