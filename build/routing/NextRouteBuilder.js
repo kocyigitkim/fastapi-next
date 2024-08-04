@@ -47,7 +47,7 @@ class NextRouteBuilder {
         if (this.app.options.healthCheck) {
             // Liveness check
             var isFirstInit = false;
-            this.register(this.app.options.healthCheck.livenessPath, "get", async (ctx) => {
+            this.registerAnonymous(this.app.options.healthCheck.livenessPath, "get", async (ctx) => {
                 try {
                     if (isFirstInit)
                         return new NextRouteResponse_1.NextRouteResponse(200, "OK", true);
@@ -71,7 +71,7 @@ class NextRouteBuilder {
                 }
             });
             // Readiness check
-            this.register(this.app.options.healthCheck.readinessPath, "get", async (ctx) => {
+            this.registerAnonymous(this.app.options.healthCheck.readinessPath, "get", async (ctx) => {
                 try {
                     const plugins = this.app.registry.getPlugins();
                     const pluginHealths = await Promise.all(plugins.map(p => p.healthCheck(this.app)));
@@ -120,26 +120,57 @@ class NextRouteBuilder {
         if (parts.length > 1 && parts[parts.length - 1] === "index" || parts[0] === "index") {
             const modifiedPath = expressRoutePath.substring(0, expressRoutePath.length - "index".length);
             app.express[httpMethod](modifiedPath, (this.routeMiddleware(app)).bind(null, route));
-            this.registeredRoutes.push({ path: modifiedPath, action: route, method: httpMethod, requestSchema: YupVisitor_1.YupVisitor.parseYupSchema(route.validate) });
+            this.registeredRoutes.push({
+                path: modifiedPath,
+                action: route,
+                method: httpMethod,
+                requestSchema: YupVisitor_1.YupVisitor.parseYupSchema(route.validate)
+            });
         }
     }
     register(subPath, method, definition) {
         method = (method || "get").toLowerCase();
-        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, { default: definition }));
-        this.registeredRoutes.push({ path: subPath, action: { default: definition }, method: method });
+        let action = {
+            default: definition,
+            description: definition.description,
+            summary: definition.summary,
+            tags: definition.tags,
+            deprecated: definition.deprecated,
+            middlewares: definition.middlewares,
+            permission: definition.permission
+        };
+        var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, action));
+        this.registeredRoutes.push({
+            path: subPath,
+            action: action,
+            method: method,
+            requestSchema: YupVisitor_1.YupVisitor.parseYupSchema(definition.validate),
+        });
         return res;
     }
     registerAction(subPath, method, action) {
         method = (method || "get").toLowerCase();
         var res = this.app.express[method](subPath, (this.routeMiddleware(this.app)).bind(null, action));
-        this.registeredRoutes.push({ path: subPath, action: action, method: method });
+        this.registeredRoutes.push({
+            path: subPath,
+            action: action,
+            method: method
+        });
         return res;
+    }
+    registerAnonymous(subPath, method, definition) {
+        let def = definition;
+        def.permission = {
+            anonymous: true
+        };
+        return this.register(subPath, method, def);
     }
     routeMiddleware(app) {
         return async (route, req, res, next) => {
             var _a, _b, _c;
             var ctx = new __1.NextContextBase(req, res, next);
             ctx.app = app;
+            ctx.route = route;
             const executeMiddleware = route.middlewares && ExecuteMiddleware(ctx, app);
             for (var plugin of app.registry.getPlugins()) {
                 var mwResult = await plugin.middleware.call(plugin, ctx).catch(app.log.error);

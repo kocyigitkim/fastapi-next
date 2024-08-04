@@ -1,6 +1,7 @@
 import { NextApplication } from "../NextApplication";
 import swaggerUI from 'swagger-ui-express'
 import { GenerateOpenApiDocument } from "./openapi/GenerateOpenApiDocument";
+import { SwaggerOneDarkTheme } from "./swagger/OneDarkTheme";
 export class NextOpenApiBuilder {
     constructor(public app: NextApplication) { }
     public use() {
@@ -19,7 +20,6 @@ export class NextOpenApiBuilder {
 
         var openApiDocument = GenerateOpenApiDocument(this.app, options, httpUrl, httpsUrl)
 
-
         var openApi = this.app.options.openApi;
         if (openApi) {
             this.app.express.get(openApi.path, (req, res) => {
@@ -31,7 +31,8 @@ export class NextOpenApiBuilder {
         if (swagger?.enabled) {
             this.app.express.use(swagger.path, swaggerUI.serve, swaggerUI.setup(null, {
                 explorer: true,
-                customCss: swagger.customCss,
+                isExplorer: true,
+                customCss: (swagger.customCss|| "") + SwaggerOneDarkTheme,
                 customSiteTitle: swagger.customSiteTitle || openApi.title,
                 customfavIcon: swagger.customFavicon,
                 customJs: swagger.customScript,

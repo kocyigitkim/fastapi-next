@@ -1,4 +1,9 @@
 # Fast Api Release History
+### v1.5.0
+- Workflow router added
+- Swagger UI bugs fixed
+- OpenApi document generation problems solved and security protocols added
+- Realtime config support integrated
 ### v1.4.5
 - Object router update method bug fixed
 ### v1.4.3

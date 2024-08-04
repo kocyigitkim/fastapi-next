@@ -46,11 +46,22 @@ class NextApplication extends events_1.default {
     registerObjectRouters(router) {
         this.objectRouters.push(...router);
     }
+    workflow(router) {
+        if (Array.isArray(router)) {
+            for (let r of router) {
+                this.workflow(r);
+            }
+        }
+        else {
+            this.workflowRouters.push(router);
+        }
+    }
     constructor(options) {
         var _a;
         super();
         this.staticDirs = [];
         this.objectRouters = [];
+        this.workflowRouters = [];
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
         this.options = options || new NextOptions_1.NextOptions();
         this.express = (0, express_1.default)();
@@ -152,6 +163,11 @@ class NextApplication extends events_1.default {
                 router.mount(this);
             }
         }
+        if (Array.isArray(this.workflowRouters)) {
+            for (let router of this.workflowRouters) {
+                router.mount(this);
+            }
+        }
         if (this.options.authentication) {
             console.log("Registering Authentication");
             this.options.authentication.register(this);
@@ -193,6 +209,7 @@ class NextApplication extends events_1.default {
         // ? Realtime Configuration
         if (this.options.enableRealtimeConfig) {
             await ConfigurationReader_1.ConfigurationReader.init();
+            this.emit('config', this, ConfigurationReader_1.ConfigurationReader.current);
         }
     }
     async start() {

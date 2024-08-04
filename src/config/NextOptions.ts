@@ -50,7 +50,7 @@ export class NextJwtOptions {
     public signOptions?: JWTSignOptions = null;
     public createPayload?: (req: Request, app: NextApplication, additional: any) => Promise<any> = (req, app) => new Promise(resolve => resolve({}));
 
-    public messages?= {
+    public messages? = {
         unauthorized: "Unauthorized",
         invalidToken: "Invalid token"
     }
@@ -103,8 +103,14 @@ export class NextOpenApiOptions {
     public title: string = "Fast Api";
     public version: string = "1.0.0";
     public description: string = "Fast Api - OpenApi Gateway";
-    public https: boolean = true;
+    public https: boolean = false;
     public http: boolean = true;
+    public termsOfService?: string;
+    public contactName?: string;
+    public contactUrl?: string;
+    public contactEmail?: string;
+    public licenseName?: string;
+    public licenseUrl?: string;
 }
 export class NextSwaggerOptions {
     public path: string = "/swagger";

@@ -1,6 +1,7 @@
 import EventEmitter from "events";
 import { NextContextBase } from "../NextContext";
 import { NextAuthenticationResult } from "./NextAuthenticationResult";
+import { ObjectSchema } from "yup";
 
 export class NextAuthenticationMethod {
     public static methodName?: string = "NextAuthenticationMethod";
@@ -15,7 +16,12 @@ export class NextAuthenticationMethod {
     public infoMethod: string = "POST";
     public validateMethod: string = "POST";
     public refreshMethod: string = "POST";
-    
+    public loginSchema?: ObjectSchema<any>;
+    public logoutSchema?: ObjectSchema<any>;
+    public infoSchema?: ObjectSchema<any>;
+    public validateSchema?: ObjectSchema<any>;
+    public refreshSchema?: ObjectSchema<any>;
+
     public async refresh(context: NextContextBase) {
         var r = new NextAuthenticationResult();
         r.success = false;

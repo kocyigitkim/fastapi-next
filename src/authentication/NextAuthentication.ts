@@ -71,7 +71,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         return result;
     }
     if (method.loginPath) {
-        app.routeBuilder.register(method.basePath + method.loginPath, method.loginMethod?.toLowerCase(), async (ctx) => {
+        let loginDef: any = async (ctx) => {
             var result = await method.login(ctx).catch(console.error);
             var response = new ApiResponse();
 
@@ -106,10 +106,12 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 response.setError("authentication failed. may be the method is not implemented");
             }
             return response;
-        });
+        };
+        loginDef.validate = method.loginSchema;
+        app.routeBuilder.register(method.basePath + method.loginPath, method.loginMethod?.toLowerCase(), loginDef);
     }
     if (method.logoutPath) {
-        app.routeBuilder.register(method.basePath + method.logoutPath, method.logoutMethod?.toLowerCase(), async (ctx) => {
+        let logoutDef: any = async (ctx) => {
             var result = await method.logout(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -131,10 +133,12 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 response.setError("logout failed. may be the method is not implemented");
             }
             return response;
-        });
+        };
+        logoutDef.validate = method.logoutSchema;
+        app.routeBuilder.register(method.basePath + method.logoutPath, method.logoutMethod?.toLowerCase(), logoutDef);
     }
     if (method.infoPath) {
-        app.routeBuilder.register(method.basePath + method.infoPath, method.infoMethod?.toLowerCase(), async (ctx) => {
+        let infoDef: any = async (ctx) => {
             var result = await method.info(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -147,10 +151,12 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 response.setError("info failed. may be the method is not implemented");
             }
             return response;
-        });
+        };
+        infoDef.validate = method.infoSchema;
+        app.routeBuilder.register(method.basePath + method.infoPath, method.infoMethod?.toLowerCase(), infoDef);
     }
     if (method.validatePath) {
-        app.routeBuilder.register(method.basePath + method.validatePath, method.validateMethod?.toLowerCase(), async (ctx) => {
+        let validateDef: any = async (ctx) => {
             var result = await method.validate(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -169,10 +175,12 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 response.setError("validation failed. may be the method is not implemented");
             }
             return response;
-        });
+        };
+        validateDef.validate = method.validateSchema;
+        app.routeBuilder.register(method.basePath + method.validatePath, method.validateMethod?.toLowerCase(), validateDef);
     }
     if (method.refreshPath) {
-        app.routeBuilder.register(method.basePath + method.refreshPath, method.refreshMethod?.toLowerCase(), async (ctx) => {
+        let refreshDef: any = async (ctx) => {
             var result = await method.refresh(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
@@ -182,6 +190,8 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 response.setError("refresh failed. may be the method is not implemented");
             }
             return response;
-        });
+        };
+        refreshDef.validate = method.refreshSchema;
+        app.routeBuilder.register(method.basePath + method.refreshPath, method.refreshMethod?.toLowerCase(), refreshDef);
     }
 }

@@ -92,6 +92,24 @@ export { PushNotificationService } from './services/PushNotificationService'
 export { SMSNotificationService } from './services/SMSNotificationService'
 export { WebNotificationService } from './services/WebNotificationService'
 
+/*
+WORKFLOWS
+*/
+
+export { WorkflowExecutionResult } from './workflows/WorkflowExecutionResult';
+export { WorkflowExecuteContext } from './workflows/WorkflowExecuteContext';
+export { WorkflowRoute } from './workflows/WorkflowRoute';
+export { WorkflowRouteAction } from './workflows/WorkflowRouteAction';
+export { WorkflowRouteActionResult } from './workflows/WorkflowRouteActionResult';
+export { WorkflowRouter } from './workflows/WorkflowRouter';
+
+/*
+CONFIGURATIONS
+*/
+
+export { ConfigurationReader } from './config/ConfigurationReader';
+export { ConfigurationFileType } from './config/ConfigurationReader';
+
 // import { TwilioSMSNotificationService } from "./services/sms/TwilioSMSNotificationService";
 // import { SMTPMailService } from "./services/mail/SMTPMailService";
 // import { FireBasePushNotificationService } from "./services/push/FireBasePushNotificationService";

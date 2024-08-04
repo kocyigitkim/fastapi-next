@@ -10,7 +10,7 @@ export enum ConfigurationFileType {
 export class ConfigurationReader {
     public static current: any;
     public static lastUpdated?: Date;
-    public static readonly configPath?: string;
+    public static configPath?: string;
     public static configType: ConfigurationFileType = ConfigurationFileType.JSON;
     public static async init() {
 

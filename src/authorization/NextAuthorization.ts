@@ -51,7 +51,7 @@ export class NextAuthorization extends NextAuthorizationBase {
             return false;
         }
         const role = await this.retrieveUserRole(ctx, user.Id);
-        if (!role) {
+        if (role) {
             const permissions = await this.retrieveRolePermissions(ctx, role.Id);
             if (permissions.length === 0) {
                 return false;

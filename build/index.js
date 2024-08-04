@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = exports.NotificationResponse = exports.NotificationPayLoad = exports.NotificationContact = exports.MailNotificationService = exports.ContactType = exports.NextHttpFileStream = exports.NextSocketOptions = exports.ParallelJobState = exports.ParallelJob = exports.NextFSLocalManager = exports.NextFSLocalDirectory = exports.NextFSLocalFile = exports.NextFSType = exports.NextFSObject = exports.NextFSManager = exports.NextFSFile = exports.NextFSDirectory = exports.FileSystemProviderConfig = exports.FileSystemProvider = exports.NextAuthorizationBase = exports.NextAuthorization = exports.RetrieveUserBuilder = exports.NextPassportAuthenticationMethod = exports.NextTwoFactorAuthenticationMethod = exports.NextBasicAuthenticationMethod = exports.NextAuthenticationMethod = exports.NextAuthentication = exports.RedisSessionStore = exports.InMemorySessionStore = exports.ISessionStore = exports.NextSessionOptions = exports.NextSessionManager = exports.NextObjectPlugin = exports.NextFileResolverPlugin = exports.NextKnexPlugin = exports.NextPlugin = exports.NextRegistry = exports.RequestParams = exports.NextFlag = exports.ObjectRouter = exports.NextClientBuilder = exports.ValidationError = exports.ValidationResult = exports.NextRouteResponseStatus = exports.NextRouteResponse = exports.ApiResponse = exports.NextContextBase = exports.NextOptions = exports.NextApplication = void 0;
-exports.WebNotificationService = exports.SMSNotificationService = exports.PushNotificationService = exports.NotificationTypes = exports.NotificationServices = void 0;
+exports.ConfigurationFileType = exports.ConfigurationReader = exports.WorkflowRouter = exports.WorkflowRouteActionResult = exports.WorkflowRouteAction = exports.WorkflowRoute = exports.WorkflowExecuteContext = exports.WorkflowExecutionResult = exports.WebNotificationService = exports.SMSNotificationService = exports.PushNotificationService = exports.NotificationTypes = exports.NotificationServices = void 0;
 /*
 BASE COMPONENTS
 */
@@ -160,6 +160,28 @@ var SMSNotificationService_1 = require("./services/SMSNotificationService");
 Object.defineProperty(exports, "SMSNotificationService", { enumerable: true, get: function () { return SMSNotificationService_1.SMSNotificationService; } });
 var WebNotificationService_1 = require("./services/WebNotificationService");
 Object.defineProperty(exports, "WebNotificationService", { enumerable: true, get: function () { return WebNotificationService_1.WebNotificationService; } });
+/*
+WORKFLOWS
+*/
+var WorkflowExecutionResult_1 = require("./workflows/WorkflowExecutionResult");
+Object.defineProperty(exports, "WorkflowExecutionResult", { enumerable: true, get: function () { return WorkflowExecutionResult_1.WorkflowExecutionResult; } });
+var WorkflowExecuteContext_1 = require("./workflows/WorkflowExecuteContext");
+Object.defineProperty(exports, "WorkflowExecuteContext", { enumerable: true, get: function () { return WorkflowExecuteContext_1.WorkflowExecuteContext; } });
+var WorkflowRoute_1 = require("./workflows/WorkflowRoute");
+Object.defineProperty(exports, "WorkflowRoute", { enumerable: true, get: function () { return WorkflowRoute_1.WorkflowRoute; } });
+var WorkflowRouteAction_1 = require("./workflows/WorkflowRouteAction");
+Object.defineProperty(exports, "WorkflowRouteAction", { enumerable: true, get: function () { return WorkflowRouteAction_1.WorkflowRouteAction; } });
+var WorkflowRouteActionResult_1 = require("./workflows/WorkflowRouteActionResult");
+Object.defineProperty(exports, "WorkflowRouteActionResult", { enumerable: true, get: function () { return WorkflowRouteActionResult_1.WorkflowRouteActionResult; } });
+var WorkflowRouter_1 = require("./workflows/WorkflowRouter");
+Object.defineProperty(exports, "WorkflowRouter", { enumerable: true, get: function () { return WorkflowRouter_1.WorkflowRouter; } });
+/*
+CONFIGURATIONS
+*/
+var ConfigurationReader_1 = require("./config/ConfigurationReader");
+Object.defineProperty(exports, "ConfigurationReader", { enumerable: true, get: function () { return ConfigurationReader_1.ConfigurationReader; } });
+var ConfigurationReader_2 = require("./config/ConfigurationReader");
+Object.defineProperty(exports, "ConfigurationFileType", { enumerable: true, get: function () { return ConfigurationReader_2.ConfigurationFileType; } });
 // import { TwilioSMSNotificationService } from "./services/sms/TwilioSMSNotificationService";
 // import { SMTPMailService } from "./services/mail/SMTPMailService";
 // import { FireBasePushNotificationService } from "./services/push/FireBasePushNotificationService";

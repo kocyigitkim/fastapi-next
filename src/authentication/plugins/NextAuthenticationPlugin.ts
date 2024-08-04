@@ -7,7 +7,7 @@ import { NextHealthCheckStatus } from "../../config/NextOptions";
 
 
 export class NextAuthenticationPlugin extends NextPlugin<any> {
-    public name: string = "NextAuthenticationPlugin";
+    public name: string = "authentication";
     public async retrieve(ctx: NextContextBase): Promise<any> {
         var authenticationResult: NextAuthenticationResult = null;
         if (ctx.session) {
@@ -18,6 +18,10 @@ export class NextAuthenticationPlugin extends NextPlugin<any> {
 
     public async middleware(ctx: NextContextBase): Promise<boolean | NextFlag> {
         var isGranted = false;
+        var isAnonymous = ctx.route?.permission?.anonymous === true;
+        if(isAnonymous){
+            return NextFlag.Continue;
+        }
         var authenticationResult: NextAuthenticationResult = null;
         if (ctx.session) {
             authenticationResult = (ctx.session as any).nextAuthentication;

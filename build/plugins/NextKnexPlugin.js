@@ -17,7 +17,12 @@ class NextKnexPlugin extends NextPlugin_1.NextPlugin {
         return this.knex;
     }
     async healthCheck(next) {
-        const result = await this.knex.raw("select 1 as alive").catch(() => { });
+        let result = await this.knex.raw("select 1 as alive").catch(() => { });
+        if (this.knex.client.config.client === 'pg') {
+            if (result && result.rows) {
+                result = result.rows;
+            }
+        }
         if (Array.isArray(result) && result[0] && result[0].alive === 1) {
             return NextOptions_1.NextHealthCheckStatus.Alive();
         }

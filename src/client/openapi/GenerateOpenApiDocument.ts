@@ -1,12 +1,66 @@
 import { NextApplication } from "../../NextApplication";
 import { BuildOpenApiFunctionSchema } from "./BuildOpenApiFunctionSchema";
 import { NextOpenApiOptions } from "../../config/NextOptions";
+import { NextBasicAuthenticationMethod } from "../../authentication/methods/NextBasicAuthenticationMethod";
+import path from 'path';
 
 export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenApiOptions, httpUrl: any, httpsUrl: any) {
+    let security: any = [];
+    let securitySchemes: any = {};
+
+    if (app.jwtController) {
+        securitySchemes.bearerAuth = {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT"
+        };
+        security.push({
+            bearerAuth: [
+                {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            ]
+        });
+    }
+    let basicMethodPath = undefined;
+    if (app.options.authentication && app.options.authentication.Methods) {
+        for (var authMethod of app.options.authentication.Methods) {
+            if (authMethod instanceof NextBasicAuthenticationMethod) {
+                basicMethodPath = path.join(authMethod.basePath, authMethod.loginPath);
+                // basic authentication uses header parameter for authorization its named as sessionid
+                securitySchemes["apiKeyAuth"] = {
+                    type: "apiKey",
+                    in: "header",
+                    name: "sessionid"
+                };
+                security.push({
+                    "apiKeyAuth": []
+                });
+            }
+        }
+    }
+
     return {
         "openapi": "3.0.0",
         "info": {
             "title": options.title || "Fast Api Next",
+            "description": options.description || "Fast Api Next Open Api Document",
+            "termsOfService": options.termsOfService || "https://docs.kocyigit.kim/tr/fastapi/readme",
+            "contact": ((
+                options.contactEmail || options.contactName || options.contactUrl
+            ) && {
+                "name": options.contactName,
+                "url": options.contactUrl,
+                "email": options.contactEmail,
+            }),
+            "license": ((
+                options.licenseName || options.licenseUrl
+            ) && {
+                "name": options.licenseName || "MIT",
+                "url": options.licenseUrl || "https://opensource.org/licenses/MIT"
+            }),
             "version": options.version || "1.0.0"
         },
         "paths": {
@@ -20,8 +74,35 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                             pathParts[i] = pathParts[i].charAt(0).toUpperCase() + pathParts[i].slice(1);
                         }
                         var path = pathParts.join("/");
-                        paths[path] = {
+                        var isBasicLoginPath = basicMethodPath === router.path;
+                        let parameters = BuildOpenApiFunctionSchema(app, options, router);
+                        let pathParameters: any[] = pathParts.filter(p => p.startsWith(":")).map(p => p.substring(1));
+                        let openApiMethodPath = pathParts.map(p => {
+                            if (p.startsWith(":")) {
+                                return `{${p.substring(1)}}`;
+                            }
+                            return p;
+                        }).join("/");
+
+                        if (Array.isArray(pathParameters) && pathParameters.length > 0) {
+                            pathParameters = pathParameters.map(paramName => {
+                                return {
+                                    in: 'path',
+                                    name: paramName
+                                };
+                            });
+                        }
+                        let methodSecurity: any = undefined;
+                        if (
+                            router.action.permission?.anonymous !== true &&
+                            router.action.permission?.custom === undefined
+                        ) {
+                            methodSecurity = security;
+                        }
+
+                        paths[openApiMethodPath] = {
                             [router.method.toLowerCase()]: {
+                                "security": methodSecurity,
                                 "summary": router.action.summary || router.action.description,
                                 "description": router.action.description || router.action.summary,
                                 "deprecated": router.action.deprecated || false,
@@ -29,9 +110,14 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                                 ...(
                                     ["get", "head"].includes(router.method.toLowerCase()) ? (
                                         {
-                                            parameters: BuildOpenApiFunctionSchema(app, options, router)
+                                            parameters: [
+                                                ...pathParameters
+                                            ],
                                         }
                                     ) : ({
+                                        parameters: [
+                                            ...pathParameters
+                                        ],
                                         "requestBody": {
                                             "content": {
                                                 "application/json": {
@@ -61,7 +147,17 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        ...(isBasicLoginPath && {
+                                            "headers": {
+                                                "sessionid": {
+                                                    "description": "Session Id",
+                                                    "schema": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        })
                                     },
                                     "401": {
                                         "description": "Unauthorized",
@@ -80,32 +176,13 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         },
         "components": {
             "schemas": {},
-            "securitySchemes": {
-                ...(app.jwtController && {
-                    "bearerAuth": {
-                        "type": "http",
-                        "scheme": "bearer",
-                        "bearerFormat": "JWT"
-                    }
-                })
-            },
+            "securitySchemes": securitySchemes,
             "responses": {},
             "parameters": {},
             "requestBodies": {},
             "headers": {}
         },
-        "security": [
-            {
-                ...(app.jwtController && {
-                    "bearerAuth": [{
-                        "type": "http",
-                        "scheme": "bearer",
-                        "bearerFormat": "JWT"
-                    }]
-                })
-            }
-        ],
-
+        "security": security,
         "tags": [],
 
         "servers": [

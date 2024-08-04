@@ -109,4 +109,4 @@ var NextRouteResponseStatus;
     NextRouteResponseStatus[NextRouteResponseStatus["UNAUTHORIZED"] = 401] = "UNAUTHORIZED";
     NextRouteResponseStatus[NextRouteResponseStatus["UNKNOWN"] = 0] = "UNKNOWN";
     NextRouteResponseStatus[NextRouteResponseStatus["REDIRECT"] = 302] = "REDIRECT";
-})(NextRouteResponseStatus = exports.NextRouteResponseStatus || (exports.NextRouteResponseStatus = {}));
+})(NextRouteResponseStatus || (exports.NextRouteResponseStatus = NextRouteResponseStatus = {}));

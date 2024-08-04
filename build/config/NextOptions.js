@@ -89,7 +89,7 @@ class NextOpenApiOptions {
         this.title = "Fast Api";
         this.version = "1.0.0";
         this.description = "Fast Api - OpenApi Gateway";
-        this.https = true;
+        this.https = false;
         this.http = true;
     }
 }
@@ -110,4 +110,4 @@ var NextWorkingDataFormat;
 (function (NextWorkingDataFormat) {
     NextWorkingDataFormat["JSON"] = "json";
     NextWorkingDataFormat["YAML"] = "yaml";
-})(NextWorkingDataFormat = exports.NextWorkingDataFormat || (exports.NextWorkingDataFormat = {}));
+})(NextWorkingDataFormat || (exports.NextWorkingDataFormat = NextWorkingDataFormat = {}));

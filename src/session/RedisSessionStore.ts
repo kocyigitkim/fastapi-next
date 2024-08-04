@@ -20,7 +20,7 @@ export class RedisSessionStore extends ISessionStore {
         super();
         this.init = this.init.bind(this);
         this.handleError = this.handleError.bind(this);
-        var client = createClient(config);
+        var client = createClient(config as any);
         client.on('error', (err) => {
             this.handleError(err);
         });

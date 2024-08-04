@@ -2,6 +2,7 @@ import { NextContextBase } from "../../NextContext";
 import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
 import { RetrieveUserDelegate } from "../RetrieveUserDelegate";
+import * as yup from 'yup';
 
 export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
     public static methodName = "Basic";
@@ -9,6 +10,12 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
         super();
         // disable validation
         this.validatePath = undefined;
+        this.loginSchema = yup.object({
+            username: yup.string().required(),
+            password: yup.string().required()
+        });
+        this.logoutSchema = yup.object({});
+        this.infoSchema = yup.object({});
     }
 
     public async login(context: NextContextBase): Promise<NextAuthenticationResult> {

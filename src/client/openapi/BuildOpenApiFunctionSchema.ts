@@ -40,7 +40,9 @@ export function BuildOpenApiFunctionSchema(app: any, options: NextOpenApiOptions
                 };
                 break;
         }
-        return null;
+        return {
+            type: "object"
+        };
     };
     return convertYupToOpenApiSchema(schema);
 }

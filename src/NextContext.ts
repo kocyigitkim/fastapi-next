@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 
 import { NextApplication } from './NextApplication';
 import { NextSessionManager } from './session/NextSessionManager';
+import { NextRouteAction } from './routing/NextRouteAction';
 
 export interface INextContextBase {
     //#region Express Parameters
@@ -41,6 +42,7 @@ export interface INextContextBase {
 }
 export class NextContextBase implements INextContextBase {
     public app: NextApplication;
+    public route: NextRouteAction;
 
     //#region Express Parameters
     public req: Request;

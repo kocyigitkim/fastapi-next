@@ -6,4 +6,4 @@ var NextFlag;
     NextFlag[NextFlag["Continue"] = 0] = "Continue";
     NextFlag[NextFlag["Exit"] = 1] = "Exit";
     NextFlag[NextFlag["Next"] = 2] = "Next";
-})(NextFlag = exports.NextFlag || (exports.NextFlag = {}));
+})(NextFlag || (exports.NextFlag = NextFlag = {}));

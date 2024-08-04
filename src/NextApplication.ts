@@ -11,7 +11,7 @@ import cors from 'cors'
 import { NextSessionManager } from '.';
 import { RedisOptions, RedisSessionStore } from './session/RedisSessionStore';
 import http from 'http'
-import { RedisClientOptions } from 'redis';
+import { RedisClientOptions } from '@redis/client';
 import { NextSessionOptions } from './session/NextSessionManager';
 import { FileSystemSessionStore } from './session/FileSystemSessionStore';
 import { NextSocket } from './sockets/NextSocket';
@@ -27,7 +27,8 @@ import { NextUrlBuilder } from './structure/NextUrlBuilder';
 import { NextOpenApiBuilder } from './client/NextOpenApiBuilder';
 import { ConfigurationReader } from './config/ConfigurationReader';
 import { ObjectRouter } from './routing/ObjectRouter';
-export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy';
+import { WorkflowRouter } from './workflows/WorkflowRouter';
+export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy' | 'config';
 
 interface StaticDirDefinition {
     urlPath: string;
@@ -52,6 +53,7 @@ export class NextApplication extends EventEmitter {
     public openapi: NextOpenApiBuilder;
     private staticDirs: StaticDirDefinition[] = [];
     private objectRouters: ObjectRouter[] = [];
+    private workflowRouters: WorkflowRouter[] = [];
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -68,6 +70,16 @@ export class NextApplication extends EventEmitter {
     }
     public registerObjectRouters(router: ObjectRouter[]) {
         this.objectRouters.push(...router);
+    }
+    public workflow(router: WorkflowRouter | WorkflowRouter[]) {
+        if (Array.isArray(router)) {
+            for (let r of router) {
+                this.workflow(r);
+            }
+        }
+        else {
+            this.workflowRouters.push(router);
+        }
     }
     public constructor(options?: NextOptions) {
         super();
@@ -171,6 +183,12 @@ export class NextApplication extends EventEmitter {
             }
         }
 
+        if (Array.isArray(this.workflowRouters)) {
+            for (let router of this.workflowRouters) {
+                router.mount(this);
+            }
+        }
+
         if (this.options.authentication) {
             console.log("Registering Authentication");
             this.options.authentication.register(this);
@@ -218,6 +236,7 @@ export class NextApplication extends EventEmitter {
         // ? Realtime Configuration
         if (this.options.enableRealtimeConfig) {
             await ConfigurationReader.init();
+            this.emit('config', this, ConfigurationReader.current);
         }
 
     }
