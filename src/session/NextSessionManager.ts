@@ -85,7 +85,7 @@ export class NextSessionManager implements IHealth {
     async use(req: Request & { session: any, sessionId: any, userAgent: any, sessionManager: any }, res: Response, next: NextFunction) {
         const _self = this;
         const isCookieEnabled = this.options.enableCookie;
-        var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
+        var sessionId = (this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid")) || req.sessionId;
         if (!sessionId && isCookieEnabled) {
             sessionId = req.cookies["sessionid"];
         }

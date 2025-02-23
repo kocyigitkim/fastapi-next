@@ -133,7 +133,7 @@ export class JWTController {
             this.app.jwtController[option] = this.app.options.security.jwt[option];
         }
         if (!this.app.options.security.jwt.resolveSessionId) {
-            this.app.options.security.jwt.resolveSessionId = (payload: any) => new Promise(resolve => resolve(payload.sessionId));
+            this.app.options.security.jwt.resolveSessionId = (payload: any) => new Promise(resolve => resolve(payload.sessionId || payload.sessionid));
         }
 
         // Register session id resolver for JWT

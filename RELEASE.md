@@ -1,4 +1,10 @@
 # Fast Api Release History
+### v1.5.1
+- Added custom function execution support to workflow router
+- If condition support added to workflow router
+- Bug fixes on authentication protocols
+- Bug fixes on authorization
+- Session manager improvements
 ### v1.5.0
 - Workflow router added
 - Swagger UI bugs fixed

@@ -15,6 +15,7 @@ import { WorkflowRouteActionResult } from "./WorkflowRouteActionResult";
 import { WorkflowRouter } from "./WorkflowRouter";
 import { ValidateAction } from "./actions/ValidateAction";
 import * as yup from 'yup';
+import { IfAction, IfCondition, IfElse, IfThen } from "./actions/IfAction";
 const DEFAULT_DB_PLUGIN_NAME = "db";
 
 type WorkflowHttpMethod = "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
@@ -161,7 +162,11 @@ export class WorkflowRoute {
             options.projection
         ));
     }
-
+    custom(func: (ctx: WorkflowExecuteContext) => Promise<WorkflowRouteActionResult>) {
+        let builded = new WorkflowRouteAction("custom");
+        builded.execute = func;
+        return this.action(builded);
+    }
     retrieveMany(options: {
         db?: string,
         table: string,
@@ -188,6 +193,10 @@ export class WorkflowRoute {
             options.pageSizeField,
             options.where
         ));
+    }
+
+    if(condition: IfCondition, isTrue?: IfThen, isFalse?: IfElse) {
+        return this.action(new IfAction(condition, isTrue, isFalse));
     }
 
     validate(schema: ObjectSchema<any>) {
@@ -237,8 +246,8 @@ export class WorkflowRoute {
         return [this.router.getPath(), this.path].join("/");
     }
 
-    public async execute(nextContext: NextContextBase) {
-        let context = new WorkflowExecuteContext(this, nextContext);
+    public async execute(nextContext: NextContextBase, currentContext?: WorkflowExecuteContext) {
+        let context = currentContext || new WorkflowExecuteContext(this, nextContext);
         for (let action of this.actions) {
             if (action.definitionOnly) continue;
 
@@ -273,5 +282,22 @@ export class WorkflowRoute {
         // result.result = lastResult?.result;
         result = Object.assign(result, lastResult);
         return result;
+    }
+    public buildExecutionResult(actionResult: WorkflowRouteActionResult) {
+        let result = new WorkflowExecutionResult();
+        result.success = actionResult.success;
+        result.error = actionResult.error ? [actionResult.error] : undefined;
+        result.status = actionResult.status;
+        result.result = actionResult.data;
+        return result;
+    }
+
+    public buildActionResult(result: WorkflowExecutionResult) {
+        let actionResult = new WorkflowRouteActionResult();
+        actionResult.success = result.success;
+        actionResult.error = result.error ? result.error[0] : undefined;
+        actionResult.status = result.status;
+        actionResult.data = result.result;
+        return actionResult;
     }
 }

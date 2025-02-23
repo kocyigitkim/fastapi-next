@@ -284,6 +284,7 @@ class NextRouteBuilder {
             // ? Execution
             var result = route.default(ctx);
             var isError = false;
+            var statusCode = 200;
             if (result instanceof Promise) {
                 result = await result.catch((err) => {
                     isError = true;
@@ -291,6 +292,9 @@ class NextRouteBuilder {
                     app.log.error(`${errorId} - ${err}`);
                     return `Internal Server Error! Error Code: ${errorId}`;
                 });
+            }
+            if (isError) {
+                statusCode = 500;
             }
             // ? Middleware to execute after execution
             if (Array.isArray((_c = route === null || route === void 0 ? void 0 : route.middlewares) === null || _c === void 0 ? void 0 : _c.afterExecution)) {
@@ -302,6 +306,12 @@ class NextRouteBuilder {
                     if (mwResult === NextFlag_1.NextFlag.Exit || mwResult === NextFlag_1.NextFlag.Next) {
                         return;
                     }
+                }
+            }
+            if (result instanceof __1.ApiResponse) {
+                if (result.$statusCode) {
+                    statusCode = result.$statusCode;
+                    delete result.$statusCode;
                 }
             }
             if (result instanceof NextRouteResponse_1.NextRouteResponse) {
@@ -338,16 +348,16 @@ class NextRouteBuilder {
             else {
                 if (isError) {
                     if (typeof result === 'string') {
-                        res.status(500).send(result);
+                        res.status(statusCode).send(result);
                     }
                     else {
                         res.set("Content-Type", "application/json");
-                        res.status(500).json(result);
+                        res.status(statusCode).json(result);
                     }
                 }
                 else {
                     res.set("Content-Type", "application/json");
-                    res.status(200).json(result);
+                    res.status(statusCode).json(result);
                 }
                 return;
             }

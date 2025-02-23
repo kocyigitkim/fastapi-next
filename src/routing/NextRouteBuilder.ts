@@ -299,6 +299,7 @@ export class NextRouteBuilder {
             // ? Execution
             var result: any = route.default(ctx);
             var isError = false;
+            var statusCode = 200;
             if (result instanceof Promise) {
                 result = await result.catch((err) => {
                     isError = true;
@@ -306,6 +307,10 @@ export class NextRouteBuilder {
                     app.log.error(`${errorId} - ${err}`);
                     return `Internal Server Error! Error Code: ${errorId}`;
                 });
+            }
+
+            if (isError) {
+                statusCode = 500;
             }
 
             // ? Middleware to execute after execution
@@ -318,6 +323,13 @@ export class NextRouteBuilder {
                     if (mwResult === NextFlag.Exit || mwResult === NextFlag.Next) {
                         return;
                     }
+                }
+            }
+
+            if (result instanceof ApiResponse) {
+                if (result.$statusCode) {
+                    statusCode = result.$statusCode;
+                    delete result.$statusCode;
                 }
             }
 
@@ -354,16 +366,16 @@ export class NextRouteBuilder {
             else {
                 if (isError) {
                     if (typeof result === 'string') {
-                        res.status(500).send(result);
+                        res.status(statusCode).send(result);
                     }
                     else {
                         res.set("Content-Type", "application/json");
-                        res.status(500).json(result);
+                        res.status(statusCode).json(result);
                     }
                 }
                 else {
                     res.set("Content-Type", "application/json");
-                    res.status(200).json(result);
+                    res.status(statusCode).json(result);
                 }
                 return;
             }

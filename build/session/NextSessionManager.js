@@ -75,7 +75,7 @@ class NextSessionManager {
     async use(req, res, next) {
         const _self = this;
         const isCookieEnabled = this.options.enableCookie;
-        var sessionId = this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid");
+        var sessionId = (this.options.resolveSessionId ? await this.options.resolveSessionId(req) : req.header("sessionid")) || req.sessionId;
         if (!sessionId && isCookieEnabled) {
             sessionId = req.cookies["sessionid"];
         }

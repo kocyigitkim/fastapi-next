@@ -54,6 +54,10 @@ export class NextAuthentication extends EventEmitter {
 
 function registerAuthenticationMethodToApplication(_this: NextAuthentication, method: NextAuthenticationMethod, app: NextApplication) {
     console.log("Registering authentication method " + (method.constructor as any)?.methodName);
+
+    // Init authentication method
+    if (method.init) method.init(app).catch(console.error);
+
     const cleanResult = (result: NextAuthenticationResult) => {
         if (result.validationCode) {
             delete result.validationCode;

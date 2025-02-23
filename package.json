@@ -1,6 +1,6 @@
 {
   "name": "fastapi-next",
-  "version": "1.4.5",
+  "version": "1.5.1",
   "description": "Next Generation of Fast Api",
   "main": "./build/index.js",
   "types": "./build/ts-types/index.d.ts",

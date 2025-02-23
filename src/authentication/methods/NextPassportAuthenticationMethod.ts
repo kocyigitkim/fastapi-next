@@ -1,7 +1,11 @@
-import { NextAuthenticationMethod, NextContextBase } from "../..";
+import { NextApplication } from "../../NextApplication";
+import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
+import { NextContextBase } from "../../NextContext";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
 import { Strategy, Passport } from 'passport'
 import crypto from 'crypto';
+import path from "path";
+import { urlPathJoin } from "../../utils";
 export class NextPassportAuthenticationMethod extends NextAuthenticationMethod {
     public static methodName: string = "Passport";
     private passport = new Passport();
@@ -9,6 +13,11 @@ export class NextPassportAuthenticationMethod extends NextAuthenticationMethod {
     private options: any;
     constructor() {
         super();
+    }
+    public async init(app: NextApplication) {
+        if (app.jwtController) {
+            app.jwtController.anonymousPaths.push(urlPathJoin(this.basePath, this.loginPath));
+        }
     }
     private getCallbackUrl(options: any) {
         return options.hostname + this.basePath + "/oauth2/callback";
@@ -305,7 +314,7 @@ export class NextPassportAuthenticationMethod extends NextAuthenticationMethod {
         clientId: string,
         clientSecret: string,
         scope?: string[],
-    }){
+    }) {
         this.options = options;
         this.basePath = options.basePath || "/auth/passport/oauth2";
         this.passport.use("oauth2", new (require.main.require('passport-oauth2').Strategy)({

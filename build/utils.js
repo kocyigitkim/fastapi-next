@@ -12,6 +12,7 @@ exports.getTokenFromHeader = getTokenFromHeader;
 exports.normalizeUrlPath = normalizeUrlPath;
 exports.checkPathsByNormalization = checkPathsByNormalization;
 exports.makeType = makeType;
+exports.urlPathJoin = urlPathJoin;
 const path_1 = __importDefault(require("path"));
 // ? Mathematic
 function precisionRound(number, precision) {
@@ -66,7 +67,7 @@ function isInternalIPAddress(ip) {
     }
 }
 function getTokenFromHeader(header) {
-    if (header && header.startsWith('Bearer ')) {
+    if (header && header.toLowerCase().startsWith('bearer ')) {
         return header.slice(7, header.length);
     }
     return null;
@@ -85,4 +86,7 @@ function makeType(type, args) {
         t[key] = args[key];
     }
     return t;
+}
+function urlPathJoin(...paths) {
+    return paths.map(p => p.replace(/(^\/)|(\/$)/g, "")).join("/");
 }

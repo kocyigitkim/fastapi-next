@@ -1,3 +1,4 @@
+import { NextApplication } from "../../NextApplication";
 import { NextContextBase } from "../../NextContext";
 import { NextAuthenticationMethod } from "../NextAuthenticationMethod";
 import { NextAuthenticationResult } from "../NextAuthenticationResult";
@@ -16,6 +17,14 @@ export class NextBasicAuthenticationMethod extends NextAuthenticationMethod {
         });
         this.logoutSchema = yup.object({});
         this.infoSchema = yup.object({});
+    }
+
+    public async init(app: NextApplication) {
+        if (app.jwtController) {
+            app.jwtController.anonymousPaths.push(this.loginPath);
+            app.jwtController.anonymousPaths.push(this.logoutPath);
+            app.jwtController.anonymousPaths.push(this.validatePath);
+        }
     }
 
     public async login(context: NextContextBase): Promise<NextAuthenticationResult> {

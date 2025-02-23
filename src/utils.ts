@@ -54,7 +54,7 @@ export function isInternalIPAddress(ip: string) {
 }
 
 export function getTokenFromHeader(header: string) {
-    if (header && header.startsWith('Bearer ')) {
+    if (header && header.toLowerCase().startsWith('bearer ')) {
         return header.slice(7, header.length);
     }
     return null;
@@ -70,10 +70,14 @@ export function checkPathsByNormalization(path1: string, path2: string) {
     return path1 === path2;
 }
 
-export function makeType(type: any, args){
+export function makeType(type: any, args) {
     var t = new type();
     for (var key in args) {
         t[key] = args[key];
     }
     return t;
+}
+
+export function urlPathJoin(...paths: string[]) {
+    return paths.map(p => p.replace(/(^\/)|(\/$)/g, "")).join("/");
 }

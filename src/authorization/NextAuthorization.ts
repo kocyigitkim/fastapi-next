@@ -2,6 +2,8 @@ import path from 'path'
 import { NextContextBase } from "../NextContext";
 import { NextAuthorizationBase } from "./NextAuthorizationBase";
 import { NextPermissionDefinition } from './NextPermission';
+import { NextUser as NextUserExtended } from '../structure/NextUser';
+import { NextRole as NextRoleExtended } from '../structure/NextRole';
 
 export interface NextRole {
     Id: any;
@@ -20,6 +22,7 @@ export interface AuthorizedRecordResult {
     name?: string;
 }
 
+
 export type RetrieveAuthorizedRecord = (ctx: NextContextBase, user: NextUser, role: NextRole, permissions: NextPermission[]) => Promise<AuthorizedRecordResult>;
 export type RetrieveCurrentUserDelegate = (ctx: NextContextBase) => Promise<NextUser>;
 export type RetrieveUserRoleDelegate = (ctx: NextContextBase, UserId: any) => Promise<NextRole>;
@@ -36,6 +39,48 @@ export class NextAuthorization extends NextAuthorizationBase {
         super();
     }
 
+    async init() {
+        if (!this.retrieveCurrentUser) {
+            this.retrieveCurrentUser = async (ctx: NextContextBase) => {
+                const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
+                return user;
+            };
+        }
+        if (!this.retrieveUserRole) {
+            this.retrieveUserRole = async (ctx: NextContextBase, UserId: any) => {
+                const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
+                const roles: NextRole[] = (user as any)?.roles;
+                if (Array.isArray(roles) && roles.length > 0) {
+                    return roles[0];
+                }
+                return {
+                    Id: 0,
+                    Name: "anonymous"
+                };
+            };
+        }
+        if (!this.retrieveRolePermissions) {
+            this.retrieveRolePermissions = async (ctx: NextContextBase, RoleId: any) => {
+                const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
+                const roles: NextRole[] = (user as any)?.roles;
+                if (Array.isArray(roles) && roles.length > 0) {
+                    let permissions: string[] = [];
+                    for (var role of roles.filter(r => r.Id == RoleId)) {
+                        permissions = permissions.concat((role as any)?.permissions || []);
+                    }
+
+                    return permissions.map(permission => {
+                        return {
+                            Path: permission,
+                            Id: permission
+                        };
+                    });
+                }
+                return [];
+            };
+        }
+    }
+
     public async check(ctx: NextContextBase, permission: NextPermissionDefinition): Promise<boolean> {
         if (!this.retrieveCurrentUser) {
             throw new Error("retrieveCurrentUser is not defined");
@@ -45,6 +90,26 @@ export class NextAuthorization extends NextAuthorizationBase {
         }
         if (!this.retrieveRolePermissions) {
             throw new Error("retrieveRolePermissions is not defined");
+        }
+        if (ctx.app.jwtController) {
+            const jwtOptions = ctx.app.options.security.jwt;
+            if (jwtOptions) {
+                if (Array.isArray(jwtOptions?.anonymousPaths)){
+                    for (const p of jwtOptions.anonymousPaths) {
+                        if (p instanceof RegExp) {
+                            if (p.test(ctx.path)) {
+                                return true;
+                            }
+                        }
+                        else {
+                            if (p == ctx.path) {
+                                return true;
+                            }
+                        }
+
+                    }
+                }
+            }
         }
         const user = await this.retrieveCurrentUser(ctx);
         if (!user) {

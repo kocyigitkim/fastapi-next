@@ -3,6 +3,7 @@ import { BuildOpenApiFunctionSchema } from "./BuildOpenApiFunctionSchema";
 import { NextOpenApiOptions } from "../../config/NextOptions";
 import { NextBasicAuthenticationMethod } from "../../authentication/methods/NextBasicAuthenticationMethod";
 import path from 'path';
+import { urlPathJoin } from "../../utils";
 
 export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenApiOptions, httpUrl: any, httpsUrl: any) {
     let security: any = [];
@@ -28,7 +29,7 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
     if (app.options.authentication && app.options.authentication.Methods) {
         for (var authMethod of app.options.authentication.Methods) {
             if (authMethod instanceof NextBasicAuthenticationMethod) {
-                basicMethodPath = path.join(authMethod.basePath, authMethod.loginPath);
+                basicMethodPath = urlPathJoin(authMethod.basePath, authMethod.loginPath);
                 // basic authentication uses header parameter for authorization its named as sessionid
                 securitySchemes["apiKeyAuth"] = {
                     type: "apiKey",

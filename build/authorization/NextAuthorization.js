@@ -10,6 +10,49 @@ class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
     constructor() {
         super();
     }
+    async init() {
+        if (!this.retrieveCurrentUser) {
+            this.retrieveCurrentUser = async (ctx) => {
+                var _a, _b;
+                const user = (_b = (_a = ctx.session) === null || _a === void 0 ? void 0 : _a.nextAuthentication) === null || _b === void 0 ? void 0 : _b.user;
+                return user;
+            };
+        }
+        if (!this.retrieveUserRole) {
+            this.retrieveUserRole = async (ctx, UserId) => {
+                var _a, _b;
+                const user = (_b = (_a = ctx.session) === null || _a === void 0 ? void 0 : _a.nextAuthentication) === null || _b === void 0 ? void 0 : _b.user;
+                const roles = user === null || user === void 0 ? void 0 : user.roles;
+                if (Array.isArray(roles) && roles.length > 0) {
+                    return roles[0];
+                }
+                return {
+                    Id: 0,
+                    Name: "anonymous"
+                };
+            };
+        }
+        if (!this.retrieveRolePermissions) {
+            this.retrieveRolePermissions = async (ctx, RoleId) => {
+                var _a, _b;
+                const user = (_b = (_a = ctx.session) === null || _a === void 0 ? void 0 : _a.nextAuthentication) === null || _b === void 0 ? void 0 : _b.user;
+                const roles = user === null || user === void 0 ? void 0 : user.roles;
+                if (Array.isArray(roles) && roles.length > 0) {
+                    let permissions = [];
+                    for (var role of roles.filter(r => r.Id == RoleId)) {
+                        permissions = permissions.concat((role === null || role === void 0 ? void 0 : role.permissions) || []);
+                    }
+                    return permissions.map(permission => {
+                        return {
+                            Path: permission,
+                            Id: permission
+                        };
+                    });
+                }
+                return [];
+            };
+        }
+    }
     async check(ctx, permission) {
         if (!this.retrieveCurrentUser) {
             throw new Error("retrieveCurrentUser is not defined");
@@ -19,6 +62,25 @@ class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
         }
         if (!this.retrieveRolePermissions) {
             throw new Error("retrieveRolePermissions is not defined");
+        }
+        if (ctx.app.jwtController) {
+            const jwtOptions = ctx.app.options.security.jwt;
+            if (jwtOptions) {
+                if (Array.isArray(jwtOptions === null || jwtOptions === void 0 ? void 0 : jwtOptions.anonymousPaths)) {
+                    for (const p of jwtOptions.anonymousPaths) {
+                        if (p instanceof RegExp) {
+                            if (p.test(ctx.path)) {
+                                return true;
+                            }
+                        }
+                        else {
+                            if (p == ctx.path) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
         }
         const user = await this.retrieveCurrentUser(ctx);
         if (!user) {
