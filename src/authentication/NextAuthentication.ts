@@ -100,6 +100,24 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
                 if (app.jwtController && response.success) {
                     const jwtToken = await app.jwtController.CreateToken(ctx.req);
                     additionalParameters["accessToken"] = jwtToken;
+                    
+                    // Generate refresh token if JWT controller is available
+                    if (app.options.security?.jwt?.refreshTokenWhenExpired) {
+                        // Create a session ID for the refresh token
+                        const sessionId = ctx.session?.id || 
+                                         crypto.randomUUID();
+                                          
+                        const refreshToken = await app.jwtController.CreateRefreshToken(ctx.req, sessionId);
+                        additionalParameters["refreshToken"] = refreshToken;
+                        
+                        // Store the session ID in the authentication result for future verification
+                        if (result) {
+                            if (!result.additionalInfo) {
+                                result.additionalInfo = {};
+                            }
+                            result.additionalInfo.refreshSessionId = sessionId;
+                        }
+                    }
                 }
 
                 for (var parameterName in additionalParameters) {
@@ -188,6 +206,15 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
             var result = await method.refresh(ctx).catch(console.error);
             var response = new ApiResponse();
             if (result) {
+                // Check if the refresh token is valid
+                if (result.success) {
+                    // Generate new access token
+                    if (app.jwtController) {
+                        const jwtToken = await app.jwtController.CreateToken(ctx.req);
+                        if (!response.data) response.data = {};
+                        response.data["accessToken"] = jwtToken;
+                    }
+                }
                 response = cleanResult(result) as any;
             }
             else {

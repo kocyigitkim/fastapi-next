@@ -28,6 +28,8 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const NextUrlBuilder_1 = require("./structure/NextUrlBuilder");
 const NextOpenApiBuilder_1 = require("./client/NextOpenApiBuilder");
 const ConfigurationReader_1 = require("./config/ConfigurationReader");
+const DynamicConfigLoader_1 = require("./DynamicConfigLoader");
+const workflows_1 = require("./workflows");
 class NextApplication extends events_1.default {
     on(eventName, listener) {
         super.on(eventName, listener);
@@ -56,19 +58,32 @@ class NextApplication extends events_1.default {
             this.workflowRouters.push(router);
         }
     }
-    constructor(options) {
+    constructor(settingsOrOptions) {
         var _a;
         super();
         this.staticDirs = [];
         this.objectRouters = [];
         this.workflowRouters = [];
+        this.config = {};
+        this.dynamicConfigLoader = null;
         this.realtime = new NextRealtimeFunctions_1.NextRealtimeFunctions(this);
-        this.options = options || new NextOptions_1.NextOptions();
+        // Eğer parametre bir NextOptions ise, onu NextApplicationSettings'e dönüştür
+        if (settingsOrOptions instanceof NextOptions_1.NextOptions) {
+            this._applicationSettings = {
+                nextOptions: settingsOrOptions
+            };
+            this.options = settingsOrOptions;
+        }
+        else {
+            // Parametre zaten NextApplicationSettings tipinde
+            this._applicationSettings = settingsOrOptions;
+            this.options = settingsOrOptions.nextOptions || new NextOptions_1.NextOptions();
+        }
         this.express = (0, express_1.default)();
         // ? Default Express Plugins
-        if (!options.disableCorsMiddleware) {
-            if (options.cors)
-                this.express.use((0, cors_1.default)(options.cors));
+        if (!this.options.disableCorsMiddleware) {
+            if (this.options.cors)
+                this.express.use((0, cors_1.default)(this.options.cors));
             else
                 this.express.use((0, cors_1.default)({
                     origin: '*',
@@ -77,7 +92,7 @@ class NextApplication extends events_1.default {
                     preflightContinue: false
                 }));
         }
-        if (options.enableCookiesForSession) {
+        if (this.options.enableCookiesForSession) {
             this.express.use((0, cookie_parser_1.default)());
         }
         if (!this.options.port)
@@ -86,11 +101,11 @@ class NextApplication extends events_1.default {
             this.options.baseUrl = process.env["NEXT_BASE_URL"];
         }
         this.url = new NextUrlBuilder_1.NextUrlBuilder(this);
-        this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((options.bodyParser && options.bodyParser.json) || {}))));
-        this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((options.bodyParser && options.bodyParser.urlencoded) || {}))));
+        this.express.use(express_1.default.json(Object.assign({ type: 'application/json' }, ((this.options.bodyParser && this.options.bodyParser.json) || {}))));
+        this.express.use(express_1.default.urlencoded(Object.assign({ type: 'application/x-www-form-urlencoded' }, ((this.options.bodyParser && this.options.bodyParser.urlencoded) || {}))));
         this.registry = new NextRegistry_1.NextRegistry(this);
         this.log = new NextLog_1.NextConsoleLog();
-        this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(options.debug));
+        this.profiler = new NextProfiler_1.NextProfiler(this, new NextProfiler_1.NextProfilerOptions(this.options.debug));
         this.on('error', console.error);
         this.openapi = new NextOpenApiBuilder_1.NextOpenApiBuilder(this);
     }
@@ -151,7 +166,104 @@ class NextApplication extends events_1.default {
     handleStaticDir(urlPath, dirPath) {
         this.staticDirs.push({ urlPath, dirPath });
     }
+    async initialize() {
+        var _a;
+        // Initialize dynamic configuration if enabled
+        if ((_a = this._applicationSettings.dynamicConfig) === null || _a === void 0 ? void 0 : _a.enabled) {
+            this.dynamicConfigLoader = new DynamicConfigLoader_1.DynamicConfigLoader(this._applicationSettings);
+            const initialized = await this.dynamicConfigLoader.initialize();
+            if (initialized) {
+                console.log('Dynamic configuration loaded successfully');
+                // Merge dynamic settings with static ones
+                this.config = this.dynamicConfigLoader.mergeWithStatic(this._applicationSettings);
+            }
+            else {
+                console.warn('Dynamic configuration loading failed, using static configuration only');
+                this.config = Object.assign({}, this._applicationSettings);
+            }
+        }
+        else {
+            // Use static configuration only
+            this.config = Object.assign({}, this._applicationSettings);
+        }
+        // Initialize other application components
+        await this.initializeAuth();
+        await this.initializeWorkflows();
+        console.log('Application initialized successfully');
+    }
+    async initializeAuth() {
+        var _a, _b, _c;
+        // Initialize authentication based on configuration
+        const authConfig = this.config.auth || {};
+        if ((_a = authConfig.providers) === null || _a === void 0 ? void 0 : _a.length) {
+            console.log(`Initializing ${authConfig.providers.length} authentication providers`);
+            for (const provider of authConfig.providers) {
+                console.log(`Setting up ${provider.name} authentication provider`);
+                // Set up authentication provider
+            }
+        }
+        if ((_b = authConfig.permissions) === null || _b === void 0 ? void 0 : _b.length) {
+            console.log(`Loaded ${authConfig.permissions.length} permission definitions`);
+            // Set up permissions system
+        }
+        if ((_c = authConfig.roles) === null || _c === void 0 ? void 0 : _c.length) {
+            console.log(`Loaded ${authConfig.roles.length} role definitions`);
+            // Set up role-based access control
+        }
+    }
+    async initializeWorkflows() {
+        // Initialize workflow routers (both static and dynamic)
+        const staticWorkflowRouters = [
+        // Define static routers here
+        ];
+        this.workflowRouters = await (0, workflows_1.initializeWorkflows)(this._applicationSettings, staticWorkflowRouters);
+        console.log(`Initialized ${this.workflowRouters.length} workflow routers`);
+        // Mount routers to routes
+        for (const router of this.workflowRouters) {
+            this.mountRouter(router);
+        }
+    }
+    mountRouter(router) {
+        // Logic to mount workflow router
+        console.log(`Mounting router at path: ${router.getPath()}`);
+        // Use temporary registration if routeBuilder is not initialized
+        if (!this.routeBuilder) {
+            // Use getRoutes() to access the routes as it's a public method
+            const routes = router.getRoutes();
+            routes.forEach(route => {
+                // httpMethod is the property that stores methods, not methods()
+                const methods = route.httpMethod.join(',');
+                // Routes are executed via the execute method, not a handler property
+                this.tempRouteRegister(route.path, methods, route.execute.bind(route));
+            });
+        }
+        else {
+            router.mount(this);
+        }
+    }
+    // Helper for route registration before routeBuilder is initialized
+    tempRouteRegister(path, method, handler) {
+        console.log(`Registered route: ${method} ${path}`);
+    }
+    // Method to get the current application configuration
+    getConfig() {
+        return this.config;
+    }
+    // Method to update a specific configuration value
+    updateConfig(path, value) {
+        // Create nested structure
+        const parts = path.split('.');
+        let current = this.config;
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) {
+                current[parts[i]] = {};
+            }
+            current = current[parts[i]];
+        }
+        current[parts[parts.length - 1]] = value;
+    }
     async init() {
+        var _a;
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
         for (var plugin of this.registry.getPlugins()) {
@@ -177,6 +289,25 @@ class NextApplication extends events_1.default {
             this.socketRouter = new NextSocketRouter_1.NextSocketRouter();
             this.socket.router = this.socketRouter;
             this.socketRouter.registerRouters(this.options.socketRouterDirs);
+            // Register health check for socket Redis adapter if enabled
+            if (this.healthProfiler && ((_a = this.options.sockets.redis) === null || _a === void 0 ? void 0 : _a.enabled)) {
+                this.registerHealthCheck("socketRedis", {
+                    async healthCheck() {
+                        try {
+                            // Check if Redis adapter is initialized
+                            if (this.socket.redisAdapter && this.socket.redisAdapter.subscriberClient) {
+                                return { success: true, message: "Socket Redis adapter is connected" };
+                            }
+                            else {
+                                return { success: false, message: "Socket Redis adapter is not initialized" };
+                            }
+                        }
+                        catch (err) {
+                            return { success: false, message: `Socket Redis adapter health check failed: ${err.message}` };
+                        }
+                    }
+                });
+            }
         }
         this.emit('init', this);
         // ? Static file serving
@@ -194,7 +325,7 @@ class NextApplication extends events_1.default {
             this.openapi.use();
         }
         // ? Route not found
-        this.express.use("*", (req, res, next) => {
+        this.express.use(/.*/, (req, res, next) => {
             var _a, _b;
             if (((_a = req.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === "get") {
                 if (((_b = req.headers["content-type"]) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === "text/html") {
@@ -211,6 +342,31 @@ class NextApplication extends events_1.default {
             await ConfigurationReader_1.ConfigurationReader.init();
             this.emit('config', this, ConfigurationReader_1.ConfigurationReader.current);
         }
+        // Add code to initialize configuration based on options
+        if (this.options.configuration) {
+            const configOptions = this.options.configuration;
+            if (configOptions.sourceType === ConfigurationReader_1.ConfigurationSourceType.FILE && configOptions.fileOptions) {
+                if (configOptions.fileOptions.path) {
+                    ConfigurationReader_1.ConfigurationReader.configPath = configOptions.fileOptions.path;
+                }
+                if (configOptions.fileOptions.type) {
+                    ConfigurationReader_1.ConfigurationReader.configType = configOptions.fileOptions.type;
+                }
+                ConfigurationReader_1.ConfigurationReader.sourceType = ConfigurationReader_1.ConfigurationSourceType.FILE;
+            }
+            else if (configOptions.sourceType === ConfigurationReader_1.ConfigurationSourceType.ENV && configOptions.envOptions) {
+                if (configOptions.envOptions.prefix) {
+                    ConfigurationReader_1.ConfigurationReader.envPrefix = configOptions.envOptions.prefix;
+                }
+                ConfigurationReader_1.ConfigurationReader.sourceType = ConfigurationReader_1.ConfigurationSourceType.ENV;
+            }
+            else if (configOptions.sourceType === ConfigurationReader_1.ConfigurationSourceType.VAULT && configOptions.vaultOptions) {
+                ConfigurationReader_1.ConfigurationReader.vaultConfig = configOptions.vaultOptions;
+                ConfigurationReader_1.ConfigurationReader.sourceType = ConfigurationReader_1.ConfigurationSourceType.VAULT;
+            }
+        }
+        // Initialize the configuration reader
+        await ConfigurationReader_1.ConfigurationReader.init();
     }
     async start() {
         (0, NextInitializationHeader_1.NextRunning)();

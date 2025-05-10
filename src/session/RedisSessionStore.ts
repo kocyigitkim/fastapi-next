@@ -1,5 +1,5 @@
 import { ISessionStore } from "./ISessionStore";
-import redis, { createClient, RedisClientType } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import { RedisClientOptions } from '@redis/client'
 import { NextHealthCheckStatus } from "../config/NextOptions";
 
@@ -14,7 +14,7 @@ export interface RedisOptions {
 
 export class RedisSessionStore extends ISessionStore {
 
-    public client: RedisClientType<any, any, redis.RedisScripts>;
+    public client: RedisClientType;
     private isAlive = false;
     constructor(public config: RedisClientOptions<any, any>, public ttl: number = 30 * 60) {
         super();
@@ -27,7 +27,7 @@ export class RedisSessionStore extends ISessionStore {
         client.on('connection', () => {
             this.isAlive = true;
         });
-        this.client = client;
+        this.client = client as RedisClientType;
     }
     async healthCheck(): Promise<NextHealthCheckStatus> {
         return this.isAlive ? NextHealthCheckStatus.Alive() : NextHealthCheckStatus.Dead();
@@ -57,7 +57,7 @@ export class RedisSessionStore extends ISessionStore {
     public get(sid: any, cb?: any): void {
         this.client.get(sid).then((result) => {
             try {
-                if (cb) cb(null, JSON.parse(result));
+                if (cb) cb(null, JSON.parse(result as string));
             } catch (err) {
                 if (cb) cb(err);
             }

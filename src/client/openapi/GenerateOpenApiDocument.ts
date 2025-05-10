@@ -5,10 +5,19 @@ import { NextBasicAuthenticationMethod } from "../../authentication/methods/Next
 import path from 'path';
 import { urlPathJoin } from "../../utils";
 
+/**
+ * Generates the OpenAPI document for the application
+ * @param app The Next application
+ * @param options OpenAPI options
+ * @param httpUrl HTTP base URL
+ * @param httpsUrl HTTPS base URL
+ * @returns Complete OpenAPI document
+ */
 export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenApiOptions, httpUrl: any, httpsUrl: any) {
     let security: any = [];
     let securitySchemes: any = {};
-
+    
+    // Setup authentication schemes
     if (app.jwtController) {
         securitySchemes.bearerAuth = {
             type: "http",
@@ -16,15 +25,11 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
             bearerFormat: "JWT"
         };
         security.push({
-            bearerAuth: [
-                {
-                    type: "http",
-                    scheme: "bearer",
-                    bearerFormat: "JWT"
-                }
-            ]
+            bearerAuth: []
         });
     }
+    
+    // Setup basic auth if available
     let basicMethodPath = undefined;
     if (app.options.authentication && app.options.authentication.Methods) {
         for (var authMethod of app.options.authentication.Methods) {
@@ -43,7 +48,115 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         }
     }
 
-    return {
+    // Extract tags from routes
+    const allTags = new Set<string>();
+    app.routeBuilder.registeredRoutes.forEach(router => {
+        if (router.action.tags && router.action.tags.length) {
+            router.action.tags.forEach(tag => allTags.add(tag));
+        } else {
+            // Extract tag from path
+            const pathParts = router.path.split("/").filter(p => p && !p.startsWith(":"));
+            if (pathParts.length > 0) {
+                allTags.add(pathParts[0]);
+            }
+        }
+    });
+
+    // Create tag objects with descriptions
+    const tagObjects = Array.from(allTags).map(tagName => {
+        // Find a predefined tag with this name
+        const predefinedTag = options.tags?.find(t => t.name === tagName);
+        return {
+            name: tagName,
+            description: predefinedTag?.description || `Operations related to ${tagName}`
+        };
+    });
+
+    // Generate common response components
+    const responseComponents = {
+        'SuccessResponse': {
+            description: 'Successful operation response',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: {
+                                type: 'boolean',
+                                example: true
+                            },
+                            message: {
+                                type: 'string',
+                                example: 'Operation successful'
+                            },
+                            data: {
+                                type: 'object'
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        'ErrorResponse': {
+            description: 'Error response',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: {
+                                type: 'boolean',
+                                example: false
+                            },
+                            message: {
+                                type: 'string',
+                                example: 'Error message'
+                            },
+                            errors: {
+                                type: 'array',
+                                items: {
+                                    type: 'object',
+                                    properties: {
+                                        field: {
+                                            type: 'string',
+                                            description: 'Field with error'
+                                        },
+                                        message: {
+                                            type: 'string',
+                                            description: 'Error message'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        'UnauthorizedResponse': {
+            description: 'Unauthorized access',
+            content: {
+                'application/json': {
+                    schema: {
+                        type: 'object',
+                        properties: {
+                            success: {
+                                type: 'boolean',
+                                example: false
+                            },
+                            message: {
+                                type: 'string',
+                                example: 'Unauthorized'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Build OpenAPI document
+    const openApiDoc = {
         "openapi": "3.0.0",
         "info": {
             "title": options.title || "Fast Api Next",
@@ -67,8 +180,13 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         "paths": {
             ...((() => {
                 var paths = {};
+                
+                // Sort routes if configured
+                const routes = options.sortEndpoints 
+                    ? [...app.routeBuilder.registeredRoutes].sort((a, b) => a.path.localeCompare(b.path))
+                    : app.routeBuilder.registeredRoutes;
 
-                for (const router of app.routeBuilder.registeredRoutes) {
+                for (const router of routes) {
                     if (!router.path.endsWith("/")) {
                         var pathParts = router.path.split("/");
                         for (var i = 2; i < pathParts.length; i++) {
@@ -76,7 +194,8 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                         }
                         var path = pathParts.join("/");
                         var isBasicLoginPath = basicMethodPath === router.path;
-                        let parameters = BuildOpenApiFunctionSchema(app, options, router);
+                        
+                        // Extract path parameters
                         let pathParameters: any[] = pathParts.filter(p => p.startsWith(":")).map(p => p.substring(1));
                         let openApiMethodPath = pathParts.map(p => {
                             if (p.startsWith(":")) {
@@ -89,10 +208,17 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                             pathParameters = pathParameters.map(paramName => {
                                 return {
                                     in: 'path',
-                                    name: paramName
+                                    name: paramName,
+                                    required: true,
+                                    schema: {
+                                        type: "string"
+                                    },
+                                    description: `Path parameter: ${paramName}`
                                 };
                             });
                         }
+                        
+                        // Handle authentication requirements
                         let methodSecurity: any = undefined;
                         if (
                             router.action.permission?.anonymous !== true &&
@@ -100,14 +226,27 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                         ) {
                             methodSecurity = security;
                         }
-
+                        
+                        // Generate tags for this endpoint
+                        let routeTags = router.action.tags || [];
+                        if (routeTags.length === 0 && options.organizeByTags) {
+                            // Generate tag from path if none provided
+                            const firstPathPart = router.path.split("/").filter(Boolean)[0];
+                            if (firstPathPart) {
+                                routeTags.push(firstPathPart);
+                            }
+                        }
+                        
+                        // Add operation to paths
                         paths[openApiMethodPath] = {
+                            ...(paths[openApiMethodPath] || {}),
                             [router.method.toLowerCase()]: {
                                 "security": methodSecurity,
                                 "summary": router.action.summary || router.action.description,
                                 "description": router.action.description || router.action.summary,
                                 "deprecated": router.action.deprecated || false,
-                                "tags": [router.method, ...(router.action.tags || [])],
+                                "tags": routeTags.length > 0 ? routeTags : [router.method],
+                                "operationId": `${router.method.toLowerCase()}${pathParts.slice(1).join("")}`,
                                 ...(
                                     ["get", "head"].includes(router.method.toLowerCase()) ? (
                                         {
@@ -120,6 +259,8 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                                             ...pathParameters
                                         ],
                                         "requestBody": {
+                                            "required": true,
+                                            "description": "Request payload",
                                             "content": {
                                                 "application/json": {
                                                     "schema": BuildOpenApiFunctionSchema(app, options, router)
@@ -160,11 +301,21 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                                             }
                                         })
                                     },
+                                    "400": {
+                                        "description": "Bad Request",
+                                        "$ref": "#/components/responses/ErrorResponse"
+                                    },
                                     "401": {
                                         "description": "Unauthorized",
+                                        "$ref": "#/components/responses/UnauthorizedResponse"
+                                    },
+                                    "403": {
+                                        "description": "Forbidden",
+                                        "$ref": "#/components/responses/UnauthorizedResponse"
                                     },
                                     "500": {
-                                        "description": "Internal Server Error"
+                                        "description": "Internal Server Error",
+                                        "$ref": "#/components/responses/ErrorResponse"
                                     }
                                 }
                             }
@@ -178,13 +329,13 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
         "components": {
             "schemas": {},
             "securitySchemes": securitySchemes,
-            "responses": {},
+            "responses": responseComponents,
             "parameters": {},
             "requestBodies": {},
             "headers": {}
         },
         "security": security,
-        "tags": [],
+        "tags": tagObjects,
 
         "servers": [
             ...(options.http ? [
@@ -198,11 +349,14 @@ export function GenerateOpenApiDocument(app: NextApplication, options: NextOpenA
                     "url": httpsUrl,
                     "description": "HTTPS"
                 }
-            ] : [])
+            ] : []),
+            ...(options.additionalServers || [])
         ],
-        "externalDocs": {
+        "externalDocs": options.externalDocs || {
             "description": "Find out more about Fast Api Next",
             "url": "https://docs.kocyigit.kim/tr/fastapi/readme"
         },
     };
+    
+    return openApiDoc;
 }

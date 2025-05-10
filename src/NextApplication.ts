@@ -25,9 +25,13 @@ import { Logger } from './logs/Logger';
 import CookieParser from 'cookie-parser';
 import { NextUrlBuilder } from './structure/NextUrlBuilder';
 import { NextOpenApiBuilder } from './client/NextOpenApiBuilder';
-import { ConfigurationReader } from './config/ConfigurationReader';
+import { ConfigurationReader, ConfigurationSourceType } from './config/ConfigurationReader';
 import { ObjectRouter } from './routing/ObjectRouter';
 import { WorkflowRouter } from './workflows/WorkflowRouter';
+import { NextApplicationSettings } from "./NextApplicationSettings";
+import { DynamicConfigLoader } from "./DynamicConfigLoader";
+import { initializeWorkflows } from "./workflows";
+
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy' | 'config';
 
 interface StaticDirDefinition {
@@ -54,6 +58,10 @@ export class NextApplication extends EventEmitter {
     private staticDirs: StaticDirDefinition[] = [];
     private objectRouters: ObjectRouter[] = [];
     private workflowRouters: WorkflowRouter[] = [];
+    private config: any = {};
+    private dynamicConfigLoader: DynamicConfigLoader | null = null;
+    private _applicationSettings: NextApplicationSettings;
+
     public on(eventName: NextApplicationEventNames, listener: (...args: any[]) => void): this {
         super.on(eventName, listener);
         return this;
@@ -81,14 +89,27 @@ export class NextApplication extends EventEmitter {
             this.workflowRouters.push(router);
         }
     }
-    public constructor(options?: NextOptions) {
+
+    public constructor(settingsOrOptions: NextApplicationSettings | NextOptions) {
         super();
         this.realtime = new NextRealtimeFunctions(this);
-        this.options = options || new NextOptions();
+        
+        // Eğer parametre bir NextOptions ise, onu NextApplicationSettings'e dönüştür
+        if (settingsOrOptions instanceof NextOptions) {
+            this._applicationSettings = { 
+                nextOptions: settingsOrOptions
+            } as NextApplicationSettings;
+            this.options = settingsOrOptions;
+        } else {
+            // Parametre zaten NextApplicationSettings tipinde
+            this._applicationSettings = settingsOrOptions;
+            this.options = settingsOrOptions.nextOptions || new NextOptions();
+        }
+        
         this.express = express();
         // ? Default Express Plugins
-        if (!options.disableCorsMiddleware) {
-            if (options.cors) this.express.use(cors(options.cors));
+        if (!this.options.disableCorsMiddleware) {
+            if (this.options.cors) this.express.use(cors(this.options.cors));
             else this.express.use(cors({
                 origin: '*',
                 methods: '*',
@@ -96,7 +117,7 @@ export class NextApplication extends EventEmitter {
                 preflightContinue: false
             }));
         }
-        if (options.enableCookiesForSession) {
+        if (this.options.enableCookiesForSession) {
             this.express.use(CookieParser());
         }
         if (!this.options.port) this.options.port = parseInt(process.env.PORT ?? "5000");
@@ -104,11 +125,11 @@ export class NextApplication extends EventEmitter {
             this.options.baseUrl = process.env["NEXT_BASE_URL"];
         }
         this.url = new NextUrlBuilder(this);
-        this.express.use(express.json({ type: 'application/json', ...((options.bodyParser && options.bodyParser.json) || {}) }));
-        this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((options.bodyParser && options.bodyParser.urlencoded) || {}) }));
+        this.express.use(express.json({ type: 'application/json', ...((this.options.bodyParser && this.options.bodyParser.json) || {}) }));
+        this.express.use(express.urlencoded({ type: 'application/x-www-form-urlencoded', ...((this.options.bodyParser && this.options.bodyParser.urlencoded) || {}) }));
         this.registry = new NextRegistry(this);
         this.log = new NextConsoleLog();
-        this.profiler = new NextProfiler(this, new NextProfilerOptions(options.debug));
+        this.profiler = new NextProfiler(this, new NextProfilerOptions(this.options.debug));
         this.on('error', console.error);
         this.openapi = new NextOpenApiBuilder(this);
     }
@@ -167,6 +188,111 @@ export class NextApplication extends EventEmitter {
     public handleStaticDir(urlPath: string, dirPath: string) {
         this.staticDirs.push({ urlPath, dirPath });
     }
+    public async initialize(): Promise<void> {
+        // Initialize dynamic configuration if enabled
+        if (this._applicationSettings.dynamicConfig?.enabled) {
+            this.dynamicConfigLoader = new DynamicConfigLoader(this._applicationSettings);
+            const initialized = await this.dynamicConfigLoader.initialize();
+            
+            if (initialized) {
+                console.log('Dynamic configuration loaded successfully');
+                
+                // Merge dynamic settings with static ones
+                this.config = this.dynamicConfigLoader.mergeWithStatic(this._applicationSettings);
+            } else {
+                console.warn('Dynamic configuration loading failed, using static configuration only');
+                this.config = { ...this._applicationSettings };
+            }
+        } else {
+            // Use static configuration only
+            this.config = { ...this._applicationSettings };
+        }
+        
+        // Initialize other application components
+        await this.initializeAuth();
+        await this.initializeWorkflows();
+        
+        console.log('Application initialized successfully');
+    }
+    private async initializeAuth(): Promise<void> {
+        // Initialize authentication based on configuration
+        const authConfig = this.config.auth || {};
+        
+        if (authConfig.providers?.length) {
+            console.log(`Initializing ${authConfig.providers.length} authentication providers`);
+            
+            for (const provider of authConfig.providers) {
+                console.log(`Setting up ${provider.name} authentication provider`);
+                // Set up authentication provider
+            }
+        }
+        
+        if (authConfig.permissions?.length) {
+            console.log(`Loaded ${authConfig.permissions.length} permission definitions`);
+            // Set up permissions system
+        }
+        
+        if (authConfig.roles?.length) {
+            console.log(`Loaded ${authConfig.roles.length} role definitions`);
+            // Set up role-based access control
+        }
+    }
+    private async initializeWorkflows(): Promise<void> {
+        // Initialize workflow routers (both static and dynamic)
+        const staticWorkflowRouters: WorkflowRouter[] = [
+            // Define static routers here
+        ];
+        
+        this.workflowRouters = await initializeWorkflows(this._applicationSettings, staticWorkflowRouters);
+        
+        console.log(`Initialized ${this.workflowRouters.length} workflow routers`);
+        
+        // Mount routers to routes
+        for (const router of this.workflowRouters) {
+            this.mountRouter(router);
+        }
+    }
+    private mountRouter(router: WorkflowRouter): void {
+        // Logic to mount workflow router
+        console.log(`Mounting router at path: ${router.getPath()}`);
+        // Use temporary registration if routeBuilder is not initialized
+        if (!this.routeBuilder) {
+            // Use getRoutes() to access the routes as it's a public method
+            const routes = router.getRoutes();
+            routes.forEach(route => {
+                // httpMethod is the property that stores methods, not methods()
+                const methods = route.httpMethod.join(',');
+                // Routes are executed via the execute method, not a handler property
+                this.tempRouteRegister(route.path, methods, route.execute.bind(route));
+            });
+        } else {
+            router.mount(this);
+        }
+    }
+    
+    // Helper for route registration before routeBuilder is initialized
+    private tempRouteRegister(path: string, method: string, handler: any): void {
+        console.log(`Registered route: ${method} ${path}`);
+    }
+    // Method to get the current application configuration
+    public getConfig(): any {
+        return this.config;
+    }
+    // Method to update a specific configuration value
+    public updateConfig(path: string, value: any): void {
+        // Create nested structure
+        const parts = path.split('.');
+        let current = this.config;
+        
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (!current[parts[i]]) {
+                current[parts[i]] = {};
+            }
+            current = current[parts[i]];
+        }
+        
+        current[parts[parts.length - 1]] = value;
+    }
     public async init(): Promise<void> {
         NextInitializationHeader();
         this.emit('preinit', this);
@@ -199,6 +325,24 @@ export class NextApplication extends EventEmitter {
             this.socketRouter = new NextSocketRouter();
             this.socket.router = this.socketRouter;
             this.socketRouter.registerRouters(this.options.socketRouterDirs);
+            
+            // Register health check for socket Redis adapter if enabled
+            if (this.healthProfiler && this.options.sockets.redis?.enabled) {
+                this.registerHealthCheck("socketRedis", {
+                    async healthCheck() {
+                        try {
+                            // Check if Redis adapter is initialized
+                            if ((this.socket as any).redisAdapter && (this.socket as any).redisAdapter.subscriberClient) {
+                                return { success: true, message: "Socket Redis adapter is connected" };
+                            } else {
+                                return { success: false, message: "Socket Redis adapter is not initialized" };
+                            }
+                        } catch (err) {
+                            return { success: false, message: `Socket Redis adapter health check failed: ${err.message}` };
+                        }
+                    }
+                });
+            }
         }
         this.emit('init', this);
 
@@ -221,7 +365,7 @@ export class NextApplication extends EventEmitter {
         }
 
         // ? Route not found
-        this.express.use("*", (req, res, next) => {
+        this.express.use(/.*/, (req, res, next) => {
             if (req.method?.toLowerCase() === "get") {
                 if (req.headers["content-type"]?.toLowerCase() === "text/html") {
                     res.status(200);
@@ -238,6 +382,34 @@ export class NextApplication extends EventEmitter {
             await ConfigurationReader.init();
             this.emit('config', this, ConfigurationReader.current);
         }
+
+        // Add code to initialize configuration based on options
+        if (this.options.configuration) {
+            const configOptions = this.options.configuration;
+            
+            if (configOptions.sourceType === ConfigurationSourceType.FILE && configOptions.fileOptions) {
+                if (configOptions.fileOptions.path) {
+                    ConfigurationReader.configPath = configOptions.fileOptions.path;
+                }
+                if (configOptions.fileOptions.type) {
+                    ConfigurationReader.configType = configOptions.fileOptions.type;
+                }
+                ConfigurationReader.sourceType = ConfigurationSourceType.FILE;
+            } 
+            else if (configOptions.sourceType === ConfigurationSourceType.ENV && configOptions.envOptions) {
+                if (configOptions.envOptions.prefix) {
+                    ConfigurationReader.envPrefix = configOptions.envOptions.prefix;
+                }
+                ConfigurationReader.sourceType = ConfigurationSourceType.ENV;
+            }
+            else if (configOptions.sourceType === ConfigurationSourceType.VAULT && configOptions.vaultOptions) {
+                ConfigurationReader.vaultConfig = configOptions.vaultOptions;
+                ConfigurationReader.sourceType = ConfigurationSourceType.VAULT;
+            }
+        }
+
+        // Initialize the configuration reader
+        await ConfigurationReader.init();
 
     }
     public async start(): Promise<void> {

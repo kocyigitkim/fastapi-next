@@ -12,6 +12,16 @@ export interface YupSchemaParsed {
     strict?: boolean;
     abortEarly?: boolean;
     recursive?: boolean;
+    description?: string;
+    label?: string;
+    min?: number;
+    max?: number;
+    pattern?: string;
+    format?: string;
+    enum?: any[];
+    default?: any;
+    examples?: any[];
+    exclusive?: boolean;
     matches?: {
         message: string;
         name: string;

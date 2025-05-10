@@ -3,10 +3,10 @@ import { ValidationResult } from "../../validation/ValidationResult";
 import { CurrentArgsSource, WorkflowExecuteContext } from "../WorkflowExecuteContext";
 import { WorkflowRouteAction } from "../WorkflowRouteAction";
 import { WorkflowRouteActionResult } from "../WorkflowRouteActionResult";
-import { ObjectSchema, ValidationError } from 'yup';
+import { AnySchema, ObjectSchema, ValidationError } from 'yup';
 
 export class ValidateAction extends WorkflowRouteAction {
-    constructor(private schema: ObjectSchema<any>) {
+    constructor(private schema: AnySchema) {
         super("validate");
         this.definitionOnly = true;
     }

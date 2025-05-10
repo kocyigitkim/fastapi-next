@@ -3,15 +3,25 @@ import { NextApplication } from "../NextApplication";
 import { WorkflowRoute } from "./WorkflowRoute";
 
 export class WorkflowRouter {
-    routes: WorkflowRoute[];
-    subRouters: WorkflowRouter[];
-    constructor(public basePath: string) {
-        this.subRouters = [];
-        this.routes = [];
+    public name: string;
+    public description: string;
+    
+    private routes: WorkflowRoute[] = [];
+    private subRouters: WorkflowRouter[] = [];
+    constructor(private path: string) {
     }
 
-    public getPath() {
-        return this.basePath;
+    public getPath(): string {
+        return this.path;
+    }
+
+    public getRoutes(): WorkflowRoute[] {
+        return this.routes;
+    }
+
+    public add(route: WorkflowRoute) {
+        this.routes.push(route);
+        return this;
     }
 
     public route(path: string) {
@@ -21,7 +31,7 @@ export class WorkflowRouter {
     }
 
     public subRouter(path: string) {
-        let router = new WorkflowRouter([this.basePath, path].join("/"));
+        let router = new WorkflowRouter([this.path, path].join("/"));
         this.subRouters.push(router);
         return router;
     }

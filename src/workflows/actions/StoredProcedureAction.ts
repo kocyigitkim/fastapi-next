@@ -25,6 +25,11 @@ export class StoredProcedureAction extends WorkflowRouteAction {
             return result.setError('Database source not found', 500);
         }
 
+        mappedArgs = mappedArgs.map(r => {
+            if(r === undefined) return null;
+            return r;
+        });
+
         const dbClient = db.client.config.client;
         switch (dbClient) {
             case 'mssql':

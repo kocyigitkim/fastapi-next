@@ -11,7 +11,7 @@ export class NextAuthenticationMethod {
     public logoutPath?: string = "/logout";
     public infoPath?: string = "/me";
     public validatePath?: string = "/validate";
-    public refreshPath?: string;
+    public refreshPath?: string = "/refresh";
     public loginMethod: string = "POST";
     public logoutMethod: string = "POST";
     public infoMethod: string = "POST";
@@ -29,6 +29,19 @@ export class NextAuthenticationMethod {
 
     public async refresh(context: NextContextBase) {
         var r = new NextAuthenticationResult();
+        
+        // Check if refresh token is provided
+        const refreshToken = (context.body as any).refreshToken || 
+                             context.req.headers['x-refresh-token'] || 
+                             context.req.query.refreshToken;
+        
+        if (!refreshToken) {
+            r.success = false;
+            r.error = "Refresh token is required";
+            return r;
+        }
+        
+        // Default implementation does not validate refresh tokens
         r.success = false;
         r.error = "Not implemented";
         return r;

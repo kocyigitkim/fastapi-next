@@ -3,10 +3,12 @@ import { NextRole, UserRoleStrategy } from "../../structure/NextRole"
 import { NextUser } from "../../structure/NextUser"
 import { RetrieveUserDelegate } from "../RetrieveUserDelegate"
 import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
-type EncodePasswordOptions = {
-    algorithm: 'sha256' | 'sha512' | 'md5'
+export type EncodePasswordOptions = {
+    algorithm: 'sha256' | 'sha512' | 'md5' | 'bcrypt'
     iterations?: number
+    bcryptSaltRounds?: number
 }
 
 interface RetrieveUserOptions {
@@ -74,9 +76,15 @@ interface RetrieveUserOptions {
     }
 }
 
-export function EncodePassword(password: string, options: EncodePasswordOptions, iterations?: number) {
-    var result = password;
+export async function EncodePassword(password: string, options: EncodePasswordOptions, iterations?: number): Promise<string> {
+    let result = password;
+    
     switch (options.algorithm) {
+        case "bcrypt":
+            // For bcrypt, we generate a hash with the specified salt rounds
+            const saltRounds = options.bcryptSaltRounds || 10;
+            result = await bcrypt.hash(password, saltRounds);
+            break;
         case "sha256":
             result = crypto.createHash("sha256").update(password).digest("hex");
             break;
@@ -90,29 +98,61 @@ export function EncodePassword(password: string, options: EncodePasswordOptions,
             result = password;
             break;
     }
-    if (options.iterations && options.iterations > iterations) {
-        result = EncodePassword(result, options, iterations + 1);
+    
+    if (options.iterations && options.iterations > (iterations || 0) && options.algorithm !== 'bcrypt') {
+        result = await EncodePassword(result, options, (iterations || 0) + 1);
     }
+    
     return result;
+}
+
+export async function VerifyPassword(plainPassword: string, hashedPassword: string, options: EncodePasswordOptions): Promise<boolean> {
+    if (options.algorithm === 'bcrypt') {
+        // For bcrypt, we use the compare function
+        return await bcrypt.compare(plainPassword, hashedPassword);
+    } else {
+        // For other algorithms, we encode the plain password and compare
+        const encodedPassword = await EncodePassword(plainPassword, options, 0);
+        return encodedPassword === hashedPassword;
+    }
 }
 
 export class RetrieveUserBuilder {
 
     public static Build(options: RetrieveUserOptions): RetrieveUserDelegate {
         return async (ctx: NextContextBase, username: string, password: string) => {
-            var passwordToCheck = options.encryption ? EncodePassword(password, options.encryption, 0) : password;
-            var db = options.db;
+            let db = options.db;
             if (typeof db === "function")
                 db = db(ctx);
             if (db instanceof Promise)
                 db = await db.catch(console.error);
-            var query = db(options.userTable).select("*").where(options.userNameField, username).where(options.passwordField, passwordToCheck);
+            
+            // Always query by username only, password verification will be done later in the code
+            let query = db(options.userTable).select("*").where(options.userNameField, username);
+            
             if (options.statusField) {
                 query = query.where(options.statusField, options.desiredStatus);
             }
-            var result = await query.first().catch(console.error);
+            
+            const result = await query.first().catch(console.error);
+            
             if (result) {
-                var user = new NextUser();
+                // Perform password verification in API logic rather than database query
+                const storedPassword = result[options.passwordField];
+                let isPasswordValid = false;
+                
+                if (options.encryption) {
+                    isPasswordValid = await VerifyPassword(password, storedPassword, options.encryption);
+                } else {
+                    // No encryption, direct comparison
+                    isPasswordValid = password === storedPassword;
+                }
+                
+                if (!isPasswordValid) {
+                    return null; // Password verification failed
+                }
+                
+                const user = new NextUser();
                 user.id = result[options.idField || "id"];
                 if (options.emailField)
                     user.email = result[options.emailField];
@@ -130,6 +170,7 @@ export class RetrieveUserBuilder {
                         user.additionalInfo[field] = result[field];
                     });
                 }
+                
                 if (options.role) {
                     if (options.role.strategy == UserRoleStrategy.RoleId) {
                         var roles = await db(options.role.roleId.roleTable).select("*").where(options.role.roleId.roleIdField, result[options.role.roleId.relationField]).select().catch(console.error);
@@ -196,12 +237,12 @@ export class RetrieveUserBuilder {
                     else {
                         user.roles = [];
                     }
-                    return user;
                 }
-                else {
-                    return user;
-                }
+                
+                return user;
             }
+            
+            return null;
         }
     }
 }

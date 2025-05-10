@@ -1,4 +1,42 @@
 # Fast Api Release History
+### v1.5.3
+- Dependency versions upgraded
+  - Express.js upgraded to v5.1.0
+  - Redis client upgraded to v5.0.1
+  - UUID upgraded to v11.1.0
+  - Validator upgraded to v13.15.0
+  - WS upgraded to v8.18.2
+  - YAML upgraded to v2.7.1
+  - YUP upgraded to v1.6.1
+  - TypeScript upgraded to v5.8.3
+- New dependencies added:
+  - @sendgrid/mail v8.1.5
+  - axios v1.9.0 
+  - bcrypt v5.1.1
+  - node-vault v0.10.2
+- New services added:
+  - SendGridMailService for email notifications using SendGrid
+  - WebhookNotificationService for webhook integrations
+- Enhanced password utilities (PasswordUtils)
+- Added Redis Socket.io adapter (NextSocketRedisAdapter)
+
+### v1.5.2
+- Added dynamic configuration capabilities:
+  - Dynamic Config Loader
+  - Dynamic Config Integration
+  - Support for HashiCorp Vault configuration source
+  - Application settings management
+- Improved workflow router with new actions:
+  - CacheAction for response caching
+  - LimiterAction for rate limiting
+  - LogAction for logging
+  - ParallelAction for parallel execution
+  - RetryAction for automatic retries
+  - SwitchAction for conditional branching
+  - TransformAction for data transformations
+- Dynamic workflow loading capabilities
+- Added workflow admin routes
+
 ### v1.5.1
 - Added custom function execution support to workflow router
 - If condition support added to workflow router

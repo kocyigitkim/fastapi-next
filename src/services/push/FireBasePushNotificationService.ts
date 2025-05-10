@@ -38,7 +38,7 @@ export class FireBasePushNotificationService extends PushNotificationService{
                 token: payload.additional.token,
                 
             }
-            this.app.messaging().sendMulticast(message as any).then((response) => {
+            this.app.messaging().sendEachForMulticast(message as any).then((response) => {
                 resolve(response);
             }).catch((error) => {
                 reject(error);

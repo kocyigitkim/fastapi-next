@@ -41,7 +41,8 @@ export { NextAuthenticationMethod } from './authentication/NextAuthenticationMet
 export { NextBasicAuthenticationMethod } from './authentication/methods/NextBasicAuthenticationMethod'
 export { NextTwoFactorAuthenticationMethod } from './authentication/methods/NextTwoFactorAuthenticationMethod'
 export { NextPassportAuthenticationMethod } from './authentication/methods/NextPassportAuthenticationMethod'
-export { RetrieveUserBuilder } from './authentication/helpers/RetrieveUserBuilder'
+export { RetrieveUserBuilder, EncodePasswordOptions } from './authentication/helpers/RetrieveUserBuilder'
+export * from './authentication/helpers/PasswordUtils'
 
 /*
 AUTHORIZATION
@@ -49,6 +50,7 @@ AUTHORIZATION
 export { NextAuthorization } from './authorization/NextAuthorization';
 export { NextAuthorizationBase } from './authorization/NextAuthorizationBase';
 export { NextPermissionDefinition as NextPermission } from './authorization/NextPermission';
+export { NextUser, NextRole, NextTeam } from './authorization/NextAuthorization';
 
 /*
 IO COMPONENTS
@@ -74,6 +76,8 @@ export { ParallelJobState } from './parallelism/ParallelJobState'
 STREAMING
 */
 export { NextSocketOptions } from './sockets/NextSocketOptions'
+export { NextSocketRedisOptions } from './sockets/NextSocketRedisOptions'
+export { NextSocketRedisAdapter } from './sockets/NextSocketRedisAdapter'
 export { NextHttpFileStream } from './streaming/NextHttpFileStream'
 
 /*
@@ -109,19 +113,26 @@ CONFIGURATIONS
 
 export { ConfigurationReader } from './config/ConfigurationReader';
 export { ConfigurationFileType } from './config/ConfigurationReader';
+/*
+import { TwilioSMSNotificationService } from "./services/sms/TwilioSMSNotificationService";
+import { SMTPMailService } from "./services/mail/SMTPMailService";
+import { SendGridMailService } from "./services/mail/SendGridMailService";
+import { FireBasePushNotificationService } from "./services/push/FireBasePushNotificationService";
+import { WebhookNotificationService } from "./services/webhook/WebhookNotificationService";
 
-// import { TwilioSMSNotificationService } from "./services/sms/TwilioSMSNotificationService";
-// import { SMTPMailService } from "./services/mail/SMTPMailService";
-// import { FireBasePushNotificationService } from "./services/push/FireBasePushNotificationService";
-
-// export const Services = {
-//     MailServices: {
-//         SMTPMailService: SMTPMailService,
-//     },
-//     SMSServices: {
-//         TwilioSMSService: TwilioSMSNotificationService,
-//     },
-//     PushServices: {
-//         FireBasePushNotificationService: FireBasePushNotificationService
-//     }
-// }
+export const Services = {
+    MailServices: {
+        SMTPMailService: SMTPMailService,
+        SendGridMailService: SendGridMailService
+    },
+    SMSServices: {
+        TwilioSMSService: TwilioSMSNotificationService,
+    },
+    PushServices: {
+        FireBasePushNotificationService: FireBasePushNotificationService
+    },
+    WebhookServices: {
+        WebhookNotificationService: WebhookNotificationService
+    }
+}
+    */

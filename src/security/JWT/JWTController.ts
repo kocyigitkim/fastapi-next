@@ -23,11 +23,14 @@ export class JWTController {
         var isTokenExpired = payload.exp && payload.exp < new Date().getTime();
         resolve(isTokenExpired);
     });
+    public refreshTokenExpiry: number = 7 * 24 * 60 * 60; // 7 days in seconds by default
+    public accessTokenExpiry: number = 60 * 60; // 1 hour in seconds by default
     public constructor(public app: NextApplication) {
         this.checkIfGranted = this.checkIfGranted.bind(this);
         this.RegisterVerify = this.RegisterVerify.bind(this);
         this.RegisterRefresh = this.RegisterRefresh.bind(this);
         this.CreateToken = this.CreateToken.bind(this);
+        this.CreateRefreshToken = this.CreateRefreshToken.bind(this);
     }
     public RegisterVerify() {
         this.app.express.use(async (req: Request, res: Response, next: NextFunction) => {
@@ -160,6 +163,36 @@ export class JWTController {
     }
     public async CreateToken(req: Request): Promise<string> {
         var payload = await this.createPayload(req, this.app, {}).catch(console.error);
+        
+        // Set expiry for access token if not set
+        if (!payload.exp) {
+            payload.exp = Math.floor(Date.now() / 1000) + this.accessTokenExpiry;
+        }
+        
+        return jwt.sign(payload, this.secret, {
+            ...this.signOptions,
+            algorithm: this.algorithm
+        });
+    }
+    public async CreateRefreshToken(req: Request, sessionId?: string): Promise<string> {
+        var payload = await this.createPayload(req, this.app, {}).catch(console.error);
+        
+        // Remove any previous expiry
+        if (payload.exp) {
+            delete payload.exp;
+        }
+        
+        // Set expiry for refresh token
+        payload.exp = Math.floor(Date.now() / 1000) + this.refreshTokenExpiry;
+        
+        // Store session ID in token
+        if (sessionId) {
+            payload.sessionId = sessionId;
+        }
+        
+        // Add refresh token flag
+        payload.isRefreshToken = true;
+        
         return jwt.sign(payload, this.secret, {
             ...this.signOptions,
             algorithm: this.algorithm
