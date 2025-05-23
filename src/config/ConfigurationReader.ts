@@ -57,11 +57,13 @@ export class ConfigurationReader {
                 ConfigurationReader.current = {};
             }
         };
-
-        fs.watchFile(ConfigurationReader.configPath, (cur, prev) => {
-            readConfigFile();
-        });
-
+        try {
+            fs.watchFile(ConfigurationReader.configPath, (cur, prev) => {
+                readConfigFile();
+            });
+        } catch (err) {
+            console.error("Error watching config file:", err);
+        }
         readConfigFile();
     }
 
@@ -73,7 +75,7 @@ export class ConfigurationReader {
                 if (key.startsWith(ConfigurationReader.envPrefix)) {
                     const configKey = key.substring(ConfigurationReader.envPrefix.length).toLowerCase();
                     let configValue: any = process.env[key];
-                    
+
                     // Try to parse as JSON if it looks like JSON
                     if (configValue?.startsWith('{') || configValue?.startsWith('[')) {
                         try {
@@ -82,12 +84,12 @@ export class ConfigurationReader {
                             // If parsing fails, keep as string
                         }
                     }
-                    
+
                     // Convert to appropriate type
                     if (configValue === 'true') configValue = true;
                     else if (configValue === 'false') configValue = false;
                     else if (!isNaN(Number(configValue)) && configValue?.trim() !== '') configValue = Number(configValue);
-                    
+
                     // Support nested keys using dot notation
                     const parts = configKey.split('.');
                     let current: Record<string, any> = envConfig;
@@ -111,22 +113,22 @@ export class ConfigurationReader {
         try {
             // Load vault client only when needed
             const vaultConfig = ConfigurationReader.resolveVaultConfig();
-            
+
             if (!vaultConfig.endpoint) {
                 throw new Error("Vault endpoint is required for Vault configuration source");
             }
-            
+
             // Dynamic import of node-vault package
             const vault = require('node-vault')({
                 endpoint: vaultConfig.endpoint,
                 token: vaultConfig.token,
                 namespace: vaultConfig.namespace
             });
-            
+
             const mount = vaultConfig.mount || 'secret';
             const path = vaultConfig.path || 'data';
             const version = vaultConfig.secretVersion;
-            
+
             let response;
             if (version) {
                 // KV v2
@@ -144,19 +146,19 @@ export class ConfigurationReader {
                     ConfigurationReader.current = response.data;
                 }
             }
-            
+
         } catch (err) {
             console.error('Error loading configuration from Vault:', err);
             ConfigurationReader.current = {};
         }
     }
-    
+
     private static resolveVaultConfig(): VaultConfig {
         // If explicit config is provided, use it
         if (ConfigurationReader.vaultConfig) {
             return ConfigurationReader.vaultConfig;
         }
-        
+
         // Otherwise, try to get from environment variables
         return {
             endpoint: process.env.VAULT_ADDR || '',
@@ -167,19 +169,19 @@ export class ConfigurationReader {
             secretVersion: process.env.VAULT_SECRET_VERSION ? parseInt(process.env.VAULT_SECRET_VERSION) : undefined
         };
     }
-    
+
     public static setVaultConfig(config: VaultConfig) {
         ConfigurationReader.vaultConfig = config;
         ConfigurationReader.sourceType = ConfigurationSourceType.VAULT;
     }
-    
+
     public static useEnvironmentVariables(prefix?: string) {
         if (prefix) {
             ConfigurationReader.envPrefix = prefix;
         }
         ConfigurationReader.sourceType = ConfigurationSourceType.ENV;
     }
-    
+
     public static useFileConfig(filePath?: string, fileType?: ConfigurationFileType) {
         if (filePath) {
             ConfigurationReader.configPath = filePath;
