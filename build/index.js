@@ -194,6 +194,10 @@ Object.defineProperty(exports, "WorkflowRouteActionResult", { enumerable: true, 
 var WorkflowRouter_1 = require("./workflows/WorkflowRouter");
 Object.defineProperty(exports, "WorkflowRouter", { enumerable: true, get: function () { return WorkflowRouter_1.WorkflowRouter; } });
 /*
+ENTITY SYSTEM
+*/
+__exportStar(require("./entities"), exports);
+/*
 CONFIGURATIONS
 */
 var ConfigurationReader_1 = require("./config/ConfigurationReader");

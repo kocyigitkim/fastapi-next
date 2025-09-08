@@ -244,7 +244,8 @@ export class DynamicWorkflowLoader {
           config.db || 'db',
           config.table,
           config.where,
-          config.projection
+          config.projection,
+          config.customWhere ? this.createWhereFunction(config.customWhere) as any : undefined
         );
       
       case 'retrievemany':
@@ -259,7 +260,8 @@ export class DynamicWorkflowLoader {
           config.sortDirField,
           config.pageIndexField,
           config.pageSizeField,
-          config.where
+          config.where,
+          config.customWhere ? this.createWhereFunction(config.customWhere) as any : undefined
         );
       
       case 'if':
@@ -467,6 +469,27 @@ export class DynamicWorkflowLoader {
       console.error('Failed to create dynamic function:', error);
       return () => false;
     }
+  }
+
+  // Create function for customWhere that can access context, query builder and args
+  private createWhereFunction(fnString: string): Function {
+    if (!fnString) return undefined;
+    try {
+      if (typeof fnString === 'function') {
+        return fnString;
+      }
+      if (typeof fnString === 'string') {
+        if (!fnString.startsWith('function')) {
+          // treat as expression that returns a query
+          return new Function('context', 'query', 'args', `return (${fnString});`);
+        }
+        const fnBody = fnString.substring(fnString.indexOf('{') + 1, fnString.lastIndexOf('}'));
+        return new Function('context', 'query', 'args', fnBody);
+      }
+    } catch (error) {
+      console.error('Failed to create customWhere function:', error);
+    }
+    return undefined;
   }
   
   private buildYupSchema(schemaConfig: any): yup.Schema<any> {

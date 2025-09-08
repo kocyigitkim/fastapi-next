@@ -2,6 +2,8 @@ import { NextContextBase } from "../../NextContext";
 import { CurrentArgsSource, WorkflowExecuteContext } from "../WorkflowExecuteContext";
 import { WorkflowRouteAction } from "../WorkflowRouteAction";
 import { WorkflowRouteActionResult } from "../WorkflowRouteActionResult";
+import { invokeDbHooks } from '../DbHookInvoker';
+import { NextPlugin } from '../../plugins/NextPlugin';
 
 export class StoredProcedureAction extends WorkflowRouteAction {
     constructor(private dbSource: string, private spName: string, private spArgs: any, private passFirstArg?: any) {
@@ -15,7 +17,8 @@ export class StoredProcedureAction extends WorkflowRouteAction {
         );
         const args = context.getCurrentArgs(CurrentArgsSource.all);
         let mappedArgs = context.map(this.spArgs, args);
-        const db = context.nextContext?.[this.dbSource];
+    const db = context.nextContext?.[this.dbSource];
+    const plugin: NextPlugin<any> = context.nextContext.app?.registry?.getPlugin?.(this.dbSource);
 
         if (this.passFirstArg !== undefined) {
             mappedArgs = [this.passFirstArg, ...mappedArgs];
@@ -31,6 +34,9 @@ export class StoredProcedureAction extends WorkflowRouteAction {
         });
 
         const dbClient = db.client.config.client;
+        if(!(await invokeDbHooks(plugin,'before','procedure',{ table: undefined, data: mappedArgs, options: { spName: this.spName }, nextContext: context.nextContext, workflow: context, action: this }))) {
+            return result.setError('Procedure execution cancelled by middleware', 400);
+        }
         switch (dbClient) {
             case 'mssql':
                 {
@@ -117,6 +123,7 @@ export class StoredProcedureAction extends WorkflowRouteAction {
                 return result.setError(`Unsupported database client: ${dbClient}`, 500);
         }
 
-        return result;
+    await invokeDbHooks(plugin,'after','procedure',{ data: mappedArgs, result: (result as any).result, options: { spName: this.spName }, nextContext: context.nextContext, workflow: context, action: this });
+    return result;
     }
 }

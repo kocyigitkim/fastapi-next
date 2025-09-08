@@ -31,6 +31,7 @@ import { WorkflowRouter } from './workflows/WorkflowRouter';
 import { NextApplicationSettings } from "./NextApplicationSettings";
 import { DynamicConfigLoader } from "./DynamicConfigLoader";
 import { initializeWorkflows } from "./workflows";
+import { DbMiddlewareLoader } from './middleware/DbMiddlewareLoader';
 
 export type NextApplicationEventNames = 'preinit' | 'init' | 'start' | 'stop' | 'restart' | 'error' | 'destroy' | 'config';
 
@@ -299,6 +300,12 @@ export class NextApplication extends EventEmitter {
 
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
+        }
+
+        // Auto-load DB middlewares if configured
+        const dbMwSettings = (this._applicationSettings as any).middleware?.db;
+        if(dbMwSettings?.enabled && dbMwSettings?.dirs?.length) {
+            await new DbMiddlewareLoader(this, { enabled: true, dirs: dbMwSettings.dirs, pluginName: dbMwSettings.pluginName }).load();
         }
 
         this.routeBuilder = new NextRouteBuilder(this);

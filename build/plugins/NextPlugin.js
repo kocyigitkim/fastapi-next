@@ -6,6 +6,7 @@ class NextPlugin {
     constructor(name, showInContext = false) {
         this.name = name;
         this.showInContext = showInContext;
+        this._dbMiddlewares = [];
     }
     async init(next) {
     }
@@ -21,5 +22,10 @@ class NextPlugin {
     async healthCheck(next) {
         return NextOptions_1.NextHealthCheckStatus.Dead();
     }
+    registerDbMiddleware(mw) {
+        this._dbMiddlewares.push(mw);
+        this._dbMiddlewares.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+    }
+    getDbMiddlewares() { return this._dbMiddlewares; }
 }
 exports.NextPlugin = NextPlugin;

@@ -106,6 +106,10 @@ export { WorkflowRoute } from './workflows/WorkflowRoute';
 export { WorkflowRouteAction } from './workflows/WorkflowRouteAction';
 export { WorkflowRouteActionResult } from './workflows/WorkflowRouteActionResult';
 export { WorkflowRouter } from './workflows/WorkflowRouter';
+/*
+ENTITY SYSTEM
+*/
+export * from './entities';
 
 /*
 CONFIGURATIONS

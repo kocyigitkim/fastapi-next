@@ -25,6 +25,8 @@ interface RetrieveUserOptions {
     firstNameField?: string
     lastNameField?: string
     additionalFields?: string[]
+    isDeletedField?: string
+    isDeletedValue?: any
     conditions?: (ctx: NextContextBase, username: string, password: string) => Promise<boolean>
     role?: {
         strategy?: UserRoleStrategy
@@ -33,6 +35,12 @@ interface RetrieveUserOptions {
             roleTable: string
             /**  the field in the role table that contains the role id */
             roleIdField: string
+            /**  the field in the role table that contains the role name */
+            roleNameField?: string
+            /**  the field in the role table that contains the role description */
+            roleDescriptionField?: string
+            /**  the field in the role table that contains the role permissions */
+            rolePermissionsField?: string
             /**  the field in the user table that contains the role id */
             relationField: string
         }
@@ -47,6 +55,12 @@ interface RetrieveUserOptions {
             joinUserIdField: string
             /**  the field in the join table that contains the role id */
             joinRoleIdField: string
+            /**  the field in the role table that contains the role name */
+            joinRoleNameField?: string
+            /**  the field in the role table that contains the role description */
+            joinRoleDescriptionField?: string
+            /**  the field in the role table that contains the role permissions */
+            joinRolePermissionsField?: string
             /**  the field in the join table that defines if the role is deleted or not */
             isDeletedField?: string
             /**  the value that defines if the role is deleted or not */
@@ -78,7 +92,7 @@ interface RetrieveUserOptions {
 
 export async function EncodePassword(password: string, options: EncodePasswordOptions, iterations?: number): Promise<string> {
     let result = password;
-    
+
     switch (options.algorithm) {
         case "bcrypt":
             // For bcrypt, we generate a hash with the specified salt rounds
@@ -98,11 +112,11 @@ export async function EncodePassword(password: string, options: EncodePasswordOp
             result = password;
             break;
     }
-    
+
     if (options.iterations && options.iterations > (iterations || 0) && options.algorithm !== 'bcrypt') {
         result = await EncodePassword(result, options, (iterations || 0) + 1);
     }
-    
+
     return result;
 }
 
@@ -126,32 +140,36 @@ export class RetrieveUserBuilder {
                 db = db(ctx);
             if (db instanceof Promise)
                 db = await db.catch(console.error);
-            
+
             // Always query by username only, password verification will be done later in the code
             let query = db(options.userTable).select("*").where(options.userNameField, username);
-            
+
+            if (options.isDeletedField) {
+                query = query.where(options.isDeletedField, '<>', options.isDeletedValue);
+            }
+
             if (options.statusField) {
                 query = query.where(options.statusField, options.desiredStatus);
             }
-            
+
             const result = await query.first().catch(console.error);
-            
+
             if (result) {
                 // Perform password verification in API logic rather than database query
                 const storedPassword = result[options.passwordField];
                 let isPasswordValid = false;
-                
+
                 if (options.encryption) {
                     isPasswordValid = await VerifyPassword(password, storedPassword, options.encryption);
                 } else {
                     // No encryption, direct comparison
                     isPasswordValid = password === storedPassword;
                 }
-                
+
                 if (!isPasswordValid) {
                     return null; // Password verification failed
                 }
-                
+
                 const user = new NextUser();
                 user.id = result[options.idField || "id"];
                 if (options.emailField)
@@ -170,7 +188,7 @@ export class RetrieveUserBuilder {
                         user.additionalInfo[field] = result[field];
                     });
                 }
-                
+
                 if (options.role) {
                     if (options.role.strategy == UserRoleStrategy.RoleId) {
                         var roles = await db(options.role.roleId.roleTable).select("*").where(options.role.roleId.roleIdField, result[options.role.roleId.relationField]).select().catch(console.error);
@@ -191,9 +209,9 @@ export class RetrieveUserBuilder {
                             user.roles = roles.map(role => {
                                 var r = new NextRole();
                                 r.id = role[options.role.roleId.roleIdField];
-                                r.name = role.name;
-                                r.description = role.description;
-                                r.permissions = role.permissions;
+                                r.name = role[options.role.roleId.roleNameField] || role.name;
+                                r.description = role[options.role.roleId.roleDescriptionField] || role.description;
+                                r.permissions = role[options.role.roleId.rolePermissionsField] || role.permissions;
                                 return r;
                             });
                         }
@@ -202,7 +220,29 @@ export class RetrieveUserBuilder {
                         }
                     }
                     else if (options.role.strategy == UserRoleStrategy.RoleJoin) {
-                        var roles = await db(options.role.roleJoin.joinTable).select("*").where(options.role.roleJoin.joinUserIdField, result[options.idField]).select().catch(console.error);
+                        // Join user-role mapping (joinTable) with role table to fetch role fields like name/description
+                        let rolesQuery = db(options.role.roleJoin.joinTable)
+                            .select(`${options.role.roleJoin.joinTable}.*`)
+                            .leftJoin(
+                                options.role.roleJoin.roleTable,
+                                `${options.role.roleJoin.joinTable}.${options.role.roleJoin.joinRoleIdField}`,
+                                `${options.role.roleJoin.roleTable}.${options.role.roleJoin.roleIdField}`
+                            )
+                            .select(`${options.role.roleJoin.roleTable}.*`)
+                            .where(
+                                `${options.role.roleJoin.joinTable}.${options.role.roleJoin.joinUserIdField}`,
+                                result[options.idField]
+                            );
+
+                        if (options.role.roleJoin.isDeletedField) {
+                            rolesQuery = rolesQuery.where(
+                                `${options.role.roleJoin.joinTable}.${options.role.roleJoin.isDeletedField}`,
+                                '<>',
+                                options.role.roleJoin.isDeletedValue
+                            );
+                        }
+
+                        var roles = await rolesQuery.catch(console.error);
                         if (Array.isArray(roles)) {
                             var roleIds = roles.map(role => role[options.role.roleJoin.joinRoleIdField]);
                             var permissions = await db(options.role.rolePermission.rolePermissionTable).select("*").whereIn(options.role.rolePermission.rolePermissionRoleIdField, roleIds).catch(console.error);
@@ -221,9 +261,9 @@ export class RetrieveUserBuilder {
                             user.roles = roles.map(role => {
                                 var r = new NextRole();
                                 r.id = role[options.role.roleJoin.joinRoleIdField];
-                                r.name = role.name;
-                                r.description = role.description;
-                                r.permissions = role.permissions;
+                                r.name = role[options.role.roleJoin.joinRoleNameField] || role.name;
+                                r.description = role[options.role.roleJoin.joinRoleDescriptionField] || role.description;
+                                r.permissions = role[options.role.roleJoin.joinRolePermissionsField] || role.permissions;
                                 return r;
                             });
                         }
@@ -238,10 +278,10 @@ export class RetrieveUserBuilder {
                         user.roles = [];
                     }
                 }
-                
+
                 return user;
             }
-            
+
             return null;
         }
     }

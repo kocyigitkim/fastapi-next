@@ -29,4 +29,11 @@ export interface NextApplicationSettings {
       roles?: string;
     };
   };
+  middleware?: {
+    db?: {
+      enabled?: boolean;
+      pluginName?: string;
+      dirs?: string[]; // directories to scan
+    }
+  }
 } 

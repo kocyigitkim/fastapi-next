@@ -31,6 +31,13 @@ export * from "./actions/ParallelAction";
 export * from "./actions/SwitchAction";
 export * from "./actions/CacheAction";
 export * from "./actions/LimiterAction";
+// Entity actions
+export * from './actions/EntityRetrieveManyAction';
+export * from './actions/EntityRetrieveOneAction';
+export * from './actions/EntityCreateAction';
+export * from './actions/EntityUpdateAction';
+export * from './actions/EntityDeleteAction';
+export * from './actions/EntityUpsertWithRelationsAction';
 
 // Workflow initialization function with support for dynamic loading
 export async function initializeWorkflows(

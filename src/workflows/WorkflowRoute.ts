@@ -188,13 +188,15 @@ export class WorkflowRoute {
         db?: string,
         table: string,
         where: any,
-        projection?: string[]
+        projection?: string[],
+        customWhere?: (context: WorkflowExecuteContext, query: any, args?: any) => any | Promise<any>
     }) {
         return this.action(new RetrieveOneAction(
             options.db || DEFAULT_DB_PLUGIN_NAME,
             options.table,
             options.where,
-            options.projection
+            options.projection,
+            options.customWhere
         ));
     }
     custom(func: (ctx: WorkflowExecuteContext) => Promise<WorkflowRouteActionResult>) {
@@ -213,7 +215,8 @@ export class WorkflowRoute {
         sortDirField?: string,
         pageIndexField?: string,
         pageSizeField?: string,
-        where?: any
+        where?: any,
+        customWhere?: (context: WorkflowExecuteContext, query: any, args?: any) => any | Promise<any>
     }) {
         return this.action(new RetrieveManyAction(
             options.db || DEFAULT_DB_PLUGIN_NAME,
@@ -226,7 +229,8 @@ export class WorkflowRoute {
             options.sortDirField,
             options.pageIndexField,
             options.pageSizeField,
-            options.where
+            options.where,
+            options.customWhere
         ));
     }
 

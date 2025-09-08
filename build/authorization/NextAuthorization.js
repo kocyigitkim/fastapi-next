@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextAuthorization = void 0;
 const path_1 = __importDefault(require("path"));
+const path_to_regexp_1 = require("path-to-regexp");
 const NextAuthorizationBase_1 = require("./NextAuthorizationBase");
 class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
     constructor() {
         super();
         this.enableTeamAuthorization = false;
+        this.pathMatcherCache = new Map();
     }
     async init() {
         if (!this.retrieveCurrentUser) {
@@ -86,18 +88,85 @@ class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
         }
     }
     hasPermissionForPath(permissions, requestedPath) {
-        return Boolean(permissions.find(p => {
-            var currentPath = path_1.default.normalize((p.Path || "")).replace(/\\/g, "/");
-            // ? if star is used, it means all paths
-            if (currentPath === '*') {
+        const normalizedRequest = this.normalizePath(requestedPath);
+        for (const perm of permissions) {
+            const pattern = this.normalizePattern(perm === null || perm === void 0 ? void 0 : perm.Path);
+            if (!pattern)
+                continue;
+            // '*' => allow all
+            if (pattern === '*')
                 return true;
+            // Trailing '*' => prefix match (fast path)
+            if (typeof pattern === 'string') {
+                if (pattern.length > 1 && pattern.endsWith('*')) {
+                    const prefix = pattern.slice(0, -1);
+                    if (normalizedRequest.startsWith(prefix))
+                        return true;
+                }
             }
-            // ? if ends with star and starts with permission path, it means all paths
-            if (currentPath.endsWith('*')) {
-                return currentPath.substring(0, currentPath.length - 1) === requestedPath;
+            // RegExp support (if provided by custom retrievals)
+            if (pattern instanceof RegExp) {
+                if (pattern.test(normalizedRequest))
+                    return true;
+                continue;
             }
-            return requestedPath == currentPath;
-        }));
+            // Express-style dynamic routes via path-to-regexp
+            if (typeof pattern === 'string') {
+                const matcher = this.getMatcher(pattern);
+                if (matcher(normalizedRequest))
+                    return true;
+            }
+        }
+        return false;
+    }
+    normalizePath(p) {
+        if (!p)
+            return '/';
+        const n = path_1.default.normalize(p).replace(/\\/g, '/');
+        // ensure it starts with '/'
+        return n.startsWith('/') ? n : `/${n}`;
+    }
+    normalizePattern(p) {
+        if (!p)
+            return undefined;
+        if (p instanceof RegExp)
+            return p;
+        let s = String(p).trim();
+        if (s === '*')
+            return '*';
+        s = s.replace(/\\/g, '/');
+        // normalize '//' and ensure leading slash for paths (except if it's a full wildcard)
+        if (!s.startsWith('/'))
+            s = `/${s}`;
+        // collapse multiple slashes
+        s = s.replace(/\/+/g, '/');
+        return s;
+    }
+    getMatcher(pattern) {
+        let fn = this.pathMatcherCache.get(pattern);
+        if (fn)
+            return fn;
+        // Convert simple glob-like patterns inside segments to a matcher where feasible
+        // Example: '/users/*' => prefix path handled earlier; here we keep pattern as-is for param matching like '/users/:id'
+        const m = (0, path_to_regexp_1.match)(pattern, {
+            decode: decodeURIComponent,
+            sensitive: false,
+            end: true
+        });
+        fn = (p) => {
+            const target = this.normalizePath(p);
+            if (m(target))
+                return true;
+            // Try toggling trailing slash to emulate Express's non-strict behavior
+            if (target !== '/') {
+                if (target.endsWith('/'))
+                    return Boolean(m(target.slice(0, -1)));
+                return Boolean(m(`${target}/`));
+            }
+            return false;
+        };
+        this.pathMatcherCache.set(pattern, fn);
+        return fn;
     }
     async check(ctx, permission) {
         if (!this.retrieveCurrentUser) {
@@ -119,19 +188,29 @@ class NextAuthorization extends NextAuthorizationBase_1.NextAuthorizationBase {
         }
         if (ctx.app.jwtController) {
             const jwtOptions = ctx.app.options.security.jwt;
-            if (jwtOptions) {
-                if (Array.isArray(jwtOptions === null || jwtOptions === void 0 ? void 0 : jwtOptions.anonymousPaths)) {
-                    for (const p of jwtOptions.anonymousPaths) {
-                        if (p instanceof RegExp) {
-                            if (p.test(ctx.path)) {
-                                return true;
-                            }
-                        }
-                        else {
-                            if (p == ctx.path) {
-                                return true;
-                            }
-                        }
+            if (jwtOptions && Array.isArray(jwtOptions === null || jwtOptions === void 0 ? void 0 : jwtOptions.anonymousPaths)) {
+                const anonReqPath = this.normalizePath(ctx.path);
+                for (const p of jwtOptions.anonymousPaths) {
+                    if (p instanceof RegExp) {
+                        if (p.test(anonReqPath))
+                            return true;
+                        continue;
+                    }
+                    const pattern = this.normalizePattern(p);
+                    if (!pattern)
+                        continue;
+                    if (pattern === '*')
+                        return true;
+                    if (typeof pattern === 'string' && pattern.endsWith('*')) {
+                        const prefix = pattern.slice(0, -1);
+                        if (anonReqPath.startsWith(prefix))
+                            return true;
+                        continue;
+                    }
+                    if (typeof pattern === 'string') {
+                        const matcher = this.getMatcher(pattern);
+                        if (matcher(anonReqPath))
+                            return true;
                     }
                 }
             }

@@ -30,6 +30,7 @@ const NextOpenApiBuilder_1 = require("./client/NextOpenApiBuilder");
 const ConfigurationReader_1 = require("./config/ConfigurationReader");
 const DynamicConfigLoader_1 = require("./DynamicConfigLoader");
 const workflows_1 = require("./workflows");
+const DbMiddlewareLoader_1 = require("./middleware/DbMiddlewareLoader");
 class NextApplication extends events_1.default {
     on(eventName, listener) {
         super.on(eventName, listener);
@@ -263,11 +264,16 @@ class NextApplication extends events_1.default {
         current[parts[parts.length - 1]] = value;
     }
     async init() {
-        var _a;
+        var _a, _b, _c;
         (0, NextInitializationHeader_1.NextInitializationHeader)();
         this.emit('preinit', this);
         for (var plugin of this.registry.getPlugins()) {
             await plugin.init(this);
+        }
+        // Auto-load DB middlewares if configured
+        const dbMwSettings = (_a = this._applicationSettings.middleware) === null || _a === void 0 ? void 0 : _a.db;
+        if ((dbMwSettings === null || dbMwSettings === void 0 ? void 0 : dbMwSettings.enabled) && ((_b = dbMwSettings === null || dbMwSettings === void 0 ? void 0 : dbMwSettings.dirs) === null || _b === void 0 ? void 0 : _b.length)) {
+            await new DbMiddlewareLoader_1.DbMiddlewareLoader(this, { enabled: true, dirs: dbMwSettings.dirs, pluginName: dbMwSettings.pluginName }).load();
         }
         this.routeBuilder = new NextRouteBuilder_1.NextRouteBuilder(this);
         if (Array.isArray(this.objectRouters)) {
@@ -290,7 +296,7 @@ class NextApplication extends events_1.default {
             this.socket.router = this.socketRouter;
             this.socketRouter.registerRouters(this.options.socketRouterDirs);
             // Register health check for socket Redis adapter if enabled
-            if (this.healthProfiler && ((_a = this.options.sockets.redis) === null || _a === void 0 ? void 0 : _a.enabled)) {
+            if (this.healthProfiler && ((_c = this.options.sockets.redis) === null || _c === void 0 ? void 0 : _c.enabled)) {
                 this.registerHealthCheck("socketRedis", {
                     async healthCheck() {
                         try {

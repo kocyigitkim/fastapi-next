@@ -1,6 +1,6 @@
 {
   "name": "fastapi-next",
-  "version": "1.6.2",
+  "version": "1.6.4",
   "description": "Next Generation of Fast Api",
   "main": "./build/index.js",
   "types": "./build/ts-types/index.d.ts",
@@ -47,6 +47,7 @@
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
     "passport-oauth2": "^1.8.0",
+    "path-to-regexp": "^8.3.0",
     "pidusage": "^3.0.2",
     "redis": "^4.7.0",
     "swagger-ui-express": "^5.0.1",
