@@ -152,24 +152,21 @@ class FileSystemProvider {
         return files;
     }
     async setFile(filePath, data) {
-        return new Promise((resolve, reject) => {
-            if (!fs_1.default.existsSync(this.config.rootPath)) {
-                fs_1.default.mkdirSync(this.config.rootPath);
-            }
-            fs_1.default.writeFile(path_1.default.join(this.config.rootPath, filePath), data, (err) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve();
-                }
-            });
-        });
+        try {
+            await fs_1.default.promises.access(this.config.rootPath);
+        }
+        catch (_a) {
+            await fs_1.default.promises.mkdir(this.config.rootPath, { recursive: true });
+        }
+        await fs_1.default.promises.writeFile(path_1.default.join(this.config.rootPath, filePath), data);
     }
     async setFileStream(filePath, stream) {
-        return new Promise((resolve, reject) => {
-            if (!fs_1.default.existsSync(this.config.rootPath)) {
-                fs_1.default.mkdirSync(this.config.rootPath);
+        return new Promise(async (resolve, reject) => {
+            try {
+                await fs_1.default.promises.access(this.config.rootPath);
+            }
+            catch (_a) {
+                await fs_1.default.promises.mkdir(this.config.rootPath, { recursive: true });
             }
             var writeStream = fs_1.default.createWriteStream(path_1.default.join(this.config.rootPath, filePath));
             stream.pipe(writeStream);

@@ -137,23 +137,19 @@ export class FileSystemProvider {
         return files;
     }
     public async setFile(filePath: string, data: Buffer): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!fs.existsSync(this.config.rootPath)) {
-                fs.mkdirSync(this.config.rootPath);
-            }
-            fs.writeFile(path.join(this.config.rootPath, filePath), data, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        try {
+            await fs.promises.access(this.config.rootPath);
+        } catch {
+            await fs.promises.mkdir(this.config.rootPath, { recursive: true });
+        }
+        await fs.promises.writeFile(path.join(this.config.rootPath, filePath), data);
     }
     public async setFileStream(filePath: string, stream: Stream): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!fs.existsSync(this.config.rootPath)) {
-                fs.mkdirSync(this.config.rootPath);
+        return new Promise(async (resolve, reject) => {
+            try {
+                await fs.promises.access(this.config.rootPath);
+            } catch {
+                await fs.promises.mkdir(this.config.rootPath, { recursive: true });
             }
             var writeStream = fs.createWriteStream(path.join(this.config.rootPath, filePath));
             stream.pipe(writeStream);
