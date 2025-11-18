@@ -51,7 +51,7 @@ export class NextContextBase implements INextContextBase {
     //#endregion
 
     //#region Request Parameters
-    public all: any;
+    private _all: any;
     public body: any;
     public query: any;
     public params: any;
@@ -80,6 +80,17 @@ export class NextContextBase implements INextContextBase {
     public config: any;
     //#endregion
 
+    public get all(): any {
+        if (!this._all) {
+            this._all = { ...this.params, ...this.query, ...this.body };
+        }
+        return this._all;
+    }
+
+    public set all(value: any) {
+        this._all = value;
+    }
+
     public get token(): string | null {
         return (this.req as any).token || (this.req as any).access_token || (this.req as any).accessToken || null;
     }
@@ -92,7 +103,7 @@ export class NextContextBase implements INextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
-        this.all = { ...req.params, ...req.query, ...req.body };
+        // Lazy initialization of 'all' property via getter to avoid unnecessary object spreading
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;

@@ -113,10 +113,17 @@ export class EntityUpsertWithRelationsAction extends WorkflowRouteAction {
       await trx(childEntity.table).where({ [foreignKey]: parentId }).del();
     }
 
+    // Optimize: Batch fetch all existing records instead of one-by-one lookups
+    const pkValues = relData.map(item => item[childPk.name]).filter(Boolean);
+    const existingRecords = pkValues.length > 0 
+      ? await trx(childEntity.table).whereIn(childPk.column||childPk.name, pkValues).select()
+      : [];
+    const existingMap = new Map(existingRecords.map(r => [r[childPk.column||childPk.name], r]));
+
     for(const item of relData) {
       item[foreignKey] = parentId;
       const pkVal = item[childPk.name];
-      const exists = pkVal ? await trx(childEntity.table).where({ [childPk.column||childPk.name]: pkVal }).first() : null;
+      const exists = pkVal ? existingMap.get(pkVal) : null;
       if(exists && (rInput.mode==='upsert' || rInput.mode==='replace')) {
         const updateObj: any = {};
         for(const f of childEntity.fields) {

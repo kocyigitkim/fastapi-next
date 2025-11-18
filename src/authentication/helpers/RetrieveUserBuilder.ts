@@ -199,11 +199,29 @@ export class RetrieveUserBuilder {
                                 var permissionIds = permissions.map(permission => permission[options.role.rolePermission.rolePermissionPermissionIdField]);
                                 var permissionNames = await db(options.role.permission.permissionTable).select("*").whereIn(options.role.permission.permissionIdField, permissionIds).catch(console.error);
                                 if (Array.isArray(permissionNames)) {
-                                    roles.forEach(role => {
-                                        role.permissions = permissions.filter(permission => permission[options.role.rolePermission.rolePermissionRoleIdField] == role[options.role.roleId.roleIdField]).map(permission => {
-                                            return permissionNames.find(permissionName => permissionName[options.role.permission.permissionIdField] == permission[options.role.rolePermission.rolePermissionPermissionIdField])[options.role.permission.permissionNameField];
-                                        });
-                                    });
+                                    // Create lookup maps to optimize nested operations
+                                    const permissionMap = new Map(permissionNames.map(p => [p[options.role.permission.permissionIdField], p[options.role.permission.permissionNameField]]));
+                                    const permissionsByRole = new Map<any, any[]>();
+                                    
+                                    // Group permissions by role in a single pass
+                                    for (const permission of permissions) {
+                                        const roleId = permission[options.role.rolePermission.rolePermissionRoleIdField];
+                                        const permissionId = permission[options.role.rolePermission.rolePermissionPermissionIdField];
+                                        const permissionName = permissionMap.get(permissionId);
+                                        
+                                        if (permissionName) {
+                                            if (!permissionsByRole.has(roleId)) {
+                                                permissionsByRole.set(roleId, []);
+                                            }
+                                            permissionsByRole.get(roleId).push(permissionName);
+                                        }
+                                    }
+                                    
+                                    // Assign permissions to roles
+                                    for (const role of roles) {
+                                        const roleId = role[options.role.roleId.roleIdField];
+                                        role.permissions = permissionsByRole.get(roleId) || [];
+                                    }
                                 }
                             }
                             user.roles = roles.map(role => {
@@ -250,11 +268,29 @@ export class RetrieveUserBuilder {
                                 var permissionIds = permissions.map(permission => permission[options.role.rolePermission.rolePermissionPermissionIdField]);
                                 var permissionNames = await db(options.role.permission.permissionTable).select("*").whereIn(options.role.permission.permissionIdField, permissionIds).catch(console.error);
                                 if (Array.isArray(permissionNames)) {
-                                    roles.forEach(role => {
-                                        role.permissions = permissions.filter(permission => permission[options.role.rolePermission.rolePermissionRoleIdField] == role[options.role.roleJoin.joinRoleIdField]).map(permission => {
-                                            return permissionNames.find(permissionName => permissionName[options.role.permission.permissionIdField] == permission[options.role.rolePermission.rolePermissionPermissionIdField])[options.role.permission.permissionNameField];
-                                        });
-                                    });
+                                    // Create lookup maps to optimize nested operations
+                                    const permissionMap = new Map(permissionNames.map(p => [p[options.role.permission.permissionIdField], p[options.role.permission.permissionNameField]]));
+                                    const permissionsByRole = new Map<any, any[]>();
+                                    
+                                    // Group permissions by role in a single pass
+                                    for (const permission of permissions) {
+                                        const roleId = permission[options.role.rolePermission.rolePermissionRoleIdField];
+                                        const permissionId = permission[options.role.rolePermission.rolePermissionPermissionIdField];
+                                        const permissionName = permissionMap.get(permissionId);
+                                        
+                                        if (permissionName) {
+                                            if (!permissionsByRole.has(roleId)) {
+                                                permissionsByRole.set(roleId, []);
+                                            }
+                                            permissionsByRole.get(roleId).push(permissionName);
+                                        }
+                                    }
+                                    
+                                    // Assign permissions to roles
+                                    for (const role of roles) {
+                                        const roleId = role[options.role.roleJoin.joinRoleIdField];
+                                        role.permissions = permissionsByRole.get(roleId) || [];
+                                    }
                                 }
                             }
 

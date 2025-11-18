@@ -18,42 +18,27 @@ export class FileSystemSessionStore extends ISessionStore {
     }
     async get(id, callback) {
         var filePath = this.rootPath + "/" + id;
-        var exists = await new Promise((resolve) => {
-            resolve(fs.existsSync(filePath));
-        });
-        if (exists) {
-            // check file age
-            var stat: fs.Stats = await new Promise((resolve) => {
-                resolve(fs.statSync(filePath));
-            });
+        try {
+            // Use async stat to check file existence and age
+            const stat = await fs.promises.stat(filePath);
             if (stat.isFile()) {
                 var ttl = this.ttl;
                 if (ttl) {
                     var now = new Date();
                     var fileAge = now.valueOf() - stat.mtime.valueOf();
                     if (fileAge > ttl) {
-                        await new Promise((resolve) => {
-                            fs.unlink(filePath, resolve);
-                        });
+                        await fs.promises.unlink(filePath);
                         if (callback) callback("Session expired", null);
                         return;
                     }
                 }
             }
-            var data = await new Promise((resolve) => {
-                fs.readFile(filePath, (err, data) => {
-                    if (err) {
-                        resolve(null);
-                    }
-                    else {
-                        resolve(JSON.parse(data.toString()));
-                    }
-                });
-            });
+            const data = await fs.promises.readFile(filePath, 'utf8');
+            const parsed = JSON.parse(data);
             if (callback)
-                callback(null, data);
-        }
-        else {
+                callback(null, parsed);
+        } catch (err) {
+            // File doesn't exist or can't be read
             if (callback)
                 callback("Session not exists", null);
         }
@@ -61,18 +46,20 @@ export class FileSystemSessionStore extends ISessionStore {
     async set(id, value, callback) {
         var filePath = this.rootPath + "/" + id;
         var data = JSON.stringify(value);
-        await new Promise((resolve) => {
-            fs.writeFile(filePath, data, resolve);
-        });
+        await fs.promises.writeFile(filePath, data);
         if (callback)
             callback(null, value);
     }
     async destroy(id, callback) {
         var filePath = this.rootPath + "/" + id;
-        await new Promise((resolve) => {
-            fs.unlink(filePath, resolve);
-        });
-        if (callback)
-            callback(null, this);
+        try {
+            await fs.promises.unlink(filePath);
+            if (callback)
+                callback(null, this);
+        } catch (err) {
+            // File doesn't exist, ignore error
+            if (callback)
+                callback(null, this);
+        }
     }
 }

@@ -23,23 +23,29 @@ export class NextFSLocalFile extends NextFSFile {
         return fs.createReadStream(this.fullPath);
     }
     public async getSize(): Promise<number> {
-        return fs.statSync(this.fullPath).size;
+        const stat = await fs.promises.stat(this.fullPath);
+        return stat.size;
     }
     public async exists(): Promise<boolean> {
-        return fs.existsSync(this.fullPath);
+        try {
+            await fs.promises.access(this.fullPath);
+            return true;
+        } catch {
+            return false;
+        }
     }
     public async writeBuffer(buffer: Buffer): Promise<void> {
-        fs.writeFileSync(this.fullPath, buffer);
+        await fs.promises.writeFile(this.fullPath, buffer);
     }
     public async appendBuffer(buffer: Buffer): Promise<void> {
-        fs.appendFileSync(this.fullPath, buffer);
+        await fs.promises.appendFile(this.fullPath, buffer);
     }
     public async readBuffer(size: number = -1): Promise<Buffer> {
-        return fs.readFileSync(this.fullPath);
+        return await fs.promises.readFile(this.fullPath);
     }
     public async delete(): Promise<boolean> {
         try {
-            fs.unlinkSync(this.fullPath);
+            await fs.promises.unlink(this.fullPath);
             return true;
         }
         catch (err) {
@@ -48,7 +54,7 @@ export class NextFSLocalFile extends NextFSFile {
     }
     public async move(newPath: string): Promise<boolean> {
         try {
-            fs.renameSync(this.fullPath, newPath);
+            await fs.promises.rename(this.fullPath, newPath);
             return true;
         }
         catch (err) {

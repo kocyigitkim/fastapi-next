@@ -116,62 +116,57 @@ class FileSystemProvider {
         });
     }
     async getFileListRecursive(dirPath) {
-        return new Promise((resolve, reject) => {
-            var files = [];
-            var walk = function (dir) {
-                fs_1.default.readdirSync(dir).forEach(function (file) {
-                    var newPath = path_1.default.join(dir, file);
-                    if (fs_1.default.statSync(newPath).isDirectory()) {
-                        walk(newPath);
-                    }
-                    else {
-                        files.push(newPath);
-                    }
-                });
-            };
-            walk(path_1.default.join(this.config.rootPath, dirPath));
-            resolve(files);
-        });
-    }
-    async getFileListRecursiveWithFilter(dirPath, filter) {
-        return new Promise((resolve, reject) => {
-            var files = [];
-            var walk = function (dir) {
-                fs_1.default.readdirSync(dir).forEach(function (file) {
-                    var newPath = path_1.default.join(dir, file);
-                    if (fs_1.default.statSync(newPath).isDirectory()) {
-                        walk(newPath);
-                    }
-                    else {
-                        if (filter(newPath)) {
-                            files.push(newPath);
-                        }
-                    }
-                });
-            };
-            walk(path_1.default.join(this.config.rootPath, dirPath));
-            resolve(files);
-        });
-    }
-    async setFile(filePath, data) {
-        return new Promise((resolve, reject) => {
-            if (!fs_1.default.existsSync(this.config.rootPath)) {
-                fs_1.default.mkdirSync(this.config.rootPath);
-            }
-            fs_1.default.writeFile(path_1.default.join(this.config.rootPath, filePath), data, (err) => {
-                if (err) {
-                    reject(err);
+        const files = [];
+        const walk = async (dir) => {
+            const entries = await fs_1.default.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path_1.default.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    await walk(fullPath);
                 }
                 else {
-                    resolve();
+                    files.push(fullPath);
                 }
-            });
-        });
+            }
+        };
+        await walk(path_1.default.join(this.config.rootPath, dirPath));
+        return files;
+    }
+    async getFileListRecursiveWithFilter(dirPath, filter) {
+        const files = [];
+        const walk = async (dir) => {
+            const entries = await fs_1.default.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path_1.default.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    await walk(fullPath);
+                }
+                else {
+                    if (filter(fullPath)) {
+                        files.push(fullPath);
+                    }
+                }
+            }
+        };
+        await walk(path_1.default.join(this.config.rootPath, dirPath));
+        return files;
+    }
+    async setFile(filePath, data) {
+        try {
+            await fs_1.default.promises.access(this.config.rootPath);
+        }
+        catch (_a) {
+            await fs_1.default.promises.mkdir(this.config.rootPath, { recursive: true });
+        }
+        await fs_1.default.promises.writeFile(path_1.default.join(this.config.rootPath, filePath), data);
     }
     async setFileStream(filePath, stream) {
-        return new Promise((resolve, reject) => {
-            if (!fs_1.default.existsSync(this.config.rootPath)) {
-                fs_1.default.mkdirSync(this.config.rootPath);
+        return new Promise(async (resolve, reject) => {
+            try {
+                await fs_1.default.promises.access(this.config.rootPath);
+            }
+            catch (_a) {
+                await fs_1.default.promises.mkdir(this.config.rootPath, { recursive: true });
             }
             var writeStream = fs_1.default.createWriteStream(path_1.default.join(this.config.rootPath, filePath));
             stream.pipe(writeStream);

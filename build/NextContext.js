@@ -3,6 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NextContextBase = void 0;
 class NextContextBase {
     //#endregion
+    get all() {
+        if (!this._all) {
+            this._all = Object.assign(Object.assign(Object.assign({}, this.params), this.query), this.body);
+        }
+        return this._all;
+    }
+    set all(value) {
+        this._all = value;
+    }
     get token() {
         return this.req.token || this.req.access_token || this.req.accessToken || null;
     }
@@ -13,7 +22,7 @@ class NextContextBase {
         this.body = req.body;
         this.query = req.query;
         this.params = req.params;
-        this.all = Object.assign(Object.assign(Object.assign({}, req.params), req.query), req.body);
+        // Lazy initialization of 'all' property via getter to avoid unnecessary object spreading
         this.cookies = req.cookies;
         this.headers = req.headers;
         this.protocol = req.protocol;

@@ -42,10 +42,10 @@ export class ConfigurationReader {
     }
 
     private static async initFromFile() {
-        const readConfigFile = () => {
+        const readConfigFile = async () => {
             ConfigurationReader.lastUpdated = new Date();
             try {
-                const fileContent = fs.readFileSync(ConfigurationReader.configPath, 'utf8');
+                const fileContent = await fs.promises.readFile(ConfigurationReader.configPath, 'utf8');
                 if (ConfigurationReader.configType == ConfigurationFileType.JSON) {
                     ConfigurationReader.current = JSON.parse(fileContent) || {};
                 }
@@ -58,13 +58,13 @@ export class ConfigurationReader {
             }
         };
         try {
-            fs.watchFile(ConfigurationReader.configPath, (cur, prev) => {
-                readConfigFile();
+            fs.watchFile(ConfigurationReader.configPath, async (cur, prev) => {
+                await readConfigFile();
             });
         } catch (err) {
             console.error("Error watching config file:", err);
         }
-        readConfigFile();
+        await readConfigFile();
     }
 
     private static async initFromEnv() {
