@@ -116,42 +116,40 @@ class FileSystemProvider {
         });
     }
     async getFileListRecursive(dirPath) {
-        return new Promise((resolve, reject) => {
-            var files = [];
-            var walk = function (dir) {
-                fs_1.default.readdirSync(dir).forEach(function (file) {
-                    var newPath = path_1.default.join(dir, file);
-                    if (fs_1.default.statSync(newPath).isDirectory()) {
-                        walk(newPath);
-                    }
-                    else {
-                        files.push(newPath);
-                    }
-                });
-            };
-            walk(path_1.default.join(this.config.rootPath, dirPath));
-            resolve(files);
-        });
+        const files = [];
+        const walk = async (dir) => {
+            const entries = await fs_1.default.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path_1.default.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    await walk(fullPath);
+                }
+                else {
+                    files.push(fullPath);
+                }
+            }
+        };
+        await walk(path_1.default.join(this.config.rootPath, dirPath));
+        return files;
     }
     async getFileListRecursiveWithFilter(dirPath, filter) {
-        return new Promise((resolve, reject) => {
-            var files = [];
-            var walk = function (dir) {
-                fs_1.default.readdirSync(dir).forEach(function (file) {
-                    var newPath = path_1.default.join(dir, file);
-                    if (fs_1.default.statSync(newPath).isDirectory()) {
-                        walk(newPath);
+        const files = [];
+        const walk = async (dir) => {
+            const entries = await fs_1.default.promises.readdir(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path_1.default.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    await walk(fullPath);
+                }
+                else {
+                    if (filter(fullPath)) {
+                        files.push(fullPath);
                     }
-                    else {
-                        if (filter(newPath)) {
-                            files.push(newPath);
-                        }
-                    }
-                });
-            };
-            walk(path_1.default.join(this.config.rootPath, dirPath));
-            resolve(files);
-        });
+                }
+            }
+        };
+        await walk(path_1.default.join(this.config.rootPath, dirPath));
+        return files;
     }
     async setFile(filePath, data) {
         return new Promise((resolve, reject) => {
