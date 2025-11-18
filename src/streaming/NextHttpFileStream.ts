@@ -25,8 +25,8 @@ export interface NextHttpBufferStreamOptions {
 export class NextHttpFileStream {
     public static async streamFile(context: NextContextBase, options: NextHttpFileStreamOptions) {
         if (options.filePath) {
-            if (fs.existsSync(options.filePath)) {
-                var stat = fs.statSync(options.filePath);
+            try {
+                const stat = await fs.promises.stat(options.filePath);
                 var total = stat.size;
                 var range = context.req.headers.range;
                 var positions = range ? range.replace(/bytes=/, "").split("-") : ["0", (total - 1).toString()];
@@ -52,6 +52,8 @@ export class NextHttpFileStream {
                 context.res.writeHead(206, head);
                 file.pipe(context.res);
                 return;
+            } catch (err) {
+                // File doesn't exist or can't be accessed
             }
         }
         context.res.status(404);
