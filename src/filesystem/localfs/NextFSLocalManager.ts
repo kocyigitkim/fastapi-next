@@ -9,17 +9,23 @@ import { NextFSDirectory } from '../NextFSDirectory';
 
 export class NextFSLocalManager extends NextFSManager {
     public async get(path: string): Promise<NextFSObject> {
-        var isFile = false;
-        if (fs.existsSync(path)) {
-            isFile = fs.statSync(path).isFile();
-        }
-        if (isFile) {
-            return new NextFSLocalFile(path);
+        try {
+            const stat = await fs.promises.stat(path);
+            if (stat.isFile()) {
+                return new NextFSLocalFile(path);
+            }
+        } catch (err) {
+            // If file doesn't exist or error, return directory
         }
         return new NextFSLocalDirectory(path);
     }
     public async exists(path: string): Promise<boolean> {
-        return fs.existsSync(path);
+        try {
+            await fs.promises.access(path);
+            return true;
+        } catch {
+            return false;
+        }
     }
     public async createFile(path: string): Promise<NextFSObject> {
         return new NextFSLocalFile(path);
@@ -29,7 +35,7 @@ export class NextFSLocalManager extends NextFSManager {
     }
     public async delete(path: string): Promise<boolean> {
         try {
-            fs.unlinkSync(path);
+            await fs.promises.unlink(path);
             return true;
         }
         catch (err) {
@@ -38,7 +44,7 @@ export class NextFSLocalManager extends NextFSManager {
     }
     public async move(path: string, newPath: string): Promise<boolean> {
         try {
-            fs.renameSync(path, newPath);
+            await fs.promises.rename(path, newPath);
             return true;
         }
         catch (err) {
@@ -47,7 +53,7 @@ export class NextFSLocalManager extends NextFSManager {
     }
     public async copy(path: string, newPath: string): Promise<boolean> {
         try {
-            fs.copyFileSync(path, newPath);
+            await fs.promises.copyFile(path, newPath);
             return true;
         }
         catch (err) {
@@ -57,7 +63,7 @@ export class NextFSLocalManager extends NextFSManager {
     public async rename(path: string, newName: string): Promise<boolean> {
         try {
             var newPath = path.replace(/[^\/]*$/, newName);
-            fs.renameSync(path, newPath);
+            await fs.promises.rename(path, newPath);
             return true;
         }
         catch (err) {
@@ -66,7 +72,7 @@ export class NextFSLocalManager extends NextFSManager {
     }
     public static async upload(path: string, file: string | Buffer): Promise<boolean> {
         try {
-            fs.writeFileSync(path, file);
+            await fs.promises.writeFile(path, file);
             return true;
         }
         catch (err) {

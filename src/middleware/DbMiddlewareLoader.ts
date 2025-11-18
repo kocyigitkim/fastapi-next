@@ -22,8 +22,12 @@ export class DbMiddlewareLoader {
     }
     for(const dir of this.options.dirs) {
       const abs = path.isAbsolute(dir)?dir:path.join(process.cwd(), dir);
-      if(!fs.existsSync(abs)) continue;
-      const files = fs.readdirSync(abs).filter(f=>/\.(js|ts)$/.test(f) && !f.endsWith('.d.ts'));
+      try {
+        await fs.promises.access(abs);
+      } catch {
+        continue; // Directory doesn't exist, skip it
+      }
+      const files = (await fs.promises.readdir(abs)).filter(f=>/\.(js|ts)$/.test(f) && !f.endsWith('.d.ts'));
       for(const file of files) {
         const full = path.join(abs,file);
         try {

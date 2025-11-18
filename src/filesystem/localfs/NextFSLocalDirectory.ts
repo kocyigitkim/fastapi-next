@@ -26,6 +26,11 @@ export class NextFSLocalDirectory extends NextFSDirectory {
         return null;
     }
     public async exists(): Promise<boolean> {
-        return fs.existsSync(this.fullPath);
+        try {
+            await fs.promises.access(this.fullPath);
+            return true;
+        } catch {
+            return false;
+        }
     }
 }
