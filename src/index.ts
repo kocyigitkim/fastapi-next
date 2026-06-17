@@ -31,7 +31,7 @@ SESSION MANAGEMENT
 export { NextSessionManager, NextSessionOptions } from './session/NextSessionManager'
 export { ISessionStore } from './session/ISessionStore'
 export { InMemorySessionStore, InMemorySessionConfig } from './session/InMemorySessionStore'
-export { RedisSessionStore, RedisOptions } from './session/RedisSessionStore'
+export { RedisSessionStore, RedisOptions, HotCacheOptions } from './session/RedisSessionStore'
 
 /*
 AUTHENTICATION

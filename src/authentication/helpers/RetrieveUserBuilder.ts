@@ -28,6 +28,12 @@ interface RetrieveUserOptions {
     isDeletedField?: string
     isDeletedValue?: any
     conditions?: (ctx: NextContextBase, username: string, password: string) => Promise<boolean>
+    userTypeField?: string
+    userPassword?: {
+        verifyByUserTypeField: {
+            [userType: string]: (ctx: NextContextBase, user: NextUser, password: string) => Promise<boolean>;
+        }
+    },
     role?: {
         strategy?: UserRoleStrategy
         roleId?: {
@@ -159,11 +165,44 @@ export class RetrieveUserBuilder {
                 const storedPassword = result[options.passwordField];
                 let isPasswordValid = false;
 
-                if (options.encryption) {
-                    isPasswordValid = await VerifyPassword(password, storedPassword, options.encryption);
+                // Check if custom user type verification is configured
+                if (options.userTypeField && options.userPassword?.verifyByUserTypeField) {
+                    const userType = result[options.userTypeField];
+                    const customVerifier = options.userPassword.verifyByUserTypeField?.[userType];
+                    
+                    if (customVerifier) {
+                        // Create temporary user object for custom verification
+                        const tempUser = new NextUser();
+                        tempUser.id = result[options.idField || "id"];
+                        if (options.emailField) tempUser.email = result[options.emailField];
+                        if (options.phoneField) tempUser.phone = result[options.phoneField];
+                        if (options.firstNameField) tempUser.name = result[options.firstNameField];
+                        if (options.lastNameField) tempUser.surname = result[options.lastNameField];
+                        if (options.userNameField) tempUser.userName = result[options.userNameField];
+                        if (options.userTypeField) tempUser.additionalInfo = { [options.userTypeField]: userType };
+                        if(tempUser.additionalInfo){
+                            if(options.additionalFields && Array.isArray(options.additionalFields)){
+                                options.additionalFields.forEach(field => {
+                                    tempUser.additionalInfo![field] = result[field];
+                                });
+                            }
+                        }
+                        isPasswordValid = await customVerifier(ctx, tempUser, password);
+                    } else {
+                        // Fallback to default verification if no custom verifier for this user type
+                        if (options.encryption) {
+                            isPasswordValid = await VerifyPassword(password, storedPassword, options.encryption);
+                        } else {
+                            isPasswordValid = password === storedPassword;
+                        }
+                    }
                 } else {
-                    // No encryption, direct comparison
-                    isPasswordValid = password === storedPassword;
+                    // Standard password verification
+                    if (options.encryption) {
+                        isPasswordValid = await VerifyPassword(password, storedPassword, options.encryption);
+                    } else {
+                        isPasswordValid = password === storedPassword;
+                    }
                 }
 
                 if (!isPasswordValid) {
@@ -182,11 +221,16 @@ export class RetrieveUserBuilder {
                     user.surname = result[options.lastNameField];
                 if (options.userNameField)
                     user.userName = result[options.userNameField];
-                if (Array.isArray(options.additionalFields)) {
+                if (Array.isArray(options.additionalFields) || options.userTypeField) {
                     user.additionalInfo = {};
-                    options.additionalFields.forEach(field => {
-                        user.additionalInfo[field] = result[field];
-                    });
+                    if (Array.isArray(options.additionalFields)) {
+                        options.additionalFields.forEach(field => {
+                            user.additionalInfo[field] = result[field];
+                        });
+                    }
+                    if (options.userTypeField) {
+                        user.additionalInfo[options.userTypeField] = result[options.userTypeField];
+                    }
                 }
 
                 if (options.role) {
@@ -245,10 +289,21 @@ export class RetrieveUserBuilder {
                         var roles = await rolesQuery.catch(console.error);
                         if (Array.isArray(roles)) {
                             var roleIds = roles.map(role => role[options.role.roleJoin.joinRoleIdField]);
-                            var permissions = await db(options.role.rolePermission.rolePermissionTable).select("*").whereIn(options.role.rolePermission.rolePermissionRoleIdField, roleIds).catch(console.error);
+                            var permissions = await db(options.role.rolePermission.rolePermissionTable).select("*")
+                                .whereIn(options.role.rolePermission.rolePermissionRoleIdField, roleIds)
+                                .where(b => {
+                                    if (options.role.rolePermission.isDeletedField) {
+                                        b.where(options.role.rolePermission.isDeletedField, '<>', options.role.rolePermission.isDeletedValue);
+                                    }
+                                    return b;
+                                })
+                                .catch(console.error);
                             if (Array.isArray(permissions)) {
                                 var permissionIds = permissions.map(permission => permission[options.role.rolePermission.rolePermissionPermissionIdField]);
-                                var permissionNames = await db(options.role.permission.permissionTable).select("*").whereIn(options.role.permission.permissionIdField, permissionIds).catch(console.error);
+                                var permissionNames = await db(options.role.permission.permissionTable)
+                                    .select("*")
+                                    .whereIn(options.role.permission.permissionIdField, permissionIds)
+                                    .catch(console.error);
                                 if (Array.isArray(permissionNames)) {
                                     roles.forEach(role => {
                                         role.permissions = permissions.filter(permission => permission[options.role.rolePermission.rolePermissionRoleIdField] == role[options.role.roleJoin.joinRoleIdField]).map(permission => {

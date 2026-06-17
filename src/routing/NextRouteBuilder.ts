@@ -395,6 +395,10 @@ export class NextRouteBuilder {
                 });
             }
             else {
+                if(dir.name.endsWith(".d.ts") || dir.name.endsWith(".d.js")) {
+                    return;
+                }
+                
                 if (dir.name.endsWith('.ts') || dir.name.endsWith('.js')) {
                     files.push({
                         routePath: path.join(scanPath, path.basename(dir.name, path.extname(dir.name))),

@@ -63,7 +63,12 @@ export class NextAuthorization extends NextAuthorizationBase {
                 const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
                 const roles: NextRole[] = (user as any)?.roles;
                 if (Array.isArray(roles) && roles.length > 0) {
-                    return roles[0];
+                    // Normalize role shape to have Id/Name regardless of source casing
+                    const first: any = roles[0] as any;
+                    return {
+                        Id: (first?.Id ?? first?.id),
+                        Name: (first?.Name ?? first?.name)
+                    } as NextRole;
                 }
                 return {
                     Id: 0,
@@ -76,17 +81,28 @@ export class NextAuthorization extends NextAuthorizationBase {
                 const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
                 const roles: NextRole[] = (user as any)?.roles;
                 if (Array.isArray(roles) && roles.length > 0) {
-                    let permissions: string[] = [];
-                    for (var role of roles.filter(r => r.Id == RoleId)) {
-                        permissions = permissions.concat((role as any)?.permissions || []);
+                    // When RoleId is provided, collect only that role's permissions.
+                    // If RoleId is null/undefined, aggregate across all roles.
+                    const roleList = (RoleId === undefined || RoleId === null)
+                        ? roles
+                        : roles.filter((r: any) => ((r as any)?.Id ?? (r as any)?.id) == RoleId);
+
+                    const seen = new Set<string>();
+                    const aggregated: string[] = [];
+                    for (const role of roleList as any[]) {
+                        const perms: string[] = (role?.permissions || []) as string[];
+                        for (const p of perms) {
+                            if (!seen.has(p)) {
+                                seen.add(p);
+                                aggregated.push(p);
+                            }
+                        }
                     }
 
-                    return permissions.map(permission => {
-                        return {
-                            Path: permission,
-                            Id: permission
-                        };
-                    });
+                    return aggregated.map(permission => ({
+                        Path: permission,
+                        Id: permission
+                    }));
                 }
                 return [];
             };
@@ -106,17 +122,23 @@ export class NextAuthorization extends NextAuthorizationBase {
                 const user: NextUser = (ctx.session as any)?.nextAuthentication?.user;
                 const teams: NextTeam[] = (user as any)?.teams;
                 if (Array.isArray(teams) && teams.length > 0) {
-                    let permissions: string[] = [];
-                    for (var team of teams.filter(t => t.Id == TeamId)) {
-                        permissions = permissions.concat((team as any)?.permissions || []);
+                    // When TeamId is provided, collect only that team's permissions.
+                    // If TeamId is null/undefined, aggregate across all teams.
+                    const teamList = (TeamId === undefined || TeamId === null)
+                        ? teams as any[]
+                        : (teams as any[]).filter(t => ((t as any)?.Id ?? (t as any)?.id) == TeamId);
+                    const seen = new Set<string>();
+                    const aggregated: string[] = [];
+                    for (const team of teamList) {
+                        const perms: string[] = (team as any)?.permissions || [];
+                        for (const p of perms) {
+                            if (!seen.has(p)) {
+                                seen.add(p);
+                                aggregated.push(p);
+                            }
+                        }
                     }
-
-                    return permissions.map(permission => {
-                        return {
-                            Path: permission,
-                            Id: permission
-                        };
-                    });
+                    return aggregated.map(permission => ({ Path: permission, Id: permission }));
                 }
                 return [];
             };
@@ -257,7 +279,7 @@ export class NextAuthorization extends NextAuthorizationBase {
             var r = permission.custom({
                 ctx,
                 user,
-                role: await this.retrieveUserRole(ctx, user.Id),
+                role: await this.retrieveUserRole(ctx, (user as any)?.Id ?? (user as any)?.id),
                 permissions: [],
                 requestedPath
             });
@@ -266,7 +288,7 @@ export class NextAuthorization extends NextAuthorizationBase {
         
         // ? Record based authozization
         if (this.retrieveAuthorizedRecord) {
-            const role = await this.retrieveUserRole(ctx, user.Id);
+            const role = await this.retrieveUserRole(ctx, (user as any)?.Id ?? (user as any)?.id);
             const permissions = await this.retrieveRolePermissions(ctx, role.Id);
             var authRecordStatus = await this.retrieveAuthorizedRecord(ctx, user, role, permissions);
             if (authRecordStatus.success && authRecordStatus.name) {
@@ -276,9 +298,24 @@ export class NextAuthorization extends NextAuthorizationBase {
         }
         
         // ? Default authorization - Role based
-        const role = await this.retrieveUserRole(ctx, user.Id);
+        const role = await this.retrieveUserRole(ctx, (user as any)?.Id ?? (user as any)?.id);
         if (role) {
-            const rolePermissions = await this.retrieveRolePermissions(ctx, role.Id);
+            // 1) Try aggregated permissions directly from session roles (handles multi-role users)
+            const sessionRoles: any[] = Array.isArray((user as any)?.roles) ? (user as any).roles : [];
+            if (sessionRoles.length > 0) {
+                const dedup = new Set<string>();
+                for (const sr of sessionRoles) {
+                    const perms: string[] = (sr?.permissions || []) as string[];
+                    for (const p of perms) dedup.add(p);
+                }
+                const aggregated = Array.from(dedup).map(p => ({ Path: p, Id: p }));
+                if (this.hasPermissionForPath(aggregated, requestedPath)) {
+                    return true;
+                }
+            }
+
+            // 2) Fall back to delegate-based retrieval (keeps custom strategies working)
+            const rolePermissions = await this.retrieveRolePermissions(ctx, (role as any)?.Id ?? (role as any)?.id);
             if (this.hasPermissionForPath(rolePermissions, requestedPath)) {
                 return true;
             }
@@ -286,10 +323,10 @@ export class NextAuthorization extends NextAuthorizationBase {
         
         // ? Team based authorization (optional)
         if (this.enableTeamAuthorization && this.retrieveUserTeams && this.retrieveTeamPermissions) {
-            const teams = await this.retrieveUserTeams(ctx, user.Id);
+            const teams = await this.retrieveUserTeams(ctx, (user as any)?.Id ?? (user as any)?.id);
             if (teams && teams.length > 0) {
                 for (const team of teams) {
-                    const teamPermissions = await this.retrieveTeamPermissions(ctx, team.Id);
+                    const teamPermissions = await this.retrieveTeamPermissions(ctx, (team as any)?.Id ?? (team as any)?.id);
                     if (this.hasPermissionForPath(teamPermissions, requestedPath)) {
                         return true;
                     }

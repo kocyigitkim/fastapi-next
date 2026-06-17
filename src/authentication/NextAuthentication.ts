@@ -62,14 +62,7 @@ function registerAuthenticationMethodToApplication(_this: NextAuthentication, me
         if (result.validationCode) {
             delete result.validationCode;
         }
-        if (result.additionalInfo) {
-            delete result.additionalInfo;
-        }
-        if (result.user) {
-            if (result.user.additionalInfo) {
-                delete result.user.additionalInfo;
-            }
-        }
+        
         (result as any).message = result.error;
         delete result.error;
         return result;
