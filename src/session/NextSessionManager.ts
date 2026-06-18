@@ -89,7 +89,11 @@ export class NextSessionManager implements IHealth {
         if (!sessionId && isCookieEnabled) {
             sessionId = req.cookies["sessionid"];
         }
-        var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
+        var xffHeader = req.header("x-forwarded-for");
+        var forwardedIP = (xffHeader ? xffHeader.split(',')[0].trim() : null)
+            || req.header("x-envoy-external-address")
+            || req.header("x-request-client-ip")
+            || req.header("x-client-ip");
         var ip = formatIP(req.socket.remoteAddress);
         if (forwardedIP) ip = formatIP(forwardedIP);
         var isV6 = checkIfValidIPV6(ip);
@@ -113,12 +117,6 @@ export class NextSessionManager implements IHealth {
             result.userAgent = userAgent;
 
             req.session = result?.session || {};
-            if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
-                req.session = {};
-                req.sessionId = uuid();
-                req.userAgent = userAgent;
-                sessionId = req.sessionId;
-            }
         }
         else {
             sessionId = uuid();

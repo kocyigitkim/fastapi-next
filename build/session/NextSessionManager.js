@@ -79,7 +79,11 @@ class NextSessionManager {
         if (!sessionId && isCookieEnabled) {
             sessionId = req.cookies["sessionid"];
         }
-        var forwardedIP = req.header("x-envoy-external-address") || (req.header("x-forwarded-for") || req.header("x-request-client-ip") || req.header("x-client-ip"));
+        var xffHeader = req.header("x-forwarded-for");
+        var forwardedIP = (xffHeader ? xffHeader.split(',')[0].trim() : null)
+            || req.header("x-envoy-external-address")
+            || req.header("x-request-client-ip")
+            || req.header("x-client-ip");
         var ip = (0, utils_1.formatIP)(req.socket.remoteAddress);
         if (forwardedIP)
             ip = (0, utils_1.formatIP)(forwardedIP);
@@ -106,12 +110,6 @@ class NextSessionManager {
             }
             result.userAgent = userAgent;
             req.session = (result === null || result === void 0 ? void 0 : result.session) || {};
-            if (result && ((isV6 ? (result.ipv6 != ip) : (result.ip != ip)) || result.userAgent != userAgent)) {
-                req.session = {};
-                req.sessionId = (0, uuid_1.v4)();
-                req.userAgent = userAgent;
-                sessionId = req.sessionId;
-            }
         }
         else {
             sessionId = (0, uuid_1.v4)();
